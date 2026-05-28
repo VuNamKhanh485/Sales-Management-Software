@@ -1,7 +1,7 @@
-package com.g4fpt.sms.service;
+package com.g4fpt.sms.branch.service;
 
-import com.g4fpt.sms.dto.request.BranchRequest;
-import com.g4fpt.sms.entity.Branch;
+import com.g4fpt.sms.branch.dto.request.BranchRequest;
+import com.g4fpt.sms.branch.entity.Branch;
 
 import java.util.List;
 
