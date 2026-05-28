@@ -1,9 +1,9 @@
-package com.g4fpt.sms.service.impl;
+package com.g4fpt.sms.branch.service.impl;
 
-import com.g4fpt.sms.dto.request.BranchRequest;
-import com.g4fpt.sms.entity.Branch;
-import com.g4fpt.sms.repository.BranchRepository;
-import com.g4fpt.sms.service.BranchService;
+import com.g4fpt.sms.branch.dto.request.BranchRequest;
+import com.g4fpt.sms.branch.entity.Branch;
+import com.g4fpt.sms.branch.repository.BranchRepository;
+import com.g4fpt.sms.branch.service.BranchService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

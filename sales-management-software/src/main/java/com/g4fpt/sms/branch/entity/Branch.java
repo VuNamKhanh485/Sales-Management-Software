@@ -1,4 +1,4 @@
-package com.g4fpt.sms.entity;
+package com.g4fpt.sms.branch.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
