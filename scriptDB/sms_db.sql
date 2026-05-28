@@ -13,7 +13,7 @@ CREATE TABLE Category (
 	id BIGINT PRIMARY KEY AUTO_INCREMENT,
 	name VARCHAR(255) not null,
 	description TEXT not null,
-	status VARCHAR(255) not null,
+	status ENUM('ACTIVE','INACTIVE') not null,
 	created_at datetime not null,
 	updated_at datetime
 );
@@ -32,7 +32,7 @@ CREATE TABLE Product (
 	brand_id BIGINT,
 	name VARCHAR(255) not null,
 	description TEXT not null,
-    status VARCHAR(255) not null,
+    status ENUM('ACTIVE','INACTIVE') not null,
     note VARCHAR(255) not null,
 	created_at datetime not null,
 	updated_at datetime  
