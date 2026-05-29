@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${isEdit} ? 'Sửa Voucher' : 'Thêm Voucher'"></title>
+</head>
+<body>
+<h4 th:text="${isEdit} ? 'Sửa Voucher' : 'Thêm Voucher mới'"></h4>
+
+<div th:if="${errorMessage}" th:text="${errorMessage}" style="color: red;"></div>
+
+<form th:action="${isEdit} ? @{/vouchers/edit/{id}(id=${voucherId})} : @{/vouchers/create}"
+      th:object="${request}" method="post">
+
+    <div>
+        <label>Mã voucher *</label><br>
+        <input type="text" th:field="*{code}" placeholder="VD: SALE50">
+        <div th:if="${#fields.hasErrors('code')}" th:errors="*{code}" style="color: red;"></div>
+    </div>
+    <br>
+
+    <div>
+        <label>Tên voucher *</label><br>
+        <input type="text" th:field="*{nameVoucher}" placeholder="VD: Giảm 50k">
+        <div th:if="${#fields.hasErrors('nameVoucher')}" th:errors="*{nameVoucher}" style="color: red;"></div>
+    </div>
+    <br>
+
+    <div>
+        <label>Loại giảm giá *</label><br>
+        <select th:field="*{discountType}">
+            <option value="">-- Chọn loại --</option>
+            <option value="PERCENT">Phần trăm (%)</option>
+            <option value="FIXED">Số tiền cố định (đ)</option>
+        </select>
+        <div th:if="${#fields.hasErrors('discountType')}" th:errors="*{discountType}" style="color: red;"></div>
+    </div>
+    <br>
+
+    <div>
+        <label>Giá trị giảm *</label><br>
+        <input type="number" th:field="*{discountValue}" step="0.01" min="0">
+        <div th:if="${#fields.hasErrors('discountValue')}" th:errors="*{discountValue}" style="color: red;"></div>
+    </div>
+    <br>
+
+    <div>
+        <label>Đơn tối thiểu (đ)</label><br>
+        <input type="number" th:field="*{minOrderValue}" step="0.01" min="0">
+    </div>
+    <br>
+
+    <div>
+        <label>Giảm tối đa (đ)</label><br>
+        <input type="number" th:field="*{maxDiscountAmount}" step="0.01" min="0">
+        <small>(Áp dụng cho loại giảm theo %)</small>
+    </div>
+    <br>
+
+    <div>
+        <label>Giới hạn sử dụng</label><br>
+        <input type="number" th:field="*{usageLimit}" min="1">
+        <div th:if="${#fields.hasErrors('usageLimit')}" th:errors="*{usageLimit}" style="color: red;"></div>
+    </div>
+    <br>
+
+    <div>
+        <label>Trạng thái</label><br>
+        <select th:field="*{status}">
+            <option value="ACTIVE">Hoạt động</option>
+            <option value="INACTIVE">Ngừng hoạt động</option>
+        </select>
+    </div>
+    <br>
+
+    <div>
+        <label>Ngày bắt đầu *</label><br>
+        <input type="date" th:field="*{startDate}">
+        <div th:if="${#fields.hasErrors('startDate')}" th:errors="*{startDate}" style="color: red;"></div>
+    </div>
+    <br>
+
+    <div>
+        <label>Ngày kết thúc *</label><br>
+        <input type="date" th:field="*{endDate}">
+        <div th:if="${#fields.hasErrors('endDate')}" th:errors="*{endDate}" style="color: red;"></div>
+    </div>
+
+    <hr>
+    <button type="submit" th:text="${isEdit} ? 'Cập nhật' : 'Tạo voucher'"></button>
+    <a href="/vouchers">Hủy</a>
+</form>
+</body>
+</html>
