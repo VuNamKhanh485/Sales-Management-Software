@@ -1,9 +1,7 @@
-package com.g4fpt.sms.entity;
+package com.g4fpt.sms.product.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -17,12 +15,14 @@ import java.util.List;
 @Table(name = "brand")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @ToString
 public class Brand {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(nullable = false, unique = true)
     private String brandName;

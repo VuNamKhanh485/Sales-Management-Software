@@ -1,13 +1,11 @@
-package com.g4fpt.sms.entity;
+package com.g4fpt.sms.product.entity;
 
-import com.g4fpt.sms.enums.ProductStatus;
+import com.g4fpt.sms.product.enums.ProductStatus;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * version 1
@@ -19,6 +17,8 @@ import java.time.LocalDateTime;
 @Table(name = "product")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @ToString
 public class Product {
 
@@ -49,6 +49,10 @@ public class Product {
 
     @Column(nullable = false)
     private LocalDateTime createdDate;
+
+    @OneToMany(mappedBy = "product")
+    @ToString.Exclude
+    private List<ProductUnit> productunits;
 
     @PrePersist
     public void prePersist() {

@@ -1,6 +1,6 @@
-package com.g4fpt.sms.entity;
+package com.g4fpt.sms.product.entity;
 
-import com.g4fpt.sms.enums.CategoryStatus;
+import com.g4fpt.sms.product.enums.CategoryStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,11 +16,13 @@ import java.util.List;
 @Entity
 @Table(name = "category")
 @Getter @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @ToString
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(unique = true, nullable = false)
     private String name;
