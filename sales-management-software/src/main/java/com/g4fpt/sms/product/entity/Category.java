@@ -18,7 +18,7 @@ import java.util.List;
 @Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
+@ToString(of = {"id", "name"})
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
