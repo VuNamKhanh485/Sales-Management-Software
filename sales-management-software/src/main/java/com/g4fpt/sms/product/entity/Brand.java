@@ -17,7 +17,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
+@ToString(of = {"id", "name"})
 public class Brand {
 
     @Id
@@ -25,13 +25,14 @@ public class Brand {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String brandName;
+    private String name;
 
     @Column(nullable = false)
     private String createdDate;
 
     @OneToMany (fetch = FetchType.LAZY, mappedBy = "brand")
     private List<Product> products;
+
     @PrePersist
     public void prePersist() {
         createdDate = LocalDate.now().toString();
