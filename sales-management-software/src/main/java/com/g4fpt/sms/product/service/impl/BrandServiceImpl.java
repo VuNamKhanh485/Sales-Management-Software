@@ -39,7 +39,12 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
-    public Brand update(BrandRequest brandRequest) {
+    public Brand update(long id, BrandRequest brandRequest) {
+        Brand brand = findById(id);
+        if(brand != null) {
+            brand.setName(brandRequest.getBrandName());
+            return brandRepository.save(brand);
+        }
         return null;
     }
 

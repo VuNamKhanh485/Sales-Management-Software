@@ -50,8 +50,8 @@ public class Product {
     @Column(nullable = false)
     private LocalDateTime createdDate;
 
-    @OneToMany(mappedBy = "product")
-    @ToString.Exclude
+    @OneToMany(mappedBy = "product",
+                cascade = CascadeType.ALL)
     private List<ProductUnit> productunits;
 
     @PrePersist

@@ -11,7 +11,7 @@ public interface BrandService {
     List<Brand> findAll();
     Brand findById(long id);
     void deleteById(long id);
-    Brand update(BrandRequest brandRequest);
+    Brand update(long id, BrandRequest brandRequest);
 
 
 }
