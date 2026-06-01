@@ -4,10 +4,11 @@ import com.g4fpt.sms.product.dto.CategoryRequest;
 import com.g4fpt.sms.product.entity.Category;
 import com.g4fpt.sms.product.repository.CategoryRepository;
 import com.g4fpt.sms.product.service.CategoryService;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
+@Service
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
 

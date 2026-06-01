@@ -6,10 +6,12 @@ import com.g4fpt.sms.product.entity.Product;
 import com.g4fpt.sms.product.entity.ProductUnit;
 import com.g4fpt.sms.product.repository.ProductRepository;
 import com.g4fpt.sms.product.service.ProductService;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Service
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
@@ -28,7 +30,7 @@ public class ProductServiceImpl implements ProductService {
             productUnit.setConventionValue(productUnitRequest.getConventionValue());
             productUnit.setPrice(productUnitRequest.getUnitPrice());
             productUnit.setBarcodeUnit(productUnitRequest.getBarcodeUnit());
-            productUnit.setIsBaseUnit(productUnitRequest.getInBaseUnit());
+            productUnit.setIsBaseUnit(productUnitRequest.getIsBaseUnit());
             productUnit.setSku(productUnitRequest.getSku());
 
             product.getProductunits().add(productUnit);
