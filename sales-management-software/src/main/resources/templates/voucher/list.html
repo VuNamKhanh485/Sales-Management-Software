@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Voucher</title>
+</head>
+<body>
+<h3>Quản lý Voucher</h3>
+<p><a href="/vouchers/create">+ Thêm voucher</a></p>
+
+<div th:if="${successMessage}" th:text="${successMessage}" style="color: green;"></div>
+
+<form method="get" action="/vouchers">
+    <input type="text" name="keyword" placeholder="Tìm theo mã hoặc tên..." th:value="${keyword}">
+
+    <select name="status">
+        <option value="">-- Tất cả trạng thái --</option>
+        <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Đang hoạt động</option>
+        <option value="INACTIVE" th:selected="${status == 'INACTIVE'}">Ngừng hoạt động</option>
+    </select>
+
+    <button type="submit">Tìm kiếm</button>
+    <a href="/vouchers">Xóa lọc</a>
+</form>
+
+<br>
+
+<table border="1" cellspacing="0" cellpadding="5">
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Mã</th>
+        <th>Tên voucher</th>
+        <th>Loại giảm</th>
+        <th>Giá trị</th>
+        <th>Thời hạn</th>
+        <th>Đã dùng</th>
+        <th>Trạng thái</th>
+        <th>Thao tác</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="v, stat : ${vouchers}">
+        <td th:text="${stat.count}"></td>
+        <td th:text="${v.code}"></td>
+        <td th:text="${v.nameVoucher}"></td>
+        <td th:text="${v.discountType == 'PERCENT' ? 'Phần trăm' : 'Cố định'}"></td>
+        <td th:text="${v.discountType == 'PERCENT' ? v.discountValue + '%' : v.discountValue + ' đ'}"></td>
+        <td th:text="${v.startDate + ' → ' + v.endDate}"></td>
+        <td th:text="${v.usedCount + ' / ' + (v.usageLimit ?: '∞')}"></td>
+        <td th:text="${v.status.name() == 'ACTIVE' ? 'Hoạt động' : 'Ngừng'}"></td>
+        <td>
+            <a th:href="@{/vouchers/edit/{id}(id=${v.id})}">Sửa</a> |
+            <a th:href="@{/vouchers/delete/{id}(id=${v.id})}">Xóa</a>
+        </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(vouchers)}">
+        <td colspan="9" align="center">Không có voucher nào</td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

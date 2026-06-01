@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Xác nhận xóa</title>
+</head>
+<body>
+<h3>Xác nhận xóa voucher</h3>
+<p>Bạn có chắc muốn xóa voucher <strong th:text="${voucher.code}"></strong> không?</p>
+<p style="color: red;">Hành động này không thể hoàn tác.</p>
+
+<div style="display: flex; gap: 10px;">
+    <form th:action="@{/vouchers/delete/{id}(id=${voucher.id})}" method="post">
+        <button type="submit">Xác nhận xóa</button>
+    </form>
+    <a href="/vouchers">Hủy</a>
+</div>
+</body>
+</html>
