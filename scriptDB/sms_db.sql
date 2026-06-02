@@ -190,7 +190,7 @@ CREATE TABLE CustomerRank(
 	id BIGINT PRIMARY KEY AUTO_INCREMENT,
 	name VARCHAR(255) not null,
 	discount_rate dec(10,2),
-	condition_total_revenue dec(10,2),
+	condition_total_revenue dec(15,2),
 	description VARCHAR(255) not null
 );
 

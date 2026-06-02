@@ -3,61 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <title>Quản lý Voucher</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --apple-blue: #0071e3;
+            --apple-blue-hover: #0077ed;
+            --apple-bg: #f5f5f7;
+            --apple-card: #ffffff;
+            --text-main: #1d1d1f;
+            --text-sub: #86868b;
+            --border-color: #d2d2d7;
+            --success-color: #34c759;
+            --danger-color: #ff3b30;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--apple-bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            background: var(--apple-card);
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+        h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+        .btn-add {
+            background-color: var(--apple-blue);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .btn-add:hover {
+            background-color: var(--apple-blue-hover);
+            transform: translateY(-1px);
+        }
+        .alert-success {
+            background-color: #eafaf1;
+            color: var(--success-color);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .search-form {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .search-form input, .search-form select {
+            padding: 10px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 14px;
+            background: #fafafa;
+            outline: none;
+            transition: border-color 0.2s;
+            min-width: 200px;
+        }
+        .search-form input:focus, .search-form select:focus {
+            border-color: var(--apple-blue);
+            background: #fff;
+        }
+        .btn-search {
+            background-color: #e8e8ed;
+            color: var(--text-main);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-search:hover {
+            background-color: #d2d2d7;
+        }
+        .btn-clear {
+            color: var(--apple-blue);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .btn-clear:hover {
+            text-decoration: underline;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f5f5f7;
+            color: var(--text-sub);
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        td {
+            padding: 16px;
+            font-size: 14px;
+            border-bottom: 1px solid #f0f0f2;
+            color: #333333;
+        }
+        tr:hover td {
+            background-color: #fafafa;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .badge-active {
+            background-color: #e6f7ed;
+            color: var(--success-color);
+        }
+        .badge-inactive {
+            background-color: #fdf2f2;
+            color: var(--danger-color);
+        }
+        .actions a {
+            color: var(--apple-blue);
+            text-decoration: none;
+            font-weight: 500;
+            margin-right: 12px;
+        }
+        .actions a.delete {
+            color: var(--danger-color);
+        }
+        .actions a:hover {
+            text-decoration: underline;
+        }
+        .empty-row {
+            text-align: center;
+            color: var(--text-sub);
+            padding: 30px;
+        }
+    </style>
 </head>
 <body>
-<h3>Quản lý Voucher</h3>
-<p><a href="/vouchers/create">+ Thêm voucher</a></p>
+<div class="container">
+    <div class="header-section">
+        <h3>Quản lý Voucher</h3>
+        <a href="/vouchers/create" class="btn-add"><i class="fas fa-plus"></i> Thêm voucher</a>
+    </div>
 
-<div th:if="${successMessage}" th:text="${successMessage}" style="color: green;"></div>
+    <div th:if="${successMessage}" th:text="${successMessage}" class="alert-success"></div>
 
-<form method="get" action="/vouchers">
-    <input type="text" name="keyword" placeholder="Tìm theo mã hoặc tên..." th:value="${keyword}">
+    <form method="get" action="/vouchers" class="search-form">
+        <input type="text" name="keyword" placeholder="Tìm theo mã hoặc tên..." th:value="${keyword}">
 
-    <select name="status">
-        <option value="">-- Tất cả trạng thái --</option>
-        <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Đang hoạt động</option>
-        <option value="INACTIVE" th:selected="${status == 'INACTIVE'}">Ngừng hoạt động</option>
-    </select>
+        <select name="status">
+            <option value="">Tất cả trạng thái</option>
+            <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Đang hoạt động</option>
+            <option value="INACTIVE" th:selected="${status == 'INACTIVE'}">Ngừng hoạt động</option>
+        </select>
 
-    <button type="submit">Tìm kiếm</button>
-    <a href="/vouchers">Xóa lọc</a>
-</form>
+        <button type="submit" class="btn-search">Tìm kiếm</button>
+        <a href="/vouchers" class="btn-clear">Xóa lọc</a>
+    </form>
 
-<br>
-
-<table border="1" cellspacing="0" cellpadding="5">
-    <thead>
-    <tr>
-        <th>#</th>
-        <th>Mã</th>
-        <th>Tên voucher</th>
-        <th>Loại giảm</th>
-        <th>Giá trị</th>
-        <th>Thời hạn</th>
-        <th>Đã dùng</th>
-        <th>Trạng thái</th>
-        <th>Thao tác</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="v, stat : ${vouchers}">
-        <td th:text="${stat.count}"></td>
-        <td th:text="${v.code}"></td>
-        <td th:text="${v.nameVoucher}"></td>
-        <td th:text="${v.discountType == 'PERCENT' ? 'Phần trăm' : 'Cố định'}"></td>
-        <td th:text="${v.discountType == 'PERCENT' ? v.discountValue + '%' : v.discountValue + ' đ'}"></td>
-        <td th:text="${v.startDate + ' → ' + v.endDate}"></td>
-        <td th:text="${v.usedCount + ' / ' + (v.usageLimit ?: '∞')}"></td>
-        <td th:text="${v.status.name() == 'ACTIVE' ? 'Hoạt động' : 'Ngừng'}"></td>
-        <td>
-            <a th:href="@{/vouchers/edit/{id}(id=${v.id})}">Sửa</a> |
-            <a th:href="@{/vouchers/delete/{id}(id=${v.id})}">Xóa</a>
-        </td>
-    </tr>
-    <tr th:if="${#lists.isEmpty(vouchers)}">
-        <td colspan="9" align="center">Không có voucher nào</td>
-    </tr>
-    </tbody>
-</table>
+    <table>
+        <thead>
+        <tr>
+            <th style="width: 50px;">#</th>
+            <th>Mã</th>
+            <th>Tên voucher</th>
+            <th>Loại giảm</th>
+            <th>Giá trị</th>
+            <th>Thời hạn</th>
+            <th>Đã dùng</th>
+            <th>Trạng thái</th>
+            <th style="width: 120px;">Thao tác</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="v, stat : ${vouchers}">
+            <td th:text="${stat.count}"></td>
+            <td><strong th:text="${v.code}" style="color: var(--text-main);"></strong></td>
+            <td th:text="${v.nameVoucher}"></td>
+            <td th:text="${v.discountType == 'PERCENT' ? 'Phần trăm' : 'Cố định'}"></td>
+            <td th:text="${v.discountType == 'PERCENT' ? v.discountValue + '%' : v.discountValue + ' đ'}" style="font-weight: 600;"></td>
+            <td th:text="${v.startDate + ' → ' + v.endDate}" style="font-size: 13px; color: var(--text-sub);"></td>
+            <td th:text="${v.usedCount + ' / ' + (v.usageLimit ?: '∞')}"></td>
+            <td>
+                <span th:class="${v.status.name() == 'ACTIVE' ? 'badge badge-active' : 'badge badge-inactive'}"
+                      th:text="${v.status.name() == 'ACTIVE' ? 'Hoạt động' : 'Ngừng'}"></span>
+            </td>
+            <td class="actions">
+                <a th:href="@{/vouchers/edit/{id}(id=${v.id})}">Sửa</a>
+                <a th:href="@{/vouchers/delete/{id}(id=${v.id})}" class="delete">Xóa</a>
+            </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(vouchers)}">
+            <td colspan="9" class="empty-row">Không có voucher nào được tìm thấy.</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
 </body>
 </html>
