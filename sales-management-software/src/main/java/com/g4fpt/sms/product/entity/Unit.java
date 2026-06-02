@@ -34,7 +34,7 @@ public class Unit {
     private String name;
 
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdDate;
 
     @OneToMany(mappedBy = "unit")

@@ -30,13 +30,13 @@ public class Brand {
     private String name;
 
     @Column(nullable = false)
-    private String createdDate;
+    private String createdAt;
 
     @OneToMany (fetch = FetchType.LAZY, mappedBy = "brand")
     private List<Product> products;
 
     @PrePersist
     public void prePersist() {
-        createdDate = LocalDate.now().toString();
+        createdAt = LocalDate.now().toString();
     }
 }

@@ -36,9 +36,10 @@ public class Category {
     @Column (nullable = false)
     private CategoryStatus status;
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdDate;
 
+    @Column(name = "updated_at")
     private LocalDateTime updateDate;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "category")

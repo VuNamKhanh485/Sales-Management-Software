@@ -1,17 +1,17 @@
 package com.g4fpt.sms.product.repository;
 
-import com.g4fpt.sms.product.entity.Brand;
-import com.g4fpt.sms.product.entity.Category;
 import com.g4fpt.sms.product.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    List<Product> findByBrand(Long brandId);
+    List<Product> findByBrand_Id(Long brandId);
 
-    List<Product> findByCategory(Long categoryId);
+    List<Product> findByCategory_Id(Long categoryId);
 
     List<Product> findByNameContainingIgnoreCase(String name);
 

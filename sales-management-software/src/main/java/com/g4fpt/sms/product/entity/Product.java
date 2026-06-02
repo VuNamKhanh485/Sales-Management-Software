@@ -47,9 +47,10 @@ public class Product {
 
     private String note;
 
+    @Column(name = "updated_at")
     private LocalDateTime updatedDate;
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdDate;
 
     @OneToMany(mappedBy = "product",
