@@ -19,24 +19,25 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString(of = {"id", "name"})
+@ToString(onlyExplicitlyIncluded = true)
 public class Unit {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @ToString.Include
     private Long id;
 
     @Size(max = 255)
     @NotNull
     @Column(name = "name", nullable = false)
+    @ToString.Include
     private String name;
 
-    @ToString.Exclude
+
     @Column(name = "created_at")
     private LocalDateTime createdDate;
 
     @OneToMany(mappedBy = "unit")
-    @ToString.Exclude
     private List<ProductUnit> productunits;
 
     @PrePersist

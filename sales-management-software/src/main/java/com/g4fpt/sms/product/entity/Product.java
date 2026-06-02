@@ -19,11 +19,12 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString(of = {"id", "name"})
+@ToString(onlyExplicitlyIncluded = true)
 public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @ToString.Include
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -35,6 +36,7 @@ public class Product {
     private Brand brand;
 
     @Column(nullable = false, unique = true)
+    @ToString.Include
     private String name;
 
     private String description;

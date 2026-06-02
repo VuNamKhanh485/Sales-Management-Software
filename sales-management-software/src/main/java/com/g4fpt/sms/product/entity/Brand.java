@@ -17,14 +17,16 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString(of = {"id", "name"})
+@ToString(onlyExplicitlyIncluded = true)
 public class Brand {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @ToString.Include
     private Long id;
 
     @Column(nullable = false, unique = true)
+    @ToString.Include
     private String name;
 
     @Column(nullable = false)

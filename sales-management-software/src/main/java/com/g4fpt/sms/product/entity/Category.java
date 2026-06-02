@@ -18,13 +18,15 @@ import java.util.List;
 @Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString(of = {"id", "name"})
+@ToString(onlyExplicitlyIncluded = true)
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @ToString.Include
     private Long id;
 
     @Column(unique = true, nullable = false)
+    @ToString.Include
     private String name;
 
     @Column(nullable = false, columnDefinition = "TEXT")

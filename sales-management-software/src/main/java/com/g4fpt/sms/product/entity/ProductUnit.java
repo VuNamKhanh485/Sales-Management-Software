@@ -18,11 +18,12 @@ import java.math.BigDecimal;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString(of = {"id", "conventionValue", "price"})
+@ToString(onlyExplicitlyIncluded = true)
 public class ProductUnit {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @ToString.Include
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -35,10 +36,12 @@ public class ProductUnit {
 
     @NotNull
     @Column(name = "convention_value", nullable = false)
+    @ToString.Include
     private Integer conventionValue;
 
     @NotNull
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    @ToString.Include
     private BigDecimal price;
 
     @Size(max = 255)
