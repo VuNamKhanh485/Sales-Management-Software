@@ -12,9 +12,10 @@ public enum ErrorCode {
     VOUCHER_EXPIRED(400, "Voucher đã hết hạn sử dụng"),
     VOUCHER_USAGE_LIMIT_EXCEEDED(400, "Voucher đã đạt giới hạn sử dụng"),
     VOUCHER_INACTIVE(400, "Voucher không còn hiệu lực"),
-    VOUCHER_MIN_ORDER_NOT_MET(400, "Đơn hàng chưa đạt giá trị tối thiểu để dùng voucher");
+    VOUCHER_MIN_ORDER_NOT_MET(400, "Đơn hàng chưa đạt giá trị tối thiểu để dùng voucher"),
 
-
+    PAYMENT_NOT_FOUND(404, "Không tìm thấy phương thức thanh toán"),
+    PAYMENT_CODE_EXISTED(400, "Mã phương thức thanh toán đã tồn tại");
 
     private final int httpStatus;
     private final String message;

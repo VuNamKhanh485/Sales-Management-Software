@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Phương thức Thanh toán</title>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="fw-bold">💳 Phương thức Thanh toán</h3>
+        <a href="/payment-methods/create" class="btn btn-primary">+ Thêm mới</a>
+    </div>
+
+    <!-- Flash message -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Search -->
+    <form method="get" action="/payment-methods" class="row g-2 mb-3">
+        <div class="col-md-5">
+            <input type="text" name="keyword" class="form-control"
+                   placeholder="Tìm theo mã hoặc tên..."
+                   th:value="${keyword}">
+        </div>
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="">-- Tất cả trạng thái --</option>
+                <option value="ACTIVE"   th:selected="${selectedStatus == 'ACTIVE'}">Đang hoạt động</option>
+                <option value="INACTIVE" th:selected="${selectedStatus == 'INACTIVE'}">Ngừng hoạt động</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-outline-secondary">Tìm kiếm</button>
+            <a href="/payment-methods" class="btn btn-outline-danger">Xóa lọc</a>
+        </div>
+    </form>
+
+    <!-- Table -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Mã</th>
+                        <th>Tên phương thức</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="pm, stat : ${paymentMethods}">
+                        <td th:text="${stat.count}"></td>
+                        <td>
+                            <span class="badge bg-secondary"
+                                  th:text="${pm.code}"></span>
+                        </td>
+                        <td th:text="${pm.name}"></td>
+                        <td>
+                            <span th:class="${pm.status.name() == 'ACTIVE'}
+                                        ? 'badge bg-success'
+                                        : 'badge bg-danger'"
+                                  th:text="${pm.status.name() == 'ACTIVE'}
+                                        ? 'Hoạt động' : 'Ngừng'">
+                            </span>
+                        </td>
+                        <td th:text="${#temporals.format(pm.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td>
+                            <a th:href="@{/payment-methods/edit/{id}(id=${pm.id})}"
+                               class="btn btn-sm btn-outline-primary">Sửa</a>
+                            <a th:href="@{/payment-methods/delete/{id}(id=${pm.id})}"
+                               class="btn btn-sm btn-outline-danger">Xóa</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(paymentMethods)}">
+                        <td colspan="6" class="text-center text-muted py-4">
+                            Không có phương thức thanh toán nào
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
