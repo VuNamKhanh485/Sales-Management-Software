@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${isEdit} ? 'Sửa Voucher' : 'Thêm Voucher'"></title>
+    <style>
+        :root {
+            --apple-blue: #0071e3;
+            --apple-blue-hover: #0077ed;
+            --apple-bg: #f5f5f7;
+            --apple-card: #ffffff;
+            --text-main: #1d1d1f;
+            --text-sub: #86868b;
+            --border-color: #d2d2d7;
+            --danger-color: #ff3b30;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--apple-bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .form-container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--apple-card);
+            padding: 36px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        h4 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0 0 24px 0;
+            letter-spacing: -0.5px;
+        }
+        .alert-danger {
+            background-color: #fff2f1;
+            color: var(--danger-color);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1xl 1fr;
+            gap: 18px 24px;
+        }
+        @media (min-width: 480px) {
+            .form-grid { grid-template-columns: 1fr 1fr; }
+            .full-width { grid-column: span 2; }
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+        input, select {
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: #fff;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        input:focus, select:focus {
+            border-color: var(--apple-blue);
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+        }
+        .error-message {
+            color: var(--danger-color);
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        small {
+            color: var(--text-sub);
+            font-size: 11px;
+            margin-top: 2px;
+        }
+        .action-bar {
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f2;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 16px;
+        }
+        .btn-submit {
+            background-color: var(--apple-blue);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-submit:hover {
+            background-color: var(--apple-blue-hover);
+        }
+        .btn-cancel {
+            color: var(--apple-blue);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .btn-cancel:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div class="form-container">
+    <h4 th:text="${isEdit} ? 'Sửa Voucher' : 'Thêm Voucher mới'"></h4>
+
+    <div th:if="${errorMessage}" th:text="${errorMessage}" class="alert-danger"></div>
+
+    <form th:action="${isEdit} ? @{/vouchers/edit/{id}(id=${voucherId})} : @{/vouchers/create}"
+          th:object="${request}" method="post">
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Mã voucher *</label>
+                <input type="text" th:field="*{code}" placeholder="VD: SALE50">
+                <div class="error-message" th:if="${#fields.hasErrors('code')}" th:errors="*{code}"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Tên voucher *</label>
+                <input type="text" th:field="*{nameVoucher}" placeholder="VD: Giảm 50k">
+                <div class="error-message" th:if="${#fields.hasErrors('nameVoucher')}" th:errors="*{nameVoucher}"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Loại giảm giá *</label>
+                <select th:field="*{discountType}">
+                    <option value="">-- Chọn loại --</option>
+                    <option value="PERCENT">Phần trăm (%)</option>
+                    <option value="FIXED">Số tiền cố định (đ)</option>
+                </select>
+                <div class="error-message" th:if="${#fields.hasErrors('discountType')}" th:errors="*{discountType}"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Giá trị giảm *</label>
+                <input type="number" th:field="*{discountValue}" step="0.01" min="0">
+                <div class="error-message" th:if="${#fields.hasErrors('discountValue')}" th:errors="*{discountValue}"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Đơn tối thiểu (đ)</label>
+                <input type="number" th:field="*{minOrderValue}" step="0.01" min="0">
+            </div>
+
+            <div class="form-group">
+                <label>Giảm tối đa (đ)</label>
+                <input type="number" th:field="*{maxDiscountAmount}" step="0.01" min="0">
+                <small>(Áp dụng cho loại giảm theo %)</small>
+            </div>
+
+            <div class="form-group">
+                <label>Giới hạn sử dụng</label>
+                <input type="number" th:field="*{usageLimit}" min="1">
+                <div class="error-message" th:if="${#fields.hasErrors('usageLimit')}" th:errors="*{usageLimit}"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Trạng thái</label>
+                <select th:field="*{status}">
+                    <option value="ACTIVE">Hoạt động</option>
+                    <option value="INACTIVE">Ngừng hoạt động</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Ngày bắt đầu *</label>
+                <input type="date" th:field="*{startDate}">
+                <div class="error-message" th:if="${#fields.hasErrors('startDate')}" th:errors="*{startDate}"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Ngày kết thúc *</label>
+                <input type="date" th:field="*{endDate}">
+                <div class="error-message" th:if="${#fields.hasErrors('endDate')}" th:errors="*{endDate}"></div>
+            </div>
+        </div>
+
+        <div class="action-bar">
+            <a href="/vouchers" class="btn-cancel">Hủy</a>
+            <button type="submit" class="btn-submit" th:text="${isEdit} ? 'Cập nhật' : 'Tạo voucher'"></button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

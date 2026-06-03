@@ -2,26 +2,20 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Update Branch</title>
-    <link rel="stylesheet"
-          th:href="@{/css/branch.css}">
+    <title>Update Product</title>
+
 </head>
 <body>
-<h1>Update Branch</h1>
+<h1>Update Product</h1>
 <form
-        th:action="@{'/branch/update/' + ${id}}"
-        th:object="${branchRequest}"
+        th:action="@{'/product/update/' + ${id}}"
+        th:object="${productRequest}"
         method="post"
 >
     <table>
         <tr>
             <td>Name:</td>
             <td><input type="text" th:field="*{name}"></td>
-        </tr>
-
-        <tr>
-            <td>Address:</td>
-            <td><input type="text" th:field="*{address}"></td>
         </tr>
 
         <tr>
