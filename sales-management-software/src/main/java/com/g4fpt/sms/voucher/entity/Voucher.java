@@ -1,67 +1,72 @@
 package com.g4fpt.sms.voucher.entity;
 
-import com.g4fpt.sms.employee.entity.Employee;
+import com.g4fpt.sms.voucher.enums.DiscountType;
 import com.g4fpt.sms.voucher.enums.VoucherStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Voucher")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Voucher {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 100)
     private String code;
 
-    @Column(name = "name_voucher", nullable = false)
-    private String nameVoucher;
-
-    @Column(name = "discount_type", nullable = false)
-    private String discountType;
-
-    @Column(name = "discount_value")
-    private BigDecimal discountValue;
-
-    @Column(name = "min_order_value")
-    private BigDecimal minOrderValue;
-
-    @Column(name = "max_discount_amount")
-    private BigDecimal maxDiscountAmount;
-
-    @Column(name = "usage_limit")
-    private Integer usageLimit;
-
-    @Column(name = "used_count")
-    private Integer usedCount = 0;
-
-    @Column(name = "start_date", nullable = false)
-    private LocalDate startDate;
-
-    @Column(name = "end_date", nullable = false)
-    private LocalDate endDate;
+    @Column(nullable = false, length = 255)
+    private String name;
 
     @Enumerated(EnumType.STRING)
-    private VoucherStatus status;
+    @Column(name = "discount_type", nullable = false)
+    private DiscountType discountType;
+
+    @Column(name = "discount_value", nullable = false, precision = 12, scale = 2)
+    private BigDecimal discountValue;
+
+    @Column(name = "min_order_amount", nullable = false, precision = 12, scale = 2)
+    private BigDecimal minOrderAmount;
+
+    @Column(name = "max_discount_amount", precision = 12, scale = 2)
+    private BigDecimal maxDiscountAmount;
+
+    @Column(name = "start_at", nullable = false)
+    private LocalDateTime startAt;
+
+    @Column(name = "end_at", nullable = false)
+    private LocalDateTime endAt;
+
+    @Column(nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private VoucherStatus status = VoucherStatus.ACTIVE;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by")
-    private Employee createdBy;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @PrePersist
-    public void prePersist() {
+    protected void onCreate() {
         this.createdAt = LocalDateTime.now();
-        if (this.usedCount == null) this.usedCount = 0;
-        if (this.status == null) this.status = VoucherStatus.ACTIVE;
+        if (this.status == null) {
+            this.status = VoucherStatus.ACTIVE;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }

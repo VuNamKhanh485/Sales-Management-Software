@@ -1,39 +1,49 @@
 package com.g4fpt.sms.voucher.dto.request;
 
+import com.g4fpt.sms.voucher.enums.DiscountType;
+import com.g4fpt.sms.voucher.enums.VoucherStatus;
 import jakarta.validation.constraints.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class VoucherCreateRequest {
 
-    @NotBlank(message = "Mã voucher không được để trống")
-    @Size(max = 255, message = "Mã voucher không quá 255 ký tự")
+    @NotBlank(message = "Code không được để trống")
+    @Size(max = 100, message = "Code không được vượt quá 100 ký tự")
     private String code;
 
     @NotBlank(message = "Tên voucher không được để trống")
-    private String nameVoucher;
+    @Size(max = 255, message = "Tên không được vượt quá 255 ký tự")
+    private String name;
 
-    @NotBlank(message = "Loại giảm giá không được để trống")
-    private String discountType; // PERCENT | FIXED
+    @NotNull(message = "Loại giảm giá không được để trống")
+    private DiscountType discountType;
 
     @NotNull(message = "Giá trị giảm không được để trống")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Giá trị giảm phải lớn hơn 0")
+    @DecimalMin(value = "0", message = "Giá trị giảm phải >= 0")
     private BigDecimal discountValue;
 
-    private BigDecimal minOrderValue;
+    @DecimalMin(value = "0", message = "Giá trị đơn tối thiểu phải >= 0")
+    private BigDecimal minOrderAmount;
+
+    @DecimalMin(value = "0", message = "Giảm tối đa phải >= 0")
     private BigDecimal maxDiscountAmount;
 
-    @Min(value = 1, message = "Giới hạn sử dụng phải lớn hơn 0")
-    private Integer usageLimit;
+    @NotNull(message = "Thời gian bắt đầu không được để trống")
+    private LocalDateTime startAt;
 
-    @NotNull(message = "Ngày bắt đầu không được để trống")
-    private LocalDate startDate;
+    @NotNull(message = "Thời gian kết thúc không được để trống")
+    private LocalDateTime endAt;
 
-    @NotNull(message = "Ngày kết thúc không được để trống")
-    private LocalDate endDate;
-
-    private String status;
+    @Builder.Default
+    private VoucherStatus status = VoucherStatus.ACTIVE;
 }

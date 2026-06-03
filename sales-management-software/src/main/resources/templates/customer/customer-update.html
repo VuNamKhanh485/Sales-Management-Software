@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cập Nhật Khách Hàng</title>
+</head>
+<body>
+
+<h1>CẬP NHẬT THÔNG TIN KHÁCH HÀNG</h1>
+<p><a th:href="@{/customers}">Quay lại danh sách</a></p>
+
+<div th:if="${error}" style="color: red; margin-bottom: 15px;">
+    <p><b>Lỗi:</b> <span th:text="${error}">Thông báo lỗi ở đây</span></p>
+</div>
+
+<form th:action="@{/customers/update/{id}(id=${customerId})}" th:object="${customerReq}" method="post">
+
+    <table cellpadding="8" cellspacing="0">
+        <tr>
+            <td><label>Họ và Tên (*):</label></td>
+            <td><input type="text" th:field="*{fullName}" required></td>
+        </tr>
+        <tr>
+            <td><label>Số Điện Thoại (*):</label></td>
+            <td><input type="text" th:field="*{phone}" required></td>
+        </tr>
+        <tr>
+            <td><label>Email (Không bắt buộc):</label></td>
+            <td><input type="email" th:field="*{email}"></td>
+        </tr>
+        <tr>
+            <td><label>Địa Chỉ:</label></td>
+            <td><input type="text" th:field="*{address}"></td>
+        </tr>
+        <tr>
+            <td><label>Hạng Khách Hàng:</label></td>
+            <td>
+                <select th:field="*{customerRankId}">
+                    <option value="">-- Không xét hạng --</option>
+                    <option th:each="rank : ${ranks}" th:value="${rank.id}" th:text="${rank.name}"></option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td><label>Ghi chú:</label></td>
+            <td><textarea th:field="*{note}" rows="4" cols="30"></textarea></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>
+                <button type="submit" style="padding: 6px 20px; font-weight: bold; background-color: #28a745; color: white; border: none; cursor: pointer;">CẬP NHẬT</button>
+                <a th:href="@{/customers}" style="padding: 5px 10px; border: 1px solid #ccc; text-decoration: none; color: black; background: #eee; margin-left: 10px;">Hủy bỏ</a>
+            </td>
+        </tr>
+    </table>
+
+</form>
+
+</body>
+</html>

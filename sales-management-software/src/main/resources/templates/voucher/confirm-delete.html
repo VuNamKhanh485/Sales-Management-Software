@@ -1,108 +1,309 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Xác nhận xóa</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận xóa Voucher — SMS</title>
+    <meta name="description" content="Xác nhận xóa voucher khỏi hệ thống bán hàng.">
     <style>
+        /* ─────────────────────────────────────────
+           DESIGN TOKENS  (DESIGN-apple.md)
+        ───────────────────────────────────────── */
         :root {
-            --apple-bg: #f5f5f7;
-            --apple-card: #ffffff;
-            --text-main: #1d1d1f;
-            --text-sub: #86868b;
-            --danger-color: #ff3b30;
-            --danger-hover: #e03126;
-            --btn-gray: #e8e8ed;
-            --btn-gray-hover: #d2d2d7;
+            --primary:          #0066cc;
+            --primary-focus:    #0071e3;
+            --ink:              #1d1d1f;
+            --ink-muted-80:     #333333;
+            --ink-muted-48:     #7a7a7a;
+            --divider-soft:     #f0f0f0;
+            --hairline:         #e0e0e0;
+            --canvas:           #ffffff;
+            --canvas-parchment: #f5f5f7;
+            --surface-pearl:    #fafafc;
+            --surface-black:    #000000;
+            --on-primary:       #ffffff;
+            --on-dark:          #ffffff;
+            --danger:           #ff3b30;
+
+            --font-display: "SF Pro Display", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-text:    "SF Pro Text",    system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+            --r-sm: 8px; --r-md: 11px; --r-lg: 18px; --r-pill: 9999px;
+            --sp-xs: 8px; --sp-sm: 12px; --sp-md: 17px; --sp-lg: 24px; --sp-xl: 32px;
         }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--apple-bg);
-            color: var(--text-main);
-            margin: 0;
-            height: 100vh;
+            font-family: var(--font-text);
+            font-size: 17px;
+            line-height: 1.47;
+            letter-spacing: -0.374px;
+            color: var(--ink);
+            background-color: var(--canvas-parchment);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ── Global Nav ── */
+        .global-nav {
+            background-color: #0066cc;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            padding: 0 var(--sp-xl);
+            flex-shrink: 0;
+        }
+        .global-nav__brand {
+            font-family: var(--font-display);
+            font-size: 18px; font-weight: 600; letter-spacing: -0.28px;
+            color: var(--on-dark); text-decoration: none;
+        }
+
+        /* ── Centered layout ── */
+        .center-stage {
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: var(--sp-xl) var(--sp-md);
         }
-        .dialog-container {
+
+        /* ── Dialog card ── */
+        .dialog {
             width: 100%;
-            max-width: 400px;
-            background: var(--apple-card);
-            padding: 28px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            max-width: 420px;
+            background: var(--canvas);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-lg);
+            overflow: hidden;
+            /* No shadow on the card — only product renders get shadows (design principle) */
+        }
+
+        /* ── Dialog header — light minimal card style ── */
+        .dialog__header {
+            background-color: var(--canvas);
+            padding: var(--sp-xl) var(--sp-xl) var(--sp-sm);
             text-align: center;
         }
-        h3 {
-            font-size: 20px;
-            font-weight: 600;
-            margin: 0 0 12px 0;
-            letter-spacing: -0.5px;
-        }
-        p {
-            font-size: 14px;
-            color: #333333;
-            line-height: 1.5;
-            margin: 0 0 8px 0;
-        }
-        .warning-text {
-            color: var(--danger-color) !important;
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 24px !important;
-        }
-        .action-buttons {
+
+        /* Warning icon circle (themed blue) */
+        .dialog__icon-wrap {
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            background: rgba(0, 102, 204, 0.08);
+            border: 1.5px solid rgba(0, 102, 204, 0.2);
             display: flex;
-            gap: 12px;
+            align-items: center;
             justify-content: center;
-            flex-direction: row-reverse; /* Đưa nút xác nhận sang phải đúng chuẩn UI */
+            margin: 0 auto var(--sp-md);
         }
-        .btn-delete {
-            background-color: var(--danger-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s;
-            flex: 1;
+        .dialog__icon-wrap svg {
+            color: var(--primary);
         }
-        .btn-delete:hover {
-            background-color: var(--danger-hover);
+
+        .dialog__eyebrow {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin-bottom: 6px;
         }
+
+        .dialog__title {
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 600;
+            line-height: 1.1;
+            letter-spacing: -0.374px;
+            color: var(--ink);
+        }
+
+        /* ── Dialog body ── */
+        .dialog__body {
+            padding: var(--sp-sm) var(--sp-xl) var(--sp-md);
+        }
+
+        .dialog__question {
+            font-size: 17px;
+            font-weight: 400;
+            color: var(--ink-muted-80);
+            text-align: center;
+            margin-bottom: var(--sp-md);
+        }
+
+        /* Voucher info card (configurator-option-chip style) */
+        .voucher-info-card {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-sm);
+            background: var(--canvas-parchment);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            padding: var(--sp-sm) var(--sp-md);
+            margin-bottom: var(--sp-md);
+        }
+        .voucher-info-card__icon {
+            width: 36px; height: 36px;
+            border-radius: var(--r-sm);
+            background: rgba(0,102,204,0.10);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .voucher-info-card__icon svg { color: var(--primary); }
+        .voucher-info-card__label {
+            font-size: 12px;
+            color: var(--ink-muted-48);
+            letter-spacing: -0.12px;
+        }
+        .voucher-info-card__value {
+            font-family: "SF Mono", "Menlo", monospace;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--ink);
+            letter-spacing: 0.02em;
+        }
+
+        /* Warning text (themed blue alert block) */
+        .dialog__warning {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--sp-xs);
+            background: rgba(0, 102, 204, 0.05);
+            border: 1px solid rgba(0, 102, 204, 0.15);
+            border-radius: var(--r-sm);
+            padding: var(--sp-xs) var(--sp-sm);
+        }
+        .dialog__warning svg { flex-shrink: 0; margin-top: 2px; color: var(--primary); }
+        .dialog__warning p {
+            font-size: 13px;
+            color: var(--ink-muted-80);
+            letter-spacing: -0.224px;
+            line-height: 1.4;
+        }
+
+        /* ── Dialog footer ── */
+        .dialog__footer {
+            padding: var(--sp-md) var(--sp-xl) var(--sp-xl);
+            display: flex;
+            gap: var(--sp-sm);
+        }
+
+        /* Cancel — primary action button in blue */
         .btn-cancel {
-            background-color: var(--btn-gray);
-            color: var(--text-main);
-            text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: background 0.2s;
             flex: 1;
-            box-sizing: border-box;
-            display: inline-block;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--primary);
+            color: var(--on-primary);
+            font-family: var(--font-text);
+            font-size: 17px; font-weight: 500; letter-spacing: -0.374px;
+            padding: 11px 22px;
+            border-radius: var(--r-pill);
+            border: none;
+            text-decoration: none;
+            transition: background-color 0.15s ease, transform 0.1s;
         }
-        .btn-cancel:hover {
-            background-color: var(--btn-gray-hover);
+        .btn-cancel:hover  { background: var(--primary-focus); }
+        .btn-cancel:active { transform: scale(0.95); }
+
+        /* Delete — destructive secondary outline */
+        .btn-delete {
+            flex: 1;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            background: transparent;
+            color: var(--danger);
+            font-family: var(--font-text);
+            font-size: 17px; font-weight: 400; letter-spacing: -0.374px;
+            padding: 10px 22px;
+            border-radius: var(--r-pill);
+            border: 1px solid var(--danger);
+            cursor: pointer;
+            transition: background-color 0.15s ease, transform 0.1s cubic-bezier(0.4,0,0.2,1);
+        }
+        .btn-delete:hover  { background: rgba(255, 59, 48, 0.08); }
+        .btn-delete:active { transform: scale(0.95); }
+        .btn-delete:focus-visible { outline: 2px solid var(--danger); outline-offset: 3px; }
+
+        /* ── Responsive ── */
+        @media (max-width: 460px) {
+            .dialog__footer { flex-direction: column-reverse; }
+            .dialog__header { padding: var(--sp-lg) var(--sp-md) var(--sp-md); }
+            .dialog__body   { padding: var(--sp-md); }
+            .dialog__footer { padding: var(--sp-md); }
         }
     </style>
 </head>
 <body>
-<div class="dialog-container">
-    <h3>Xác nhận xóa</h3>
-    <p>Bạn có chắc muốn xóa voucher <strong th:text="${voucher.code}"></strong> không?</p>
-    <p class="warning-text">Hành động này không thể hoàn tác.</p>
 
-    <div class="action-buttons">
-        <form th:action="@{/vouchers/delete/{id}(id=${voucher.id})}" method="post" style="flex: 1;">
-            <button type="submit" class="btn-delete">Xác nhận xóa</button>
-        </form>
-        <a href="/vouchers" class="btn-cancel">Hủy</a>
+<!-- ── Global Nav ── -->
+<nav class="global-nav" aria-label="Global navigation">
+    <a href="/" class="global-nav__brand">⊛ SMS</a>
+</nav>
+
+<!-- ── Center Stage ── -->
+<div class="center-stage">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+
+        <!-- Header (dark tile) -->
+        <div class="dialog__header">
+            <div class="dialog__icon-wrap" aria-hidden="true">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 9V15M14 19H14.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M12.1 4.2L2.7 20a2 2 0 0 0 1.7 3h19.2a2 2 0 0 0 1.7-3L15.9 4.2a2 2 0 0 0-3.8 0Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="dialog__eyebrow">Hành động không thể hoàn tác</div>
+            <h1 class="dialog__title" id="dialog-title">Xác nhận xóa</h1>
+        </div>
+
+        <!-- Body -->
+        <div class="dialog__body">
+            <p class="dialog__question">
+                Bạn có chắc muốn xóa voucher này không?
+            </p>
+
+            <!-- Voucher chip -->
+            <div class="voucher-info-card">
+                <div class="voucher-info-card__icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M2 7.5V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2.5M2 7.5a1.5 1.5 0 0 1 0 3V13a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a1.5 1.5 0 0 1 0-3M2 7.5h14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="voucher-info-card__label">Mã voucher</div>
+                    <div class="voucher-info-card__value" th:text="${voucher.code}">SALE50</div>
+                </div>
+            </div>
+
+            <!-- Warning -->
+            <div class="dialog__warning" role="alert">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.4"/>
+                    <path d="M7 4.5V7.5M7 9.5H7.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                </svg>
+                <p>Tất cả dữ liệu liên quan đến voucher này sẽ bị xóa vĩnh viễn và không thể khôi phục.</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="dialog__footer">
+            <a href="/vouchers" class="btn-cancel" id="btn-confirm-cancel">Giữ lại</a>
+            <form th:action="@{/vouchers/delete/{id}(id=${voucher.id})}" method="post" style="flex:1;display:flex;">
+                <button type="submit" class="btn-delete" id="btn-confirm-delete" style="width:100%">
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+                        <path d="M2.5 4H12.5M6 4V2.5H9V4M5 4L5.5 12.5H9.5L10 4H5Z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Xóa voucher
+                </button>
+            </form>
+        </div>
+
     </div>
 </div>
+
 </body>
 </html>

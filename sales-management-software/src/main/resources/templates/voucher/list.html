@@ -1,234 +1,754 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
 <head>
     <meta charset="UTF-8">
-    <title>Quản lý Voucher</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Voucher — SMS</title>
+    <meta name="description" content="Quản lý toàn bộ voucher, mã giảm giá trong hệ thống bán hàng.">
     <style>
+        /* ─────────────────────────────────────────
+           DESIGN TOKENS  (DESIGN-apple.md)
+        ───────────────────────────────────────── */
         :root {
-            --apple-blue: #0071e3;
-            --apple-blue-hover: #0077ed;
-            --apple-bg: #f5f5f7;
-            --apple-card: #ffffff;
-            --text-main: #1d1d1f;
-            --text-sub: #86868b;
-            --border-color: #d2d2d7;
-            --success-color: #34c759;
-            --danger-color: #ff3b30;
+            /* Colors */
+            --primary: #0066cc;
+            --primary-focus: #0071e3;
+            --primary-on-dark: #2997ff;
+            --ink: #1d1d1f;
+            --ink-muted-80: #333333;
+            --ink-muted-48: #7a7a7a;
+            --divider-soft: #f0f0f0;
+            --hairline: #e0e0e0;
+            --canvas: #ffffff;
+            --canvas-parchment: #f5f5f7;
+            --surface-pearl: #fafafc;
+            --surface-tile-1: #272729;
+            --surface-black: #000000;
+            --on-primary: #ffffff;
+            --on-dark: #ffffff;
+            --body-muted: #cccccc;
+
+            /* Status */
+            --success: #34c759;
+            --danger: #ff3b30;
+
+            /* Typography */
+            --font-display: "SF Pro Display", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-text: "SF Pro Text", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+            /* Spacing */
+            --sp-xxs: 4px;
+            --sp-xs: 8px;
+            --sp-sm: 12px;
+            --sp-md: 17px;
+            --sp-lg: 24px;
+            --sp-xl: 32px;
+            --sp-xxl: 48px;
+            --sp-sec: 80px;
+
+            /* Radius */
+            --r-none: 0px;
+            --r-xs: 5px;
+            --r-sm: 8px;
+            --r-md: 11px;
+            --r-lg: 18px;
+            --r-pill: 9999px;
         }
+
+        /* ── Reset ── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        -webkit-font-smoothing: antialiased;
+
+        /* ── Base ── */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--apple-bg);
-            color: var(--text-main);
-            margin: 0;
-            padding: 40px 20px;
-            display: flex;
-            justify-content: center;
+            font-family: var(--font-text);
+            font-size: 17px;
+            font-weight: 400;
+            line-height: 1.47;
+            letter-spacing: -0.374px;
+            color: var(--ink);
+            background-color: var(--canvas-parchment);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        .container {
-            width: 100%;
-            max-width: 1100px;
-            background: var(--apple-card);
-            padding: 32px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-        }
-        .header-section {
+
+        /* ─────────────────────────────────────────
+           GLOBAL NAV  (component.global-nav)
+        ───────────────────────────────────────── */
+        .global-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: #0066cc;
+            height: 44px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 28px;
+            padding: 0 var(--sp-xl);
         }
-        h3 {
-            font-size: 24px;
+
+        .global-nav__brand {
+            font-family: var(--font-display);
+            font-size: 18px;
             font-weight: 600;
-            margin: 0;
-            letter-spacing: -0.5px;
-        }
-        .btn-add {
-            background-color: var(--apple-blue);
-            color: white;
+            color: var(--on-dark);
+            letter-spacing: -0.28px;
             text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s ease;
+            margin-right: auto;
         }
-        .btn-add:hover {
-            background-color: var(--apple-blue-hover);
-            transform: translateY(-1px);
-        }
-        .alert-success {
-            background-color: #eafaf1;
-            color: var(--success-color);
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .search-form {
+
+        .global-nav__links {
             display: flex;
-            gap: 12px;
-            margin-bottom: 24px;
+            gap: var(--sp-xl);
+            list-style: none;
+        }
+
+        .global-nav__links a {
+            font-family: var(--font-text);
+            font-size: 12px;
+            font-weight: 400;
+            letter-spacing: -0.12px;
+            color: rgba(255, 255, 255, 0.72);
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+
+        .global-nav__links a:hover,
+        .global-nav__links a.active {
+            color: var(--on-dark);
+        }
+
+        /* ─────────────────────────────────────────
+           SUB NAV  (component.sub-nav-frosted)
+        ───────────────────────────────────────── */
+        .sub-nav {
+            position: sticky;
+            top: 44px;
+            z-index: 99;
+            background-color: rgba(245, 245, 247, 0.88);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            height: 52px;
+            display: flex;
+            align-items: center;
+            padding: 0 var(--sp-xl);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .sub-nav__title {
+            font-family: var(--font-display);
+            font-size: 21px;
+            font-weight: 600;
+            letter-spacing: 0.231px;
+            color: var(--ink);
+            margin-right: auto;
+        }
+
+        .sub-nav__actions {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-sm);
+        }
+
+        /* ─────────────────────────────────────────
+           BUTTONS
+        ───────────────────────────────────────── */
+        /* button-primary (pill) */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: var(--primary);
+            color: var(--on-primary);
+            font-family: var(--font-text);
+            font-size: 17px;
+            font-weight: 400;
+            letter-spacing: -0.374px;
+            padding: 11px 22px;
+            border-radius: var(--r-pill);
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.15s ease, transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-focus);
+        }
+
+        .btn-primary:active {
+            background-color: var(--primary);
+            transform: scale(0.95);
+        }
+
+        /* button-primary small variant */
+        .btn-primary--sm {
+            font-size: 14px;
+            padding: 8px 15px;
+        }
+
+        /* button-secondary-pill */
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: transparent;
+            color: var(--primary);
+            font-family: var(--font-text);
+            font-size: 17px;
+            font-weight: 400;
+            letter-spacing: -0.374px;
+            padding: 10px 21px;
+            border-radius: var(--r-pill);
+            border: 1px solid var(--primary);
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.15s ease, transform 0.1s;
+            white-space: nowrap;
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(0, 102, 204, 0.06);
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.95);
+        }
+
+        .btn-secondary--sm {
+            font-size: 14px;
+            padding: 7px 14px;
+        }
+
+        /* icon-circular */
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--r-pill);
+            background: rgba(210, 210, 215, 0.64);
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ink);
+            font-size: 14px;
+            transition: background 0.15s;
+            text-decoration: none;
+        }
+
+        .btn-icon:hover {
+            background: rgba(210, 210, 215, 0.9);
+        }
+
+        /* ─────────────────────────────────────────
+           PAGE LAYOUT
+        ───────────────────────────────────────── */
+        .page-content {
+            max-width: 1100px;
+            margin: var(--sp-xxl) auto;
+            padding: 0 var(--sp-xl);
+        }
+
+        /* ─────────────────────────────────────────
+           ALERTS
+        ───────────────────────────────────────── */
+        .alert {
+            padding: var(--sp-sm) var(--sp-md);
+            border-radius: var(--r-sm);
+            font-size: 14px;
+            font-weight: 400;
+            margin-bottom: var(--sp-lg);
+            letter-spacing: -0.224px;
+        }
+
+        .alert-success {
+            background-color: #e8f5e9;
+            color: #1a7a35;
+            border-left: 3px solid var(--success);
+        }
+
+        .alert-danger {
+            background-color: #fff2f1;
+            color: var(--danger);
+            border-left: 3px solid var(--danger);
+        }
+
+        /* ─────────────────────────────────────────
+           SEARCH BAR
+        ───────────────────────────────────────── */
+        .search-bar {
+            display: flex;
+            gap: var(--sp-sm);
             align-items: center;
             flex-wrap: wrap;
+            margin-bottom: var(--sp-xl);
         }
-        .search-form input, .search-form select {
-            padding: 10px 16px;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            font-size: 14px;
-            background: #fafafa;
-            outline: none;
-            transition: border-color 0.2s;
+
+        /* search-input pill */
+        .search-input-wrap {
+            position: relative;
+            flex: 1;
             min-width: 200px;
         }
-        .search-form input:focus, .search-form select:focus {
-            border-color: var(--apple-blue);
-            background: #fff;
+
+        .search-input-wrap svg {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--ink-muted-48);
+            pointer-events: none;
         }
-        .btn-search {
-            background-color: #e8e8ed;
-            color: var(--text-main);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
+
+        .search-input {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            padding: 12px 20px 12px 40px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: var(--r-pill);
+            font-family: var(--font-text);
+            font-size: 17px;
+            font-weight: 400;
+            letter-spacing: -0.374px;
+            color: var(--ink);
+            background-color: var(--canvas);
+            height: 44px;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-focus);
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
+        }
+
+        ::placeholder {
+            color: var(--ink-muted-48);
+            opacity: 1;
+        }
+
+        /* select filter */
+        .filter-select {
+            -webkit-appearance: none;
+            appearance: none;
+            padding: 10px 36px 10px 16px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: var(--r-pill);
+            font-family: var(--font-text);
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 400;
+            letter-spacing: -0.224px;
+            color: var(--ink);
+            background-color: var(--canvas);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7' fill='none'%3E%3Cpath d='M1 1L5.5 6L10 1' stroke='%237a7a7a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            height: 44px;
+            outline: none;
             cursor: pointer;
-            transition: background 0.2s;
+            border-radius: var(--r-pill);
+            transition: border-color 0.2s;
         }
-        .btn-search:hover {
-            background-color: #d2d2d7;
+
+        .filter-select:focus {
+            border-color: var(--primary-focus);
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
         }
-        .btn-clear {
-            color: var(--apple-blue);
-            text-decoration: none;
+
+        .btn-clear-link {
+            font-family: var(--font-text);
             font-size: 14px;
-            font-weight: 500;
+            color: var(--primary);
+            text-decoration: none;
+            padding: 10px 4px;
+            letter-spacing: -0.224px;
+            white-space: nowrap;
         }
-        .btn-clear:hover {
+
+        .btn-clear-link:hover {
             text-decoration: underline;
         }
+
+        /* ─────────────────────────────────────────
+           STORE-UTILITY-CARD PANEL  (table host)
+        ───────────────────────────────────────── */
+        .card-panel {
+            background: var(--canvas);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-lg);
+            overflow: hidden;
+        }
+
+        /* ─────────────────────────────────────────
+           TABLE
+        ───────────────────────────────────────── */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
-            text-align: left;
         }
+
+        thead tr {
+            background-color: var(--canvas-parchment);
+        }
+
         th {
-            background-color: #f5f5f7;
-            color: var(--text-sub);
-            font-weight: 600;
-            font-size: 13px;
-            text-transform: uppercase;
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        td {
-            padding: 16px;
-            font-size: 14px;
-            border-bottom: 1px solid #f0f0f2;
-            color: #333333;
-        }
-        tr:hover td {
-            background-color: #fafafa;
-        }
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
+            font-family: var(--font-text);
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--ink-muted-48);
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--hairline);
+            text-align: left;
+            white-space: nowrap;
         }
+
+        td {
+            font-family: var(--font-text);
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: -0.224px;
+            color: var(--ink-muted-80);
+            padding: 15px 16px;
+            border-bottom: 1px solid var(--divider-soft);
+            vertical-align: middle;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr {
+            transition: background-color 0.12s ease;
+        }
+
+        tbody tr:hover td {
+            background-color: var(--canvas-parchment);
+        }
+
+        /* code chip */
+        .code-chip {
+            display: inline-flex;
+            align-items: center;
+            font-family: "SF Mono", "Menlo", monospace;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink);
+            background: var(--canvas-parchment);
+            border: 1px solid var(--hairline);
+            padding: 3px 10px;
+            border-radius: var(--r-sm);
+            letter-spacing: 0.02em;
+        }
+
+        /* discount badge */
+        .discount-value {
+            font-family: var(--font-text);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink);
+            letter-spacing: -0.224px;
+        }
+
+        /* status badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: var(--r-pill);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0;
+        }
+
+        .badge::before {
+            content: '';
+            display: block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
         .badge-active {
             background-color: #e6f7ed;
-            color: var(--success-color);
+            color: #1a7a35;
         }
+
+        .badge-active::before {
+            background-color: var(--success);
+        }
+
         .badge-inactive {
-            background-color: #fdf2f2;
-            color: var(--danger-color);
+            background-color: #fff2f1;
+            color: var(--danger);
         }
-        .actions a {
-            color: var(--apple-blue);
+
+        .badge-inactive::before {
+            background-color: var(--danger);
+        }
+
+        /* date range */
+        .date-range {
+            font-size: 12px;
+            color: var(--ink-muted-48);
+            letter-spacing: -0.12px;
+        }
+
+        /* usage count */
+        .usage {
+            font-size: 13px;
+            color: var(--ink-muted-80);
+        }
+
+        /* action links */
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-sm);
+        }
+
+        .action-edit {
+            font-family: var(--font-text);
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--primary);
             text-decoration: none;
-            font-weight: 500;
-            margin-right: 12px;
+            letter-spacing: -0.224px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 10px;
+            border-radius: var(--r-sm);
+            transition: background 0.12s;
         }
-        .actions a.delete {
-            color: var(--danger-color);
+
+        .action-edit:hover {
+            background: rgba(0, 102, 204, 0.08);
         }
-        .actions a:hover {
-            text-decoration: underline;
+
+        .action-delete {
+            font-family: var(--font-text);
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--danger);
+            text-decoration: none;
+            letter-spacing: -0.224px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 10px;
+            border-radius: var(--r-sm);
+            transition: background 0.12s;
         }
-        .empty-row {
+
+        .action-delete:hover {
+            background: rgba(255, 59, 48, 0.08);
+        }
+
+        /* empty row */
+        .empty-state {
             text-align: center;
-            color: var(--text-sub);
-            padding: 30px;
+            padding: var(--sp-sec) var(--sp-lg);
+        }
+
+        .empty-state__icon {
+            font-size: 48px;
+            margin-bottom: var(--sp-md);
+            opacity: 0.25;
+        }
+
+        .empty-state__title {
+            font-family: var(--font-display);
+            font-size: 21px;
+            font-weight: 600;
+            letter-spacing: 0.231px;
+            color: var(--ink);
+            margin-bottom: var(--sp-xs);
+        }
+
+        .empty-state__sub {
+            font-size: 14px;
+            color: var(--ink-muted-48);
+            margin-bottom: var(--sp-lg);
+        }
+
+        /* ─────────────────────────────────────────
+           RESPONSIVE
+        ───────────────────────────────────────── */
+        @media (max-width: 834px) {
+            .global-nav__links {
+                display: none;
+            }
+
+            .page-content {
+                padding: 0 var(--sp-md);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .sub-nav__title {
+                font-size: 17px;
+            }
+
+            th,
+            td {
+                padding: 12px 10px;
+            }
+
+            .search-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-input-wrap {
+                min-width: unset;
+            }
         }
     </style>
 </head>
+
 <body>
-<div class="container">
-    <div class="header-section">
-        <h3>Quản lý Voucher</h3>
-        <a href="/vouchers/create" class="btn-add"><i class="fas fa-plus"></i> Thêm voucher</a>
+
+    <!-- ── Global Nav ── -->
+    <nav class="global-nav" aria-label="Global navigation">
+        <a href="/" class="global-nav__brand">⊛ SMS</a>
+        <ul class="global-nav__links">
+            <li><a href="/vouchers" class="active">Voucher</a></li>
+        </ul>
+    </nav>
+
+    <!-- ── Sub Nav ── -->
+    <div class="sub-nav">
+        <span class="sub-nav__title">Voucher</span>
+        <div class="sub-nav__actions">
+            <a href="/vouchers/create" class="btn-primary btn-primary--sm" id="btn-add-voucher">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 1V11M1 6H11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                </svg>
+                Thêm voucher
+            </a>
+        </div>
     </div>
 
-    <div th:if="${successMessage}" th:text="${successMessage}" class="alert-success"></div>
+    <!-- ── Page Content ── -->
+    <main class="page-content" id="main-content">
 
-    <form method="get" action="/vouchers" class="search-form">
-        <input type="text" name="keyword" placeholder="Tìm theo mã hoặc tên..." th:value="${keyword}">
+        <!-- Alerts -->
+        <div th:if="${successMessage}" th:text="${successMessage}" class="alert alert-success" role="alert"></div>
+        <div th:if="${errorMessage}" th:text="${errorMessage}" class="alert alert-danger" role="alert"></div>
 
-        <select name="status">
-            <option value="">Tất cả trạng thái</option>
-            <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Đang hoạt động</option>
-            <option value="INACTIVE" th:selected="${status == 'INACTIVE'}">Ngừng hoạt động</option>
-        </select>
+        <!-- Search bar -->
+        <form method="get" action="/vouchers" class="search-bar" id="search-form" role="search">
 
-        <button type="submit" class="btn-search">Tìm kiếm</button>
-        <a href="/vouchers" class="btn-clear">Xóa lọc</a>
-    </form>
+            <div class="search-input-wrap">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M10 10L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+                <input id="search-keyword" type="text" name="keyword" class="search-input"
+                    placeholder="Tìm theo mã hoặc tên voucher…" th:value="${keyword}" autocomplete="off">
+            </div>
 
-    <table>
-        <thead>
-        <tr>
-            <th style="width: 50px;">#</th>
-            <th>Mã</th>
-            <th>Tên voucher</th>
-            <th>Loại giảm</th>
-            <th>Giá trị</th>
-            <th>Thời hạn</th>
-            <th>Đã dùng</th>
-            <th>Trạng thái</th>
-            <th style="width: 120px;">Thao tác</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="v, stat : ${vouchers}">
-            <td th:text="${stat.count}"></td>
-            <td><strong th:text="${v.code}" style="color: var(--text-main);"></strong></td>
-            <td th:text="${v.nameVoucher}"></td>
-            <td th:text="${v.discountType == 'PERCENT' ? 'Phần trăm' : 'Cố định'}"></td>
-            <td th:text="${v.discountType == 'PERCENT' ? v.discountValue + '%' : v.discountValue + ' đ'}" style="font-weight: 600;"></td>
-            <td th:text="${v.startDate + ' → ' + v.endDate}" style="font-size: 13px; color: var(--text-sub);"></td>
-            <td th:text="${v.usedCount + ' / ' + (v.usageLimit ?: '∞')}"></td>
-            <td>
-                <span th:class="${v.status.name() == 'ACTIVE' ? 'badge badge-active' : 'badge badge-inactive'}"
-                      th:text="${v.status.name() == 'ACTIVE' ? 'Hoạt động' : 'Ngừng'}"></span>
-            </td>
-            <td class="actions">
-                <a th:href="@{/vouchers/edit/{id}(id=${v.id})}">Sửa</a>
-                <a th:href="@{/vouchers/delete/{id}(id=${v.id})}" class="delete">Xóa</a>
-            </td>
-        </tr>
-        <tr th:if="${#lists.isEmpty(vouchers)}">
-            <td colspan="9" class="empty-row">Không có voucher nào được tìm thấy.</td>
-        </tr>
-        </tbody>
-    </table>
-</div>
+            <select id="filter-status" name="status" class="filter-select">
+                <option value="">Tất cả trạng thái</option>
+                <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Đang hoạt động</option>
+                <option value="INACTIVE" th:selected="${status == 'INACTIVE'}">Ngừng hoạt động</option>
+            </select>
+
+            <button type="submit" class="btn-primary btn-primary--sm" id="btn-search">Tìm kiếm</button>
+            <a href="/vouchers" class="btn-clear-link" id="btn-clear-filter">Xóa lọc</a>
+        </form>
+
+        <!-- Table card -->
+        <div class="card-panel">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:44px">#</th>
+                        <th>Mã voucher</th>
+                        <th>Tên</th>
+                        <th>Loại giảm</th>
+                        <th>Giá trị</th>
+                        <th>Thời hạn</th>
+                        <th>Trạng thái</th>
+                        <th style="width:120px">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data rows -->
+                    <tr th:each="v, stat : ${vouchers}">
+                        <td th:text="${stat.count}" style="color:var(--ink-muted-48);font-size:12px;"></td>
+                        <td><span class="code-chip" th:text="${v.code}">SALE50</span></td>
+                        <td th:text="${v.name}">Tên voucher</td>
+                        <td th:text="${v.discountType.name() == 'PERCENT' ? 'Phần trăm' : 'Cố định'}">Loại</td>
+                        <td>
+                            <span class="discount-value"
+                                th:text="${v.discountType.name() == 'PERCENT'} ? ${v.discountValue + '%'} : ${#numbers.formatDecimal(v.discountValue,0,'COMMA',0,'POINT') + ' đ'}">
+                            </span>
+                        </td>
+                        <td>
+                            <span class="date-range"
+                                th:text="${#temporals.format(v.startAt,'dd/MM/yy HH:mm')} + ' → ' + ${#temporals.format(v.endAt,'dd/MM/yy HH:mm')}">
+                            </span>
+                        </td>
+                        <td>
+                            <span
+                                th:class="${v.status.name() == 'ACTIVE'} ? 'badge badge-active' : 'badge badge-inactive'"
+                                th:text="${v.status.name() == 'ACTIVE'} ? 'Hoạt động' : 'Ngừng'">
+                            </span>
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <a th:href="@{/vouchers/edit/{id}(id=${v.id})}" class="action-edit"
+                                    th:id="'btn-edit-' + ${v.id}">
+                                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                        <path d="M9.5 1.5L11.5 3.5L4.5 10.5H2.5V8.5L9.5 1.5Z" stroke="currentColor"
+                                            stroke-width="1.4" stroke-linejoin="round" />
+                                    </svg>
+                                    Sửa
+                                </a>
+                                <a th:href="@{/vouchers/delete/{id}(id=${v.id})}" class="action-delete"
+                                    th:id="'btn-delete-' + ${v.id}">
+                                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                        <path d="M2 3.5H11M5 3.5V2H8V3.5M4 3.5L4.5 11H8.5L9 3.5H4Z"
+                                            stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                    </svg>
+                                    Xóa
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Empty state -->
+                    <tr th:if="${#lists.isEmpty(vouchers)}">
+                        <td colspan="8" style="padding:0;border:none;">
+                            <div class="empty-state">
+                                <div class="empty-state__icon">🎫</div>
+                                <div class="empty-state__title">Không tìm thấy voucher nào</div>
+                                <p class="empty-state__sub">Thử thay đổi bộ lọc hoặc tạo voucher mới.</p>
+                                <a href="/vouchers/create" class="btn-primary btn-primary--sm" id="btn-add-first">Thêm
+                                    voucher đầu tiên</a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
 </body>
+
 </html>
