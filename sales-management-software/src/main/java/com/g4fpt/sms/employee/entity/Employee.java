@@ -1,5 +1,6 @@
 package com.g4fpt.sms.employee.entity;
 
+import com.g4fpt.sms.branch.entity.Branch;
 import com.g4fpt.sms.employee.utils.Gender;
 import com.g4fpt.sms.employee.utils.WorkStatus;
 import jakarta.persistence.*;
@@ -30,7 +31,7 @@ public class Employee {
     private Branch branch;
 
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
@@ -100,20 +101,5 @@ public class Employee {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    public void prePersist() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
-
-        if (workStatus == null) {
-            workStatus = WorkStatus.ACTIVE;
-        }
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }
 

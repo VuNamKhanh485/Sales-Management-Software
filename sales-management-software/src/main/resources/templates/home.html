@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Owner Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/owner/home.css}">
+</head>
+<body>
+
+<div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <h2>SMS</h2>
+            <p>Owner Panel</p>
+        </div>
+
+        <nav class="menu">
+            <a href="#" class="active">Trang chủ</a>
+            <a href="#">Quản lý chi nhánh</a>
+            <a href="#">Quản lý nhân viên</a>
+            <a href="#">Báo cáo doanh thu</a>
+            <a href="#">Kho hàng</a>
+            <a href="#">Cài đặt</a>
+        </nav>
+
+        <div class="logout">
+            <a href="#">Đăng xuất</a>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+
+        <!-- Header -->
+        <header class="header">
+            <div>
+                <h1>Trang chủ Owner</h1>
+                <p>Quản lý tổng quan hệ thống bán hàng</p>
+            </div>
+
+            <div class="user-info">
+                <span>Xin chào, Owner</span>
+            </div>
+        </header>
+
+        <!-- Stats -->
+        <section class="stats">
+            <div class="stat-card">
+                <h3>Tổng chi nhánh</h3>
+                <p>5</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Tổng nhân viên</h3>
+                <p>42</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Đơn hàng hôm nay</h3>
+                <p>128</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Doanh thu hôm nay</h3>
+                <p>25.000.000đ</p>
+            </div>
+        </section>
+
+        <!-- Quick actions -->
+        <section class="section">
+            <div class="section-header">
+                <h2>Chức năng nhanh</h2>
+            </div>
+
+            <div class="actions">
+                <a href="#" class="action-card">
+                    <h3>Thêm chi nhánh</h3>
+                    <p>Tạo mới chi nhánh bán hàng</p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <h3>Thêm nhân viên</h3>
+                    <p>Tạo tài khoản cho nhân viên</p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <h3>Xem báo cáo</h3>
+                    <p>Theo dõi doanh thu toàn hệ thống</p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <h3>Quản lý kho</h3>
+                    <p>Xem tồn kho các chi nhánh</p>
+                </a>
+            </div>
+        </section>
+
+        <!-- Branch table -->
+        <section class="section">
+            <div class="section-header">
+                <h2>Danh sách chi nhánh</h2>
+                <a href="#" class="btn">+ Thêm chi nhánh</a>
+            </div>
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Mã chi nhánh</th>
+                    <th>Tên chi nhánh</th>
+                    <th>Quản lý</th>
+                    <th>Số nhân viên</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr>
+                    <td>BR001</td>
+                    <td>Chi nhánh Hà Nội</td>
+                    <td>Nguyễn Văn A</td>
+                    <td>12</td>
+                    <td><span class="status active-status">Hoạt động</span></td>
+                    <td>
+                        <a href="#" class="table-link">Xem</a>
+                        <a href="#" class="table-link">Sửa</a>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>BR002</td>
+                    <td>Chi nhánh Hồ Chí Minh</td>
+                    <td>Trần Thị B</td>
+                    <td>18</td>
+                    <td><span class="status active-status">Hoạt động</span></td>
+                    <td>
+                        <a href="#" class="table-link">Xem</a>
+                        <a href="#" class="table-link">Sửa</a>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>BR003</td>
+                    <td>Chi nhánh Đà Nẵng</td>
+                    <td>Chưa phân công</td>
+                    <td>0</td>
+                    <td><span class="status inactive-status">Tạm ngừng</span></td>
+                    <td>
+                        <a href="#" class="table-link">Xem</a>
+                        <a href="#" class="table-link">Sửa</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+</html>
