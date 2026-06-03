@@ -1,8 +1,6 @@
 package com.g4fpt.sms.auth.controller;
 
 import com.g4fpt.sms.auth.dto.LoginRequest;
-import com.g4fpt.sms.auth.service.AuthService;
-import com.g4fpt.sms.auth.service.CustomUserDetails;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

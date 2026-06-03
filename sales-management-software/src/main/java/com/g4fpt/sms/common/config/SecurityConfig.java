@@ -1,4 +1,4 @@
-package com.g4fpt.sms.auth.config;
+package com.g4fpt.sms.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
