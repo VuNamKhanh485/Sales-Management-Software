@@ -4,6 +4,7 @@ import com.g4fpt.sms.product.enums.ProductStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -56,14 +57,10 @@ public class Product {
     private LocalDateTime updatedAt;
 
     @Column(name = "created_at", nullable = false)
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "product",
                 cascade = CascadeType.ALL)
     private List<ProductUnit> productunits;
-
-    @PrePersist
-    public void prePersist() {
-        createdAt = LocalDateTime.now();
-    }
 }
