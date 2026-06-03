@@ -1,3 +1,4 @@
+-- DROP DATABASE sale_management;
 CREATE DATABASE IF NOT EXISTS sale_management;
 USE sale_management;
 
@@ -332,8 +333,7 @@ CREATE TABLE ProductUnit (
 
     CONSTRAINT chk_product_unit_price
         CHECK (
-            sale_price >= 0
-            AND import_price >= 0
+            price >= 0
         )
 );
 
