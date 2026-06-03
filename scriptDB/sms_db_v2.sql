@@ -385,7 +385,7 @@ CREATE TABLE OrderTransaction (
     payment_method_id BIGINT NULL,
     created_by BIGINT NOT NULL,
 
-    -- original_order_id BIGINT NULL, -- ? trường này chỉ cần khi transaction là bảng theo dõi bảng order còn mình gộp lại rồi nên không có
+    original_order_id BIGINT NULL,
 
     code VARCHAR(100) NOT NULL UNIQUE,
 
@@ -402,16 +402,14 @@ CREATE TABLE OrderTransaction (
         'CANCELLED',
         'DELIVERY',
         'RECEIVED',
-         'REFUNDED', -- trả hàng đối với customer bằng cách tạo giao dịch nhập hàng nếu để refunded ở đây thì chỉ dành cho lúc import từ nhà cung cấp 
-         'PARTIALLY_REFUNDED' 
+		'REFUNDED'
     ) NOT NULL DEFAULT 'PENDING',
 
     transaction_type ENUM(
         'SALE',
         'RETURN',
         'IMPORT',
-        'EXPORT',
-        -- 'TRANSFER', -- không cần transfer, khi Import và export  mà có form_branch và to_branch rồi thì là transfer luôn rồi
+       'TRANSFER',
         'OTHER' -- thiếu other để phục vụ mua với mục đích khác
     ) NOT NULL DEFAULT 'SALE',
 

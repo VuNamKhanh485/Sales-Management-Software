@@ -9,8 +9,7 @@ public class SalesManagementSoftwareApplication {
 
 
     public static void main(String[] args) {
-
         SpringApplication.run(SalesManagementSoftwareApplication.class, args);
-    }
 
+    }
 }
