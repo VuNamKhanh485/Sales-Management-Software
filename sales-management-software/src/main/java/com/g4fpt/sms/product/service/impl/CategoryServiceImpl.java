@@ -24,7 +24,7 @@ public class CategoryServiceImpl implements CategoryService {
         category.setName(categoryRequest.getCategoryName());
         category.setDescription(categoryRequest.getDescription());
         category.setStatus(categoryRequest.getCategoryStatus());
-        category.setCreatedDate(LocalDateTime.now());
+        category.setCreatedAt(LocalDateTime.now());
 
         return  categoryRepository.save(category);
     }
@@ -53,7 +53,7 @@ public class CategoryServiceImpl implements CategoryService {
             category.setDescription(categoryRequest.getDescription());
             category.setStatus(categoryRequest.getCategoryStatus());
 
-            category.setUpdateDate(LocalDateTime.now());
+            category.setUpdateAt(LocalDateTime.now());
 
             return categoryRepository.save(category);
         }

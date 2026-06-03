@@ -3,6 +3,7 @@ package com.g4fpt.sms.product.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -31,6 +32,9 @@ public class Brand {
 
     @Column(nullable = false)
     private String createdAt;
+
+    @Column(name = "updated_at")
+    private Instant updatedAt;
 
     @OneToMany (fetch = FetchType.LAZY, mappedBy = "brand")
     private List<Product> products;

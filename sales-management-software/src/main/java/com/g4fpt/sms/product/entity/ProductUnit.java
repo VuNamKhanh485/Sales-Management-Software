@@ -35,12 +35,12 @@ public class ProductUnit {
     private Unit unit;
 
     @NotNull
-    @Column(name = "convention_value", nullable = false)
+    @Column(name = "conversion_value", nullable = false)
     @ToString.Include
     private Integer conventionValue;
 
     @NotNull
-    @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    @Column(name = "price", nullable = false, precision = 12, scale = 2)
     @ToString.Include
     private BigDecimal price;
 

@@ -2,6 +2,7 @@ package com.g4fpt.sms.product.entity;
 
 import com.g4fpt.sms.product.enums.ProductStatus;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -39,6 +40,10 @@ public class Product {
     @ToString.Include
     private String name;
 
+    @Size(max = 1000)
+    @Column(name = "image_url", length = 1000)
+    private String imageUrl;
+
     private String description;
 
     @Enumerated(EnumType.STRING)
@@ -48,10 +53,10 @@ public class Product {
     private String note;
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedDate;
+    private LocalDateTime updatedAt;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdDate;
+    private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "product",
                 cascade = CascadeType.ALL)
@@ -59,6 +64,6 @@ public class Product {
 
     @PrePersist
     public void prePersist() {
-        createdDate = LocalDateTime.now();
+        createdAt = LocalDateTime.now();
     }
 }

@@ -37,16 +37,16 @@ public class Category {
     private CategoryStatus status;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdDate;
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    private LocalDateTime updateDate;
+    private LocalDateTime updateAt;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "category")
     private List<Product> products;
 
     @PrePersist
     public void prePersist() {
-        this.createdDate = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
     }
 }

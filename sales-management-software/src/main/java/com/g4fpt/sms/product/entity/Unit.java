@@ -35,13 +35,13 @@ public class Unit {
 
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdDate;
+    private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "unit")
     private List<ProductUnit> productunits;
 
     @PrePersist
     public void prePersist() {
-        createdDate = LocalDateTime.now();
+        createdAt = LocalDateTime.now();
     }
 }

@@ -60,7 +60,7 @@ public class ProductServiceImpl implements ProductService {
             product.setStatus(productRequest.getStatus());
             product.setNote(productRequest.getNote());
 
-            product.setUpdatedDate(LocalDateTime.now());
+            product.setUpdatedAt(LocalDateTime.now());
             return productRepository.save(product);
         }
         return null;
