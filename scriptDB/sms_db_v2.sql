@@ -1,6 +1,6 @@
--- DROP DATABASE sale_management;
-CREATE DATABASE IF NOT EXISTS sale_management;
-USE sale_management;
+-- DROP DATABASE sms_db;
+CREATE DATABASE IF NOT EXISTS sms_db;
+USE sms_db;
 
 -- role
 CREATE TABLE Role (
@@ -9,8 +9,6 @@ CREATE TABLE Role (
     code VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(100) NOT NULL,
     description TEXT NULL
-
-    -- created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP -- không có create at
 );
 
 -- branch
