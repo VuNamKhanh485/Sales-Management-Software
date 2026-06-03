@@ -1,11 +1,17 @@
 package com.g4fpt.sms.voucher.controller;
 
+import com.g4fpt.sms.common.dto.ApiResponse;
+import com.g4fpt.sms.common.dto.PageResponse;
 import com.g4fpt.sms.common.exception.AppException;
 import com.g4fpt.sms.voucher.dto.request.VoucherCreateRequest;
 import com.g4fpt.sms.voucher.dto.request.VoucherUpdateRequest;
+import com.g4fpt.sms.voucher.dto.response.VoucherResponse;
+import com.g4fpt.sms.voucher.enums.VoucherStatus;
 import com.g4fpt.sms.voucher.service.VoucherService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -13,36 +19,52 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/vouchers")
 @RequiredArgsConstructor
 public class VoucherController {
 
     private final VoucherService voucherService;
 
-    @GetMapping
+    @GetMapping("/vouchers")
     public String list(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
             Model model) {
-        model.addAttribute("vouchers", voucherService.search(keyword, status));
+        
+        VoucherStatus voucherStatus = null;
+        if (status != null && !status.trim().isEmpty()) {
+            try {
+                voucherStatus = VoucherStatus.valueOf(status.trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+            }
+        }
+        
+        var pageResponse = voucherService.search(
+                keyword != null && !keyword.trim().isEmpty() ? keyword.trim() : null,
+                voucherStatus,
+                0,
+                1000
+        );
+        
+        model.addAttribute("vouchers", pageResponse.getContent());
         model.addAttribute("keyword", keyword);
-        model.addAttribute("selectedStatus", status);
+        model.addAttribute("status", status);
         return "voucher/list";
     }
 
-    @GetMapping("/create")
+    @GetMapping("/vouchers/create")
     public String createForm(Model model) {
         model.addAttribute("request", new VoucherCreateRequest());
         model.addAttribute("isEdit", false);
         return "voucher/form";
     }
 
-    @PostMapping("/create")
-    public String create(
+    @PostMapping("/vouchers/create")
+    public String createMvc(
             @Valid @ModelAttribute("request") VoucherCreateRequest request,
             BindingResult bindingResult,
             Model model,
             RedirectAttributes redirectAttributes) {
+        
         if (bindingResult.hasErrors()) {
             model.addAttribute("isEdit", false);
             return "voucher/form";
@@ -58,35 +80,35 @@ public class VoucherController {
         return "redirect:/vouchers";
     }
 
-    @GetMapping("/edit/{id}")
+    @GetMapping("/vouchers/edit/{id}")
     public String editForm(@PathVariable Long id, Model model) {
         var response = voucherService.getById(id);
-        // Map response → UpdateRequest để bind vào form
         VoucherUpdateRequest request = VoucherUpdateRequest.builder()
                 .code(response.getCode())
-                .nameVoucher(response.getNameVoucher())
+                .name(response.getName())
                 .discountType(response.getDiscountType())
                 .discountValue(response.getDiscountValue())
-                .minOrderValue(response.getMinOrderValue())
+                .minOrderAmount(response.getMinOrderAmount())
                 .maxDiscountAmount(response.getMaxDiscountAmount())
-                .usageLimit(response.getUsageLimit())
-                .startDate(response.getStartDate())
-                .endDate(response.getEndDate())
-                .status(response.getStatus() != null ? response.getStatus().name() : null)
+                .startAt(response.getStartAt())
+                .endAt(response.getEndAt())
+                .status(response.getStatus())
                 .build();
+        
         model.addAttribute("request", request);
         model.addAttribute("voucherId", id);
         model.addAttribute("isEdit", true);
         return "voucher/form";
     }
 
-    @PostMapping("/edit/{id}")
-    public String edit(
+    @PostMapping("/vouchers/edit/{id}")
+    public String editMvc(
             @PathVariable Long id,
             @Valid @ModelAttribute("request") VoucherUpdateRequest request,
             BindingResult bindingResult,
             Model model,
             RedirectAttributes redirectAttributes) {
+        
         if (bindingResult.hasErrors()) {
             model.addAttribute("isEdit", true);
             model.addAttribute("voucherId", id);
@@ -104,16 +126,77 @@ public class VoucherController {
         return "redirect:/vouchers";
     }
 
-    @GetMapping("/delete/{id}")
+    @GetMapping("/vouchers/delete/{id}")
     public String deleteConfirm(@PathVariable Long id, Model model) {
-        model.addAttribute("voucher", voucherService.getEntityById(id));
+        model.addAttribute("voucher", voucherService.getById(id));
         return "voucher/confirm-delete";
     }
 
-    @PostMapping("/delete/{id}")
-    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    @PostMapping("/vouchers/delete/{id}")
+    public String deleteMvc(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         voucherService.delete(id);
         redirectAttributes.addFlashAttribute("successMessage", "Xóa voucher thành công!");
         return "redirect:/vouchers";
+    }
+
+    @PostMapping("/api/vouchers")
+    @ResponseBody
+    public ResponseEntity<ApiResponse<VoucherResponse>> createRest(
+            @Valid @RequestBody VoucherCreateRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(voucherService.create(request)));
+    }
+
+    @PutMapping("/api/vouchers/{id}")
+    @ResponseBody
+    public ResponseEntity<ApiResponse<VoucherResponse>> updateRest(
+            @PathVariable Long id,
+            @Valid @RequestBody VoucherUpdateRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(voucherService.update(id, request)));
+    }
+
+    @GetMapping("/api/vouchers/{id}")
+    @ResponseBody
+    public ResponseEntity<ApiResponse<VoucherResponse>> getByIdRest(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(voucherService.getById(id)));
+    }
+
+    @GetMapping("/api/vouchers/code/{code}")
+    @ResponseBody
+    public ResponseEntity<ApiResponse<VoucherResponse>> getByCodeRest(@PathVariable String code) {
+        return ResponseEntity.ok(ApiResponse.success(voucherService.getByCode(code)));
+    }
+
+    @GetMapping("/api/vouchers")
+    @ResponseBody
+    public ResponseEntity<ApiResponse<PageResponse<VoucherResponse>>> searchRest(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) VoucherStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(ApiResponse.success(
+                voucherService.search(keyword, status, page, size)));
+    }
+
+    @GetMapping("/api/vouchers/active")
+    @ResponseBody
+    public ResponseEntity<ApiResponse<PageResponse<VoucherResponse>>> getActiveVouchersRest(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(ApiResponse.success(
+                voucherService.getActiveVouchers(page, size)));
+    }
+
+    @DeleteMapping("/api/vouchers/{id}")
+    @ResponseBody
+    public ResponseEntity<ApiResponse<Void>> deleteRest(@PathVariable Long id) {
+        voucherService.delete(id);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @PatchMapping("/api/vouchers/{id}/toggle-status")
+    @ResponseBody
+    public ResponseEntity<ApiResponse<VoucherResponse>> toggleStatusRest(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(voucherService.toggleStatus(id)));
     }
 }

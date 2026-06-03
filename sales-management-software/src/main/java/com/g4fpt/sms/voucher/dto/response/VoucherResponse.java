@@ -1,27 +1,27 @@
 package com.g4fpt.sms.voucher.dto.response;
 
+import com.g4fpt.sms.voucher.enums.DiscountType;
 import com.g4fpt.sms.voucher.enums.VoucherStatus;
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Data
+@Builder
 public class VoucherResponse {
 
     private Long id;
     private String code;
-    private String nameVoucher;
-    private String discountType;
+    private String name;
+    private DiscountType discountType;
     private BigDecimal discountValue;
-    private BigDecimal minOrderValue;
+    private BigDecimal minOrderAmount;
     private BigDecimal maxDiscountAmount;
-    private Integer usageLimit;
-    private Integer usedCount;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private LocalDateTime startAt;
+    private LocalDateTime endAt;
     private VoucherStatus status;
     private LocalDateTime createdAt;
-    private String createdByName; // Employee.fullname
+    private LocalDateTime updatedAt;
 }
