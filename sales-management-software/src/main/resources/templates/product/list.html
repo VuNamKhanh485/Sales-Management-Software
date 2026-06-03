@@ -27,7 +27,7 @@
         <td th:text="${product.category.name}"></td>
         <td th:text="${product.brand.name}"></td>
         <td th:text="${product.status}"></td>
-        <td th:text="${product.createdDate}"></td>
+        <td th:text="${product.createdAt}"></td>
         <td>
             <a th:href="@{/product/update/{id}(id=${product.id})}">
                 Update
