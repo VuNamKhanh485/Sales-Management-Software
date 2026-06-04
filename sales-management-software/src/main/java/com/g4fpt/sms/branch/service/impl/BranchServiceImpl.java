@@ -1,15 +1,17 @@
 package com.g4fpt.sms.branch.service.impl;
 
-import com.g4fpt.sms.branch.dto.request.BranchRequest;
+import com.g4fpt.sms.branch.dto.BranchRequest;
 import com.g4fpt.sms.branch.entity.Branch;
 import com.g4fpt.sms.branch.repository.BranchRepository;
 import com.g4fpt.sms.branch.service.BranchService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@Transactional
 public class BranchServiceImpl implements BranchService {
 
     private final BranchRepository branchRepository;
@@ -18,59 +20,53 @@ public class BranchServiceImpl implements BranchService {
         this.branchRepository = branchRepository;
     }
 
-    // CREATE
-    @Override
-    public Branch create(BranchRequest request) {
-
-        Branch branch = new Branch();
-
-        branch.setName(request.getName());
-        branch.setAddress(request.getAddress());
-        branch.setStatus(request.getStatus());
-        branch.setManagerId(request.getManagerId());
-
-        branch.setCreateAt(LocalDateTime.now());
-
-        return branchRepository.save(branch);
-    }
-
-    // GET ALL
     @Override
     public List<Branch> getAll() {
         return branchRepository.findAll();
     }
 
-    // GET BY ID
     @Override
     public Branch getById(Long id) {
-        return branchRepository.findById(id)
-                .orElse(null);
+        Optional<Branch> optionalBranch = branchRepository.findById(id);
+
+        if (optionalBranch.isPresent()) return optionalBranch.get();
+
+        throw new RuntimeException("Branch not found");
     }
 
-    // UPDATE
     @Override
-    public Branch update(Long id, BranchRequest request) {
+    public void create(BranchRequest request) {
+        Branch branch = new Branch();
 
-        Branch oldBranch =
-                branchRepository.findById(id)
-                        .orElse(null);
+        branch.setBranchCode(request.getBranchCode());
+        branch.setName(request.getName());
+        branch.setPhone(request.getPhone());
+        branch.setEmail(request.getEmail());
+        branch.setAddress(request.getAddress());
+        branch.setStatus(request.getStatus());
+        branch.setOpenedAt(request.getOpenedAt());
+        branch.setClosedAt(request.getClosedAt());
+        branch.setNote(request.getNote());
 
-        if (oldBranch != null) {
-
-            oldBranch.setName(request.getName());
-            oldBranch.setAddress(request.getAddress());
-            oldBranch.setStatus(request.getStatus());
-            oldBranch.setManagerId(request.getManagerId());
-
-            oldBranch.setUpdateAt(LocalDateTime.now());
-
-            return branchRepository.save(oldBranch);
-        }
-
-        return null;
+        branchRepository.save(branch);
     }
 
-    // DELETE
+    @Override
+    public void update(Long id, BranchRequest request) {
+        Branch branch = getById(id);
+
+        branch.setName(request.getName());
+        branch.setPhone(request.getPhone());
+        branch.setEmail(request.getEmail());
+        branch.setAddress(request.getAddress());
+        branch.setStatus(request.getStatus());
+        branch.setOpenedAt(request.getOpenedAt());
+        branch.setClosedAt(request.getClosedAt());
+        branch.setNote(request.getNote());
+
+        branchRepository.save(branch);
+    }
+
     @Override
     public void delete(Long id) {
         branchRepository.deleteById(id);

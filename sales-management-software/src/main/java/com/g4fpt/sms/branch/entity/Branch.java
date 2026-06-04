@@ -1,12 +1,16 @@
 package com.g4fpt.sms.branch.entity;
 
+import com.g4fpt.sms.employee.entity.Employee;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "Branch")
@@ -20,21 +24,51 @@ public class Branch {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "branch_code", nullable = false, unique = true)
+    private String branchCode;
+
+    @Column(nullable = false)
     private String name;
 
+    private String phone;
+
+    private String email;
+
+    @Column(nullable = false)
     private String address;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private BranchStatus status;
 
-    @Column(name = "manager_id")
-    private Long managerId;
+    @Column(name = "opened_at")
+    private LocalDate openedAt;
+
+    @Column(name = "closed_at")
+    private LocalDate closedAt;
+
+    @Column(columnDefinition = "TEXT")
+    private String note;
 
     @Column(name = "created_at")
-    private LocalDateTime createAt;
+    private LocalDateTime createdAt;
 
-    @Column(name = "update_at")
-    private LocalDateTime updateAt;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
+    @OneToMany(
+            mappedBy = "branch",
+            fetch = FetchType.LAZY
+    )
+    private List<Employee> employees = new ArrayList<>();
 
+    @PrePersist
+    public void prePersist() {
+        createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

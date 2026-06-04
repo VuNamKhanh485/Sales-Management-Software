@@ -6,33 +6,25 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name = "`Role`")
+@Table(name = "Role")
 @Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Role {
 
+public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name ="code",nullable = false,length = 255)
+    @Column(name="code",nullable = false,unique = true,length = 50)
     private String code;
 
-    @Column(name="name",nullable = false,length = 255)
+    @Column(name="name", nullable = false)
     private String name;
 
-    @Column(name="description",columnDefinition = "TEXT")
-    private String descripion;
-
-    @OneToMany(mappedBy = "role")
-    private List<Employee> employeeList = new ArrayList<>();
-
-
-
-
+    @Column(name = "description")
+    @Lob
+    private String description;
 }

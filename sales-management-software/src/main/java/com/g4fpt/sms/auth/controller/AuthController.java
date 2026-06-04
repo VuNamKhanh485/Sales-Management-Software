@@ -1,53 +1,31 @@
 package com.g4fpt.sms.auth.controller;
 
-import com.g4fpt.sms.auth.dto.LoginRequest;
-import com.g4fpt.sms.auth.service.AuthService;
-import com.g4fpt.sms.auth.service.CustomUserDetails;
-import jakarta.servlet.http.HttpSession;
+
+import org.springframework.ui.Model;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class AuthController {
-
-    private final AuthService authService;
-
-    public AuthController(AuthService authService) {
-        this.authService = authService;
-    }
-
     @GetMapping("/login")
-    public String loginPage() {
+    public String login(
+            @RequestParam(value = "error", required = false) String error,
+            @RequestParam(value = "logout", required = false) String logout,
+            Model model
+    ) {
+        if (error != null) {
+            model.addAttribute("loginError", "Email hoặc mật khẩu không đúng, hoặc tài khoản đã bị khóa.");
+        }
+
+        if (logout != null) {
+            model.addAttribute("loginSuccess", "Đăng xuất thành công.");
+        }
         return "auth/login";
     }
-
-    @PostMapping("/login")
-    public String login(@ModelAttribute LoginRequest loginRequest, HttpSession session, RedirectAttributes redirectAttributes) {
-        try {
-            CustomUserDetails userDetails = authService.login(loginRequest);
-            session.setAttribute("loggedInUser", userDetails);
-            redirectAttributes.addFlashAttribute("loginSuccess", "Đăng nhập thành công.");
-            return "redirect:/login";
-        } catch (Exception exception) {
-            redirectAttributes.addFlashAttribute("loginError", "Email hoặc mật khẩu không đúng.");
-            return "redirect:/login";
-        }
+    @GetMapping("/home")
+    public String getHome(){
+        return "home";
     }
-
-    @GetMapping("/forgot-password")
-    public String forgotPasswordPage() {
-        return "auth/forgot-password";
-    }
-
-    @PostMapping("/forgot-password")
-    public String forgotPassword(@RequestParam("email") String email, RedirectAttributes redirectAttributes) {
-        redirectAttributes.addFlashAttribute("successMessage", "Yêu cầu khôi phục mật khẩu đã được gửi thành công.");
-        return "redirect:/forgot-password";
-    }
-
 
 }
