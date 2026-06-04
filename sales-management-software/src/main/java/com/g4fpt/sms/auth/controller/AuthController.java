@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -35,6 +36,17 @@ public class AuthController {
             redirectAttributes.addFlashAttribute("loginError", "Email hoặc mật khẩu không đúng.");
             return "redirect:/login";
         }
+    }
+
+    @GetMapping("/forgot-password")
+    public String forgotPasswordPage() {
+        return "auth/forgot-password";
+    }
+
+    @PostMapping("/forgot-password")
+    public String forgotPassword(@RequestParam("email") String email, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("successMessage", "Yêu cầu khôi phục mật khẩu đã được gửi thành công.");
+        return "redirect:/forgot-password";
     }
 
 

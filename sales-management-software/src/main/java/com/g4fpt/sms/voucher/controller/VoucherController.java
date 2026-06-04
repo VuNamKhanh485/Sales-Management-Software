@@ -1,7 +1,5 @@
 package com.g4fpt.sms.voucher.controller;
 
-import com.g4fpt.sms.common.dto.ApiResponse;
-import com.g4fpt.sms.common.dto.PageResponse;
 import com.g4fpt.sms.common.exception.AppException;
 import com.g4fpt.sms.voucher.dto.request.VoucherCreateRequest;
 import com.g4fpt.sms.voucher.dto.request.VoucherUpdateRequest;
@@ -139,64 +137,5 @@ public class VoucherController {
         return "redirect:/vouchers";
     }
 
-    @PostMapping("/api/vouchers")
-    @ResponseBody
-    public ResponseEntity<ApiResponse<VoucherResponse>> createRest(
-            @Valid @RequestBody VoucherCreateRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(voucherService.create(request)));
-    }
 
-    @PutMapping("/api/vouchers/{id}")
-    @ResponseBody
-    public ResponseEntity<ApiResponse<VoucherResponse>> updateRest(
-            @PathVariable Long id,
-            @Valid @RequestBody VoucherUpdateRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(voucherService.update(id, request)));
-    }
-
-    @GetMapping("/api/vouchers/{id}")
-    @ResponseBody
-    public ResponseEntity<ApiResponse<VoucherResponse>> getByIdRest(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success(voucherService.getById(id)));
-    }
-
-    @GetMapping("/api/vouchers/code/{code}")
-    @ResponseBody
-    public ResponseEntity<ApiResponse<VoucherResponse>> getByCodeRest(@PathVariable String code) {
-        return ResponseEntity.ok(ApiResponse.success(voucherService.getByCode(code)));
-    }
-
-    @GetMapping("/api/vouchers")
-    @ResponseBody
-    public ResponseEntity<ApiResponse<PageResponse<VoucherResponse>>> searchRest(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) VoucherStatus status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(ApiResponse.success(
-                voucherService.search(keyword, status, page, size)));
-    }
-
-    @GetMapping("/api/vouchers/active")
-    @ResponseBody
-    public ResponseEntity<ApiResponse<PageResponse<VoucherResponse>>> getActiveVouchersRest(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(ApiResponse.success(
-                voucherService.getActiveVouchers(page, size)));
-    }
-
-    @DeleteMapping("/api/vouchers/{id}")
-    @ResponseBody
-    public ResponseEntity<ApiResponse<Void>> deleteRest(@PathVariable Long id) {
-        voucherService.delete(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
-    @PatchMapping("/api/vouchers/{id}/toggle-status")
-    @ResponseBody
-    public ResponseEntity<ApiResponse<VoucherResponse>> toggleStatusRest(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success(voucherService.toggleStatus(id)));
-    }
 }
