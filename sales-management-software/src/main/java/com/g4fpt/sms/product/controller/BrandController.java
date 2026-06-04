@@ -39,7 +39,7 @@ public class BrandController {
     }
 
     @GetMapping("/update/{id}")
-    public String updatePage(@PathVariable("id") Long id, Model model) {
+    public String updatePage(@PathVariable Long id, Model model) {
         Brand brand = brandService.findById(id);
 
         BrandRequest brandRequest = new BrandRequest();
@@ -52,7 +52,7 @@ public class BrandController {
     }
 
     @PostMapping("/update/{id}")
-    public String update(@PathVariable("id") Long id, @ModelAttribute BrandRequest brandRequest) {
+    public String update(@PathVariable Long id, @ModelAttribute BrandRequest brandRequest) {
         brandService.update(id, brandRequest);
         return "redirect:/brand";
     }
