@@ -1,4 +1,4 @@
-package com.g4fpt.sms.product.dto;
+package com.g4fpt.sms.product.dto.request;
 
 import com.g4fpt.sms.product.enums.CategoryStatus;
 import jakarta.validation.constraints.NotBlank;

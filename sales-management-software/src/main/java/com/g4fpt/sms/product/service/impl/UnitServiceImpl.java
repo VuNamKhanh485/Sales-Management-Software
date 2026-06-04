@@ -1,6 +1,6 @@
 package com.g4fpt.sms.product.service.impl;
 
-import com.g4fpt.sms.product.dto.UnitRequest;
+import com.g4fpt.sms.product.dto.request.UnitRequest;
 import com.g4fpt.sms.product.entity.Unit;
 import com.g4fpt.sms.product.repository.UnitRepository;
 import com.g4fpt.sms.product.service.UnitService;

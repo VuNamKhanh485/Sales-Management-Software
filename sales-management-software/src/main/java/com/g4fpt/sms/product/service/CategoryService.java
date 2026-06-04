@@ -1,6 +1,6 @@
 package com.g4fpt.sms.product.service;
 
-import com.g4fpt.sms.product.dto.CategoryRequest;
+import com.g4fpt.sms.product.dto.request.CategoryRequest;
 import com.g4fpt.sms.product.entity.Category;
 
 import java.util.List;

@@ -1,6 +1,6 @@
 package com.g4fpt.sms.product.service.impl;
 
-import com.g4fpt.sms.product.dto.BrandRequest;
+import com.g4fpt.sms.product.dto.request.BrandRequest;
 import com.g4fpt.sms.product.entity.Brand;
 import com.g4fpt.sms.product.repository.BrandRepository;
 import com.g4fpt.sms.product.service.BrandService;

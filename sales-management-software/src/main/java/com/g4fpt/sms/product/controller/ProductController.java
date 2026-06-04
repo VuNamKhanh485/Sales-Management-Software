@@ -1,10 +1,9 @@
 package com.g4fpt.sms.product.controller;
 
-import com.g4fpt.sms.product.dto.ProductRequest;
-import com.g4fpt.sms.product.dto.ProductUnitRequest;
+import com.g4fpt.sms.product.dto.request.ProductRequest;
+import com.g4fpt.sms.product.dto.request.ProductUnitRequest;
 import com.g4fpt.sms.product.entity.Product;
 import com.g4fpt.sms.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;

@@ -1,6 +1,6 @@
 package com.g4fpt.sms.product.controller;
 
-import com.g4fpt.sms.product.dto.UnitRequest;
+import com.g4fpt.sms.product.dto.request.UnitRequest;
 import com.g4fpt.sms.product.entity.Unit;
 import com.g4fpt.sms.product.service.UnitService;
 import org.springframework.stereotype.Controller;

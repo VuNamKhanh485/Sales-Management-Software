@@ -1,4 +1,4 @@
-package com.g4fpt.sms.product.dto;
+package com.g4fpt.sms.product.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;

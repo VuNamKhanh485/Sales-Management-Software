@@ -1,9 +1,8 @@
 package com.g4fpt.sms.product.controller;
 
-import com.g4fpt.sms.product.dto.BrandRequest;
+import com.g4fpt.sms.product.dto.request.BrandRequest;
 import com.g4fpt.sms.product.entity.Brand;
 import com.g4fpt.sms.product.service.BrandService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;

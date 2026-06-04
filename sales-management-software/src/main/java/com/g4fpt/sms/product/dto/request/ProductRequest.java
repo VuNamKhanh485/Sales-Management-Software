@@ -1,8 +1,7 @@
-package com.g4fpt.sms.product.dto;
+package com.g4fpt.sms.product.dto.request;
 
 import com.g4fpt.sms.product.entity.Brand;
 import com.g4fpt.sms.product.entity.Category;
-import com.g4fpt.sms.product.entity.ProductUnit;
 import com.g4fpt.sms.product.enums.ProductStatus;
 import lombok.Getter;
 import lombok.Setter;

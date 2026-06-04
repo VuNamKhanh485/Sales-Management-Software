@@ -1,6 +1,6 @@
 package com.g4fpt.sms.product.service;
 
-import com.g4fpt.sms.product.dto.BrandRequest;
+import com.g4fpt.sms.product.dto.request.BrandRequest;
 import com.g4fpt.sms.product.entity.Brand;
 
 import java.util.List;

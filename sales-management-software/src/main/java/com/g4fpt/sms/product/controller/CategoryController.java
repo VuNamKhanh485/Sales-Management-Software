@@ -1,6 +1,6 @@
 package com.g4fpt.sms.product.controller;
 
-import com.g4fpt.sms.product.dto.CategoryRequest;
+import com.g4fpt.sms.product.dto.request.CategoryRequest;
 import com.g4fpt.sms.product.entity.Category;
 import com.g4fpt.sms.product.service.CategoryService;
 import org.springframework.stereotype.Controller;
