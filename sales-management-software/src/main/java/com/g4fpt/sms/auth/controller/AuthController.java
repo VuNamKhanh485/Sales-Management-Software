@@ -17,11 +17,15 @@ public class AuthController {
         if (error != null) {
             model.addAttribute("loginError", "Email hoặc mật khẩu không đúng, hoặc tài khoản đã bị khóa.");
         }
+
         if (logout != null) {
             model.addAttribute("loginSuccess", "Đăng xuất thành công.");
         }
         return "auth/login";
     }
-
+    @GetMapping("/home")
+    public String getHome(){
+        return "home";
+    }
 
 }
