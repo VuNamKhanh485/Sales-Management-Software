@@ -16,7 +16,6 @@ public class ProductRequest {
     private Brand brand;
     private String name;
     private String imageUrl;
-    private BigDecimal price;
     private String description;
     private ProductStatus status;
     private String note;

@@ -1,5 +1,6 @@
 package com.g4fpt.sms.product.entity;
 
+import com.g4fpt.sms.product.enums.BrandStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -34,6 +35,9 @@ public class Brand {
     @Column(nullable = false)
     @CreationTimestamp
     private String createdAt;
+
+    @Column(nullable = false)
+    private BrandStatus status;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;

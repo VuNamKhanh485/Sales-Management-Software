@@ -1,17 +1,17 @@
 package com.g4fpt.sms.product.service;
 
 import com.g4fpt.sms.product.dto.request.ProductRequest;
-import com.g4fpt.sms.product.entity.Product;
+import com.g4fpt.sms.product.dto.response.ProductResponse;
 
 import java.util.List;
 
 public interface ProductService {
-    Product create(ProductRequest productRequest);
-    Product update(long id, ProductRequest productRequest);
-    Product findById(long id);
-    List<Product> findByName(String name);
-    List<Product> findByBrand(Long brandId);
-    List<Product> findByCategory(Long categoryId);
+    void create(ProductRequest productRequest);
+    void update(long id, ProductRequest productRequest);
     void delete(long id);
-    List<Product> getAll();
+    ProductResponse findById(long id);
+    List<ProductResponse> findByName(String name);
+    List<ProductResponse> findByBrand(Long brandId);
+    List<ProductResponse> findByCategory(Long categoryId);
+    List<ProductResponse> findAll();
 }

@@ -51,7 +51,7 @@ public class ProductUnitServiceImpl implements ProductUnitService {
     }
 
     @Override
-    public void delete(Long id) {
+    public void deleteById(Long id) {
 
     }
 
