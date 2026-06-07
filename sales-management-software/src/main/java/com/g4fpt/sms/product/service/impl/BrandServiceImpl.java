@@ -3,6 +3,7 @@ package com.g4fpt.sms.product.service.impl;
 import com.g4fpt.sms.product.dto.request.BrandRequest;
 import com.g4fpt.sms.product.dto.response.BrandResponse;
 import com.g4fpt.sms.product.entity.Brand;
+import com.g4fpt.sms.product.mapper.BrandMapper;
 import com.g4fpt.sms.product.repository.BrandRepository;
 import com.g4fpt.sms.product.service.BrandService;
 import org.springframework.stereotype.Service;
@@ -12,25 +13,33 @@ import java.util.List;
 @Service
 public class BrandServiceImpl implements BrandService {
     private final BrandRepository brandRepository;
+    private final BrandMapper brandMapper;
 
-    public BrandServiceImpl(BrandRepository brandRepository) {
+    public BrandServiceImpl(BrandRepository brandRepository, BrandMapper brandMapper) {
+        this.brandMapper = brandMapper;
         this.brandRepository = brandRepository;
     }
 
+
     @Override
     public void create(BrandRequest brandRequest) {
-        Brand brand = new Brand();
-        brand.setName(brandRequest.getBrandName());
+        Brand brand = brandMapper.toEntity(brandRequest);
+        brandRepository.save(brand);
     }
 
     @Override
     public List<BrandResponse> findAll() {
-        return brandRepository.findAll();
+        return brandRepository.findAll()
+                .stream()
+                .map(brandMapper::toResponse)
+                .toList();
     }
 
     @Override
     public BrandResponse findById(long id) {
-        return brandRepository.findById(id).orElse(null);
+        Brand brand = brandRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Brand not found"));
+        return  brandMapper.toResponse(brand);
     }
 
     @Override
@@ -40,10 +49,15 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public void update(long id, BrandRequest brandRequest) {
-        BrandResponse brand = findById(id);
-        if (brand != null) {
-            brand.setName(brandRequest.getBrandName());
-        }
+        Brand brand = getBrandById(id);
+        brand.setName(brandRequest.getBrandName());
+        brand.setStatus(brandRequest.getBrandStatus());
+        brandRepository.save(brand);
+    }
+
+    private Brand getBrandById(long id) {
+        return brandRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Brand not found"));
     }
 
 }

@@ -1,6 +1,7 @@
 package com.g4fpt.sms.product.controller;
 
 import com.g4fpt.sms.product.dto.request.BrandRequest;
+import com.g4fpt.sms.product.dto.response.BrandResponse;
 import com.g4fpt.sms.product.entity.Brand;
 import com.g4fpt.sms.product.service.BrandService;
 import org.springframework.stereotype.Controller;
@@ -33,19 +34,15 @@ public class BrandController {
 
     @PostMapping("/create")
     public String create(@ModelAttribute BrandRequest request) {
-        brandService.save(request);
+        brandService.create(request);
         return "redirect:/brand";
     }
 
     @GetMapping("/update/{id}")
     public String updatePage(@PathVariable Long id, Model model) {
-        Brand brand = brandService.findById(id);
+        BrandResponse brandResponse = brandService.findById(id);
 
-        BrandRequest brandRequest = new BrandRequest();
-
-        brandRequest.setBrandName(brand.getName());
-
-        model.addAttribute("brandRequest", brandRequest);
+        model.addAttribute("brandResponse", brandResponse);
         model.addAttribute("id", id);
         return "brand/update";
     }
