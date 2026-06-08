@@ -10,7 +10,7 @@ public class ProductUnitRequest {
     private Long productId;
     private Long unitId;
     private int conventionValue;
-    private BigDecimal unitPrice;
+    private BigDecimal price;
     private String barcodeUnit;
     private Boolean isBaseUnit;
     private String sku;

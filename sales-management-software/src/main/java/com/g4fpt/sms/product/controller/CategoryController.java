@@ -1,7 +1,7 @@
 package com.g4fpt.sms.product.controller;
 
 import com.g4fpt.sms.product.dto.request.CategoryRequest;
-import com.g4fpt.sms.product.entity.Category;
+import com.g4fpt.sms.product.dto.response.CategoryResponse;
 import com.g4fpt.sms.product.service.CategoryService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,7 +18,7 @@ public class CategoryController {
     }
 
     @GetMapping
-    public String category(Model model) {
+    public String list(Model model) {
         model.addAttribute("categoryList", categoryService.findAll());
         return "category/list";
     }
@@ -31,28 +31,21 @@ public class CategoryController {
 
     @PostMapping("/create")
     public String create(@ModelAttribute CategoryRequest categoryRequest) {
-        categoryService.save(categoryRequest);
+        categoryService.create(categoryRequest);
         return "redirect:/category";
     }
 
     @GetMapping("/update/{id}")
     public String updatePage(@PathVariable Long id, Model model) {
-        CategoryRequest categoryRequest = new CategoryRequest();
-        Category category = categoryService.findById(id);
+        CategoryResponse categoryResponse = categoryService.findById(id);
 
-        categoryRequest.setCategoryName(category.getName());
-        categoryRequest.setDescription(category.getDescription());
-        categoryRequest.setCategoryStatus(category.getStatus());
-
-        model.addAttribute("categoryRequest", categoryRequest);
+        model.addAttribute("categoryResponse", categoryResponse);
         return "category/update";
     }
 
     @PostMapping("/update/{id}")
     public String update(@PathVariable Long id, @ModelAttribute CategoryRequest categoryRequest) {
-        categoryService.save(categoryRequest);
+        categoryService.update(id, categoryRequest);
         return "redirect:/category";
     }
-
-
 }

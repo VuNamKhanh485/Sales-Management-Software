@@ -1,53 +1,59 @@
 package com.g4fpt.sms.product.service.impl;
 
 import com.g4fpt.sms.product.dto.request.UnitRequest;
+import com.g4fpt.sms.product.dto.response.UnitResponse;
 import com.g4fpt.sms.product.entity.Unit;
+import com.g4fpt.sms.product.mapper.UnitMapper;
 import com.g4fpt.sms.product.repository.UnitRepository;
 import com.g4fpt.sms.product.service.UnitService;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class UnitServiceImpl implements UnitService {
 
     private final UnitRepository unitRepository;
+    private final UnitMapper unitMapper;
 
-    public UnitServiceImpl(UnitRepository unitRepository) {
+    public UnitServiceImpl(UnitRepository unitRepository, UnitMapper unitMapper) {
         this.unitRepository = unitRepository;
+        this.unitMapper = unitMapper;
     }
 
     @Override
-    public List<Unit> findAll() {
-        return unitRepository.findAll();
+    public List<UnitResponse> findAll() {
+        return unitRepository.findAll()
+                .stream()
+                .map(unitMapper::toResponse)
+                .toList();
     }
 
     @Override
-    public Unit create(UnitRequest unitRequest) {
-        Unit unit = new Unit();
+    public void create(UnitRequest unitRequest) {
+        Unit unit = unitMapper.toEntity(unitRequest);
+        unitRepository.save(unit);
+    }
+
+    @Override
+    public void update(Long id, UnitRequest unitRequest) {
+        Unit unit = getUnitById(id);
         unit.setName(unitRequest.getName());
-
-        unit.setCreatedAt(LocalDateTime.now());
-        return unitRepository.save(unit);
+        unitRepository.save(unit);
     }
 
     @Override
-    public Unit update(Long id, UnitRequest unitRequest) {
-        Unit unit = findById(id);
-        unit.setName(unitRequest.getName());
-
-        unit.setUpdatedAt(LocalDateTime.now());
-        return unitRepository.save(unit);
-    }
-
-    @Override
-    public void delete(Long id) {
+    public void deleteById(Long id) {
 
     }
 
     @Override
-    public Unit findById(Long id) {
+    public UnitResponse findById(Long id) {
+        Unit unit =  unitRepository.findById(id).orElseThrow(() -> new RuntimeException("unit not found"));
+        return unitMapper.toResponse(unit);
+    }
+
+    private Unit getUnitById(Long id){
         return unitRepository.findById(id).orElseThrow(() -> new RuntimeException("unit not found"));
     }
 }

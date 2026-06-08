@@ -1,6 +1,7 @@
 package com.g4fpt.sms.product.controller;
 
 import com.g4fpt.sms.product.dto.request.UnitRequest;
+import com.g4fpt.sms.product.dto.response.UnitResponse;
 import com.g4fpt.sms.product.entity.Unit;
 import com.g4fpt.sms.product.service.UnitService;
 import org.springframework.stereotype.Controller;
@@ -18,7 +19,7 @@ public class UnitController {
     }
 
     @GetMapping
-    public String unitPage(Model model){
+    public String list(Model model){
         model.addAttribute("unitList", unitService.findAll());
         return "unit/list";
     }
@@ -37,20 +38,15 @@ public class UnitController {
 
     @GetMapping("/update/{id}")
     public String updatePage(@PathVariable Long id, Model model){
-        Unit unit = unitService.findById(id);
+        UnitResponse unitResponse = unitService.findById(id);
 
-        UnitRequest unitRequest = new UnitRequest();
-        unitRequest.setName(unit.getName());
-
-        model.addAttribute("unitRequest", unitRequest);
+        model.addAttribute("unitResponse", unitResponse);
 
         return "unit/update";
     }
 
     @PostMapping("/update/{id}")
     public String update(@PathVariable Long id, @ModelAttribute UnitRequest unitRequest){
-        Unit unit = unitService.findById(id);
-        unit.setName(unitRequest.getName());
         unitService.update(id,unitRequest);
         return "redirect:/productunit";
     }

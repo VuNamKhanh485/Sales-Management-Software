@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ProductUnitRepository extends JpaRepository<ProductUnit, Long> {
+    boolean existsBySkuIgnoreCase(String sku);
+
+    boolean existsByBarcodeUnitIgnoreCase(String barcodeUnit);
 }

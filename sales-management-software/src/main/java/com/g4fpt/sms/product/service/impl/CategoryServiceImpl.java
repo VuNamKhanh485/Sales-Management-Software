@@ -1,7 +1,9 @@
 package com.g4fpt.sms.product.service.impl;
 
 import com.g4fpt.sms.product.dto.request.CategoryRequest;
+import com.g4fpt.sms.product.dto.response.CategoryResponse;
 import com.g4fpt.sms.product.entity.Category;
+import com.g4fpt.sms.product.mapper.CategoryMapper;
 import com.g4fpt.sms.product.repository.CategoryRepository;
 import com.g4fpt.sms.product.service.CategoryService;
 import org.springframework.stereotype.Service;
@@ -11,32 +13,32 @@ import java.util.List;
 @Service
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
 
-    public CategoryServiceImpl(CategoryRepository categoryRepository) {
+    public CategoryServiceImpl(CategoryRepository categoryRepository, CategoryMapper categoryMapper) {
         this.categoryRepository = categoryRepository;
+        this.categoryMapper = categoryMapper;
     }
 
 
     @Override
-    public Category save(CategoryRequest categoryRequest) {
-        Category category = new Category();
-
-        category.setName(categoryRequest.getCategoryName());
-        category.setDescription(categoryRequest.getDescription());
-        category.setStatus(categoryRequest.getCategoryStatus());
-        category.setCreatedAt(LocalDateTime.now());
-
-        return  categoryRepository.save(category);
+    public void create(CategoryRequest categoryRequest) {
+        Category category = categoryMapper.toEntity(categoryRequest);
+        categoryRepository.save(category);
     }
 
     @Override
-    public List<Category> findAll() {
-        return categoryRepository.findAll();
+    public List<CategoryResponse> findAll() {
+        return categoryRepository.findAll()
+                .stream()
+                .map(categoryMapper::toResponse)
+                .toList();
     }
 
     @Override
-    public Category findById(long id) {
-        return categoryRepository.findById(id).orElse(null);
+    public CategoryResponse findById(long id) {
+        Category category = categoryRepository.findById(id).orElseThrow(() -> new RuntimeException("Category not found"));
+        return categoryMapper.toResponse(category);
     }
 
     @Override
@@ -45,18 +47,17 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Category update(long id, CategoryRequest categoryRequest) {
-        Category category = findById(id);
+    public void update(long id, CategoryRequest categoryRequest) {
+        Category category = getCategoryById(id);
 
-        if (category != null) {
-            category.setName(categoryRequest.getCategoryName());
-            category.setDescription(categoryRequest.getDescription());
-            category.setStatus(categoryRequest.getCategoryStatus());
+        category.setName(categoryRequest.getCategoryName());
+        category.setDescription(categoryRequest.getDescription());
+        category.setStatus(categoryRequest.getCategoryStatus());
+        category.setUpdateAt(LocalDateTime.now());
+        categoryRepository.save(category);
+    }
 
-            category.setUpdateAt(LocalDateTime.now());
-
-            return categoryRepository.save(category);
-        }
-        return null;
+    private Category getCategoryById(Long id){
+        return categoryRepository.findById(id).orElseThrow(() -> new RuntimeException("Category not found"));
     }
 }

@@ -1,6 +1,7 @@
 package com.g4fpt.sms.product.controller;
 
 import com.g4fpt.sms.product.dto.request.ProductUnitRequest;
+import com.g4fpt.sms.product.dto.response.ProductUnitResponse;
 import com.g4fpt.sms.product.entity.ProductUnit;
 import com.g4fpt.sms.product.service.ProductUnitService;
 import org.springframework.stereotype.Controller;
@@ -18,7 +19,7 @@ public class ProductUnitController {
     }
 
     @GetMapping
-    public String productUnitPage(Model model) {
+    public String list(Model model) {
         model.addAttribute("productUnitList",productUnitService.findAll());
         return "productunit/list";
     }
@@ -37,18 +38,9 @@ public class ProductUnitController {
 
     @GetMapping("/update/{id}")
     public String updatePage(@PathVariable Long id, Model model) {
-        ProductUnitRequest productUnitRequest = new ProductUnitRequest();
-        ProductUnit productUnit = productUnitService.findById(id);
+        ProductUnitResponse productUnitResponse =  productUnitService.findById(id);
 
-        productUnitRequest.setUnitPrice(productUnit.getPrice());
-        productUnitRequest.setBarcodeUnit(productUnit.getBarcodeUnit());
-        productUnitRequest.setConventionValue(productUnit.getConventionValue());
-        productUnitRequest.setSku(productUnit.getSku());
-        productUnitRequest.setIsBaseUnit(productUnit.getIsBaseUnit());
-        productUnitRequest.setProductId(productUnit.getProduct().getId());
-        productUnitRequest.setUnitId(productUnit.getUnit().getId());
-
-        model.addAttribute("productUnitRequest", productUnitRequest);
+        model.addAttribute("productUnitResponse", productUnitResponse);
         return "productunit/update";
     }
 

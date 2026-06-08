@@ -7,11 +7,18 @@ import java.util.List;
 
 public interface ProductService {
     void create(ProductRequest productRequest);
+
     void update(long id, ProductRequest productRequest);
-    void delete(long id);
+
+    void deleteById(long id);
+
     ProductResponse findById(long id);
+
     List<ProductResponse> findByName(String name);
+
     List<ProductResponse> findByBrand(Long brandId);
+
     List<ProductResponse> findByCategory(Long categoryId);
+
     List<ProductResponse> findAll();
 }

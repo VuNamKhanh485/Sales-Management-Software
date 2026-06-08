@@ -4,6 +4,7 @@ import com.g4fpt.sms.product.enums.BrandStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 
 import java.time.LocalDateTime;
@@ -40,6 +41,7 @@ public class Brand {
     private BrandStatus status;
 
     @Column(name = "updated_at")
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 
     @OneToMany (fetch = FetchType.LAZY, mappedBy = "brand")

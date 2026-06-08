@@ -2,7 +2,6 @@ package com.g4fpt.sms.product.controller;
 
 import com.g4fpt.sms.product.dto.request.BrandRequest;
 import com.g4fpt.sms.product.dto.response.BrandResponse;
-import com.g4fpt.sms.product.entity.Brand;
 import com.g4fpt.sms.product.service.BrandService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

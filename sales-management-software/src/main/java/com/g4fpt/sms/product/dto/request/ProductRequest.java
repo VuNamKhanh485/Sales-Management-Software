@@ -12,8 +12,8 @@ import java.util.List;
 @Getter
 @Setter
 public class ProductRequest {
-    private Category category;
-    private Brand brand;
+    private Long categoryId;
+    private Long brandId;
     private String name;
     private String imageUrl;
     private String description;

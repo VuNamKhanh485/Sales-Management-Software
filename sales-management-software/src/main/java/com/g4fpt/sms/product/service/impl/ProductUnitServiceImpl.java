@@ -1,7 +1,9 @@
 package com.g4fpt.sms.product.service.impl;
 
 import com.g4fpt.sms.product.dto.request.ProductUnitRequest;
+import com.g4fpt.sms.product.dto.response.ProductUnitResponse;
 import com.g4fpt.sms.product.entity.ProductUnit;
+import com.g4fpt.sms.product.mapper.ProductUnitMapper;
 import com.g4fpt.sms.product.repository.ProductRepository;
 import com.g4fpt.sms.product.repository.ProductUnitRepository;
 import com.g4fpt.sms.product.repository.UnitRepository;
@@ -17,37 +19,35 @@ public class ProductUnitServiceImpl implements ProductUnitService {
     private final ProductUnitRepository productUnitRepository;
     private final ProductRepository productRepository;
     private final UnitRepository unitRepository;
+    private final ProductUnitMapper productUnitMapper;
 
-    public ProductUnitServiceImpl(ProductUnitRepository productUnitRepository, ProductRepository productRepository, UnitRepository unitRepository) {
+    public ProductUnitServiceImpl(ProductUnitRepository productUnitRepository, ProductRepository productRepository, UnitRepository unitRepository, ProductUnitMapper productUnitMapper) {
         this.productUnitRepository = productUnitRepository;
         this.productRepository = productRepository;
         this.unitRepository = unitRepository;
+        this.productUnitMapper = productUnitMapper;
     }
 
     @Override
-    public List<ProductUnit> findAll() {
-        return productUnitRepository.findAll();
+    public List<ProductUnitResponse> findAll() {
+        return productUnitRepository.findAll()
+                .stream()
+                .map(productUnitMapper::toResponse)
+                .toList();
     }
 
     @Override
-    public ProductUnit create(ProductUnitRequest productUnitRequest) {
+    public void create(ProductUnitRequest productUnitRequest) {
         ProductUnit productUnit = new ProductUnit();
-
         requestToEntity(productUnitRequest, productUnit);
-
-        productUnit.setCreatedAt(LocalDateTime.now());
-        return productUnitRepository.save(productUnit);
+        productUnitRepository.save(productUnit);
     }
 
     @Override
-    public ProductUnit update(Long id, ProductUnitRequest productUnitRequest) {
-        ProductUnit productUnit = findById(id);
-
-
-            requestToEntity(productUnitRequest, productUnit);
-
-            productUnit.setUpdatedAt(LocalDateTime.now());
-            return productUnitRepository.save(productUnit);
+    public void update(Long id, ProductUnitRequest productUnitRequest) {
+        ProductUnit productUnit = getProducUnitById(id);
+       requestToEntity(productUnitRequest, productUnit);
+        productUnitRepository.save(productUnit);
     }
 
     @Override
@@ -56,8 +56,9 @@ public class ProductUnitServiceImpl implements ProductUnitService {
     }
 
     @Override
-    public ProductUnit findById(Long id) {
-        return productUnitRepository.findById(id).orElseThrow(() -> new RuntimeException("product unit not found"));
+    public ProductUnitResponse findById(Long id) {
+        ProductUnit productUnit = productUnitRepository.findById(id).orElseThrow(() -> new RuntimeException("product unit not found"));
+        return  productUnitMapper.toResponse(productUnit);
     }
 
     private void requestToEntity(ProductUnitRequest productUnitRequest, ProductUnit productUnit) {
@@ -75,7 +76,11 @@ public class ProductUnitServiceImpl implements ProductUnitService {
         productUnit.setSku(productUnitRequest.getSku());
         productUnit.setBarcodeUnit(productUnitRequest.getBarcodeUnit());
         productUnit.setConventionValue(productUnitRequest.getConventionValue());
-        productUnit.setPrice(productUnitRequest.getUnitPrice());
+        productUnit.setPrice(productUnitRequest.getPrice());
         productUnit.setIsBaseUnit(productUnitRequest.getIsBaseUnit());
+    }
+
+    private ProductUnit getProducUnitById(Long id) {
+        return productUnitRepository.findById(id).orElseThrow(() -> new RuntimeException("product not found"));
     }
 }

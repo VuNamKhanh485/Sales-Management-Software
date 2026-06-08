@@ -25,6 +25,7 @@ public class BrandServiceImpl implements BrandService {
     public void create(BrandRequest brandRequest) {
         Brand brand = brandMapper.toEntity(brandRequest);
         brandRepository.save(brand);
+
     }
 
     @Override
@@ -41,6 +42,7 @@ public class BrandServiceImpl implements BrandService {
                 .orElseThrow(() -> new RuntimeException("Brand not found"));
         return  brandMapper.toResponse(brand);
     }
+
 
     @Override
     public void deleteById(long id) {

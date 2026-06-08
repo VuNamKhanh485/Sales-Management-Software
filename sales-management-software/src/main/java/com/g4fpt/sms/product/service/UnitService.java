@@ -9,8 +9,12 @@ import java.util.List;
 
 public interface UnitService {
     public void create(UnitRequest unitRequest);
+
     public void update(Long id, UnitRequest unitRequest);
-    public void delete(Long id);
+
+    public void deleteById(Long id);
+
     public List<UnitResponse> findAll();
+
     UnitResponse findById(Long id);
 }
