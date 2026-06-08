@@ -9,4 +9,12 @@ public interface BranchRepository extends JpaRepository<Branch, Long> {
     Optional<Branch> findByBranchCode(String branchCode);
 
     boolean existsByBranchCode(String branchCode);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByPhone(String phone);
+
+    boolean existsByPhoneAndIdNot(String phone, Long id);
+
+    boolean existsByEmailAndIdNot(String email, Long id);
 }
