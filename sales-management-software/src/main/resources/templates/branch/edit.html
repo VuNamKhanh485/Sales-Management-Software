@@ -30,7 +30,7 @@
 
     <div class="form-card">
 
-        <form th:action="@{/branch/edit/{id}(id=${branch.id})}"
+        <form th:action="@{/branch/edit/{id}(id=${id})}"
               th:object="${branch}"
               method="post">
 
@@ -44,7 +44,8 @@
 
                     <input type="text"
                            th:field="*{branchCode}"
-                           class="form-control">
+                           class="form-control"
+                           readonly>
 
                 </div>
 
@@ -98,22 +99,23 @@
 
                 <div class="col-md-6 mb-3">
 
-                    <label class="form-label">
+                    <label class="form-label d-block">
                         Trạng thái
                     </label>
 
-                    <select th:field="*{status}"
-                            class="form-select">
+                    <label class="me-3">
+                        <input type="radio"
+                               th:field="*{status}"
+                               value="ACTIVE">
+                        Hoạt động
+                    </label>
 
-                        <option value="ACTIVE">
-                            Hoạt động
-                        </option>
-
-                        <option value="INACTIVE">
-                            Ngừng hoạt động
-                        </option>
-
-                    </select>
+                    <label>
+                        <input type="radio"
+                               th:field="*{status}"
+                               value="INACTIVE">
+                        Ngừng hoạt động
+                    </label>
 
                 </div>
 
@@ -157,6 +159,18 @@
             </div>
 
             <div class="button-group">
+
+                <div th:if="${errors}"
+                     class="alert alert-danger">
+
+                    <ul class="mb-0">
+
+                        <li th:each="error : ${errors}"
+                            th:text="${error}">
+                        </li>
+
+                    </ul>
+                </div>
 
                 <button type="submit"
                         class="btn btn-warning">
