@@ -1,10 +1,13 @@
 package com.g4fpt.sms.branch.controller;
 
 import com.g4fpt.sms.branch.dto.BranchRequest;
+import com.g4fpt.sms.branch.entity.Branch;
 import com.g4fpt.sms.branch.service.BranchService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
 
 @Controller
 @RequestMapping("/branch")
@@ -42,11 +45,22 @@ public class BranchController {
     @PostMapping("/create")
     public String create(
             @ModelAttribute("branch")
-            BranchRequest request) {
+            BranchRequest request,
+            Model model) {
 
-        branchService.create(request);
+        try {
+            branchService.create(request);
 
-        return "redirect:/branch";
+            return "redirect:/branch";
+        } catch (Exception e) {
+            model.addAttribute("branch", request);
+            model.addAttribute(
+                    "errors",
+                    Arrays.asList(e.getMessage().split("\\|"))
+            );
+            return "branch/create";
+        }
+
     }
 
     //UPDATE
@@ -55,11 +69,31 @@ public class BranchController {
             @PathVariable Long id,
             Model model) {
 
-        model.addAttribute(
-                "branch",
-                branchService.getById(id));
+        Branch branch = branchService.getById(id);
+        model.addAttribute("branch", branch);
 
         return "branch/edit";
+    }
+
+    @PostMapping("/edit/{id}")
+    public String update(
+            @PathVariable Long id,
+            @ModelAttribute("branch") BranchRequest request,
+            Model model) {
+
+        try {
+            branchService.update(id, request);
+            return "redirect:/branch";
+        } catch (Exception e) {
+            model.addAttribute("branch", request);
+            model.addAttribute("id", id);
+            model.addAttribute(
+                    "errors",
+                    Arrays.asList(
+                            e.getMessage().split("\\|"))
+            );
+            return "branch/edit";
+        }
     }
 
     //DELETE
