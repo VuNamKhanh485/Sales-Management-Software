@@ -9,23 +9,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class AuthController {
     @GetMapping("/login")
-    public String login(
-            @RequestParam(value = "error", required = false) String error,
-            @RequestParam(value = "logout", required = false) String logout,
-            Model model
-    ) {
+    public String login(@RequestParam(value = "error", required = false) String error, @RequestParam(value = "logout", required = false) String logout, Model model) {
         if (error != null) {
-            model.addAttribute("loginError", "Email hoặc mật khẩu không đúng, hoặc tài khoản đã bị khóa.");
+            model.addAttribute("loginError", "Email hoặc mật khẩu không đúng.");
         }
 
         if (logout != null) {
             model.addAttribute("loginSuccess", "Đăng xuất thành công.");
         }
         return "auth/login";
-    }
-    @GetMapping("/home")
-    public String getHome(){
-        return "home";
     }
 
 }

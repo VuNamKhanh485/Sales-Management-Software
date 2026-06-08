@@ -21,11 +21,10 @@ public class BranchController {
     //LIST
     @GetMapping
     public String list(Model model) {
-
+        model.addAttribute("page", "branch");
         model.addAttribute(
                 "branches",
                 branchService.getAll());
-
         return "branch/list";
     }
 

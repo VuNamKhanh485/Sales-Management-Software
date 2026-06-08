@@ -2,6 +2,7 @@ package com.g4fpt.sms.auth.security;
 
 import com.g4fpt.sms.employee.entity.Employee;
 import com.g4fpt.sms.employee.utils.WorkStatus;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,8 +17,19 @@ public class CustomUserDetails implements UserDetails {
         this.employee = employee;
     }
 
-    private Employee getEmployee(){
+    public Employee getEmployee() {
         return employee;
+    }
+
+    public  boolean hasRole(String role){
+        return employee.getRole().getCode().equals(role);
+
+    }
+    public Long getBranchId(){
+        if(employee.getBranch() == null){
+            return null;
+        }
+        return employee.getBranch().getId();
     }
 
     @Override
@@ -25,12 +37,6 @@ public class CustomUserDetails implements UserDetails {
         return List.of(new SimpleGrantedAuthority("ROLE_"+employee.getRole().getCode()));
     }
 
-    public Long getBranchId(){
-        if(employee.getBranch() == null){
-            return null;
-        }
-        return employee.getBranch().getId();
-    }
     @Override
     public String getPassword() {
         return employee.getPasswordHash();
