@@ -62,7 +62,6 @@ public class ProductUnit {
     @Column(name = "sku", nullable = false)
     private String sku;
 
-    @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp

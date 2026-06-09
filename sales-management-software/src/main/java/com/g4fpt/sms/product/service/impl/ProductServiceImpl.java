@@ -6,10 +6,12 @@ import com.g4fpt.sms.product.dto.response.ProductResponse;
 import com.g4fpt.sms.product.dto.response.ProductUnitResponse;
 import com.g4fpt.sms.product.entity.Product;
 import com.g4fpt.sms.product.entity.ProductUnit;
+import com.g4fpt.sms.product.entity.Unit;
 import com.g4fpt.sms.product.mapper.ProductMapper;
 import com.g4fpt.sms.product.repository.BrandRepository;
 import com.g4fpt.sms.product.repository.CategoryRepository;
 import com.g4fpt.sms.product.repository.ProductRepository;
+import com.g4fpt.sms.product.repository.UnitRepository;
 import com.g4fpt.sms.product.service.ProductService;
 import org.springframework.stereotype.Service;
 
@@ -23,12 +25,18 @@ public class ProductServiceImpl implements ProductService {
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
+    private final UnitRepository unitRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository, BrandRepository brandRepository, CategoryRepository categoryRepository, ProductMapper productMapper) {
+    public ProductServiceImpl(ProductRepository productRepository,
+                              BrandRepository brandRepository,
+                              CategoryRepository categoryRepository,
+                              ProductMapper productMapper,
+                              UnitRepository unitRepository) {
         this.productRepository = productRepository;
         this.brandRepository = brandRepository;
         this.categoryRepository = categoryRepository;
         this.productMapper = productMapper;
+        this.unitRepository = unitRepository;
     }
 
     @Override
@@ -38,10 +46,16 @@ public class ProductServiceImpl implements ProductService {
         for(ProductUnitRequest productUnitRequest : productRequest.getProductUnitsRequest()){
             ProductUnit productUnit = new ProductUnit();
 
+            Unit unit = unitRepository.findById(productUnitRequest.getUnitId())
+                    .orElseThrow(() -> new RuntimeException("Unit not found"));
+            productUnit.setUnit(unit);
+            productUnit.setProduct(product);
             productUnit.setConventionValue(productUnitRequest.getConventionValue());
             productUnit.setPrice(productUnitRequest.getPrice());
             productUnit.setBarcodeUnit(productUnitRequest.getBarcodeUnit());
-            productUnit.setIsBaseUnit(productUnitRequest.getIsBaseUnit());
+            productUnit.setIsBaseUnit(
+                    productUnitRequest.getIsBaseUnit() != null ? productUnitRequest.getIsBaseUnit() : false
+            );
             productUnit.setSku(productUnitRequest.getSku());
 
             product.getProductUnits().add(productUnit);

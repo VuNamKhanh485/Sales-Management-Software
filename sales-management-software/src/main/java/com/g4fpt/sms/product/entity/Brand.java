@@ -38,6 +38,7 @@ public class Brand {
     private String createdAt;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private BrandStatus status;
 
     @Column(name = "updated_at")

@@ -42,10 +42,10 @@ public class ProductMapper {
         response.setStatus(product.getStatus());
         response.setNote(product.getNote());
 
-        if (product.getProductunits() != null) {
+        if (product.getProductUnits() != null) {
 
             response.setProductUnitsResponses(
-                    product.getProductunits()
+                    product.getProductUnits()
                             .stream()
                             .map(productUnitMapper::toResponse)
                             .toList()

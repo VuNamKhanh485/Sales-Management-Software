@@ -57,6 +57,8 @@ public class ProductController {
     public String update(@PathVariable Long id, Model model) {
         ProductResponse productResponse = productService.findById(id);
         model.addAttribute("productResponse", productResponse);
+        model.addAttribute("categoryList", categoryService.findAll());  // thêm
+        model.addAttribute("brandList", brandService.findAll());
         return "product/update";
     }
 

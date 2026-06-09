@@ -17,6 +17,26 @@
     <label>Tên sản phẩm:</label><br/>
     <input type="text" name="name" th:value="${productResponse.name}"/><br/><br/>
 
+    <label>Danh mục:</label><br/>
+    <select name="categoryId">
+        <option value="">-- Chọn danh mục --</option>
+        <option th:each="c : ${categoryList}"
+                th:value="${c.id}"
+                th:text="${c.name}"
+                th:selected="${productResponse.category != null and productResponse.category.id == c.id}">
+        </option>
+    </select><br/><br/>
+
+    <label>Thương hiệu:</label><br/>
+    <select name="brandId">
+        <option value="">-- Chọn thương hiệu --</option>
+        <option th:each="b : ${brandList}"
+                th:value="${b.id}"
+                th:text="${b.name}"
+                th:selected="${productResponse.brand != null and productResponse.brand.id == b.id}">
+        </option>
+    </select><br/><br/>
+
     <label>Ảnh (URL):</label><br/>
     <input type="text" name="imageUrl" th:value="${productResponse.imageUrl}"/><br/><br/>
 
