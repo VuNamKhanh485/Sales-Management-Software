@@ -43,7 +43,7 @@ public class Employee {
     @Column(name = "employee_code", nullable = false, length = 255)
     private String employeeCode;
 
-    @Column(name = "fullname", nullable = false, length = 255)
+    @Column(name = "full_name", nullable = false, length = 255)
     private String fullname;
 
     @Column(name = "address", nullable = false, length = 255)
@@ -72,10 +72,10 @@ public class Employee {
     @Column(name = "email", nullable = false, length = 255)
     private String email;
 
-    @Column(name = "password", nullable = false, length = 255)
+    @Column(name = "password_hash", nullable = false, length = 255)
     private String password;
 
-    @Column(name = "create_at", nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createAt;
 
     @Column(name = "updated_at")

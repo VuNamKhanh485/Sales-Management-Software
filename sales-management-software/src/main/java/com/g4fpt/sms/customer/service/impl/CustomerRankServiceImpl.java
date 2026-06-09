@@ -5,6 +5,7 @@ import com.g4fpt.sms.customer.repository.CustomerRankRepository;
 import com.g4fpt.sms.customer.service.CustomerRankService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -19,8 +20,7 @@ public class CustomerRankServiceImpl implements CustomerRankService {
     }
 
     @Override
-    public CustomerRank getRankById(Long id) {
-        return customerRankRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hạng khách hàng!"));
+    public CustomerRank createRank(CustomerRank customerRank) {
+        return customerRankRepository.save(customerRank);
     }
 }
