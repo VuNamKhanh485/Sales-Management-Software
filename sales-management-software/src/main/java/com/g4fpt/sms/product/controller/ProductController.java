@@ -2,7 +2,10 @@ package com.g4fpt.sms.product.controller;
 
 import com.g4fpt.sms.product.dto.request.ProductRequest;
 import com.g4fpt.sms.product.dto.response.ProductResponse;
+import com.g4fpt.sms.product.service.BrandService;
+import com.g4fpt.sms.product.service.CategoryService;
 import com.g4fpt.sms.product.service.ProductService;
+import com.g4fpt.sms.product.service.UnitService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -13,9 +16,14 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController {
 
     private final ProductService productService;
-
-    public ProductController(ProductService productService) {
+    private final CategoryService categoryService;
+    private final BrandService brandService;
+    private final UnitService unitService;
+    public ProductController(ProductService productService, CategoryService categoryService, BrandService brandService, UnitService unitService) {
         this.productService = productService;
+        this.categoryService = categoryService;
+        this.brandService = brandService;
+        this.unitService = unitService;
     }
 
     @GetMapping
@@ -27,6 +35,9 @@ public class ProductController {
     @GetMapping("/create")
     public String create(Model model) {
         model.addAttribute("productRequest", new ProductRequest());
+        model.addAttribute("categoryList", categoryService.findAll());
+        model.addAttribute("brandList", brandService.findAll());
+        model.addAttribute("unitList", unitService.findAll());
         return "product/create";
     }
 

@@ -1,38 +1,110 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>Update Product</title>
-
+    <meta charset="UTF-8"/>
+    <title>Cập nhật Sản phẩm</title>
 </head>
 <body>
-<h1>Update Product</h1>
-<form
-        th:action="@{'/product/update/' + ${id}}"
-        th:object="${productRequest}"
-        method="post"
->
-    <table>
-        <tr>
-            <td>Name:</td>
-            <td><input type="text" th:field="*{name}"></td>
-        </tr>
 
+<h2>Cập nhật Sản phẩm</h2>
+
+<a th:href="@{/product}">← Quay lại</a>
+
+<br/><br/>
+
+<form th:action="@{/product/update/{id}(id=${productResponse.id})}" method="post">
+
+    <label>Tên sản phẩm:</label><br/>
+    <input type="text" name="name" th:value="${productResponse.name}"/><br/><br/>
+
+    <label>Ảnh (URL):</label><br/>
+    <input type="text" name="imageUrl" th:value="${productResponse.imageUrl}"/><br/><br/>
+
+    <label>Mô tả:</label><br/>
+    <textarea name="description" rows="3" cols="40" th:text="${productResponse.description}"></textarea><br/><br/>
+
+    <label>Ghi chú:</label><br/>
+    <textarea name="note" rows="3" cols="40" th:text="${productResponse.note}"></textarea><br/><br/>
+
+    <label>Trạng thái:</label><br/>
+    <select name="status">
+        <option value="">-- Chọn trạng thái --</option>
+        <option th:each="s : ${T(com.g4fpt.sms.product.enums.ProductStatus).values()}"
+                th:value="${s}"
+                th:text="${s}"
+                th:selected="${productResponse.status == s}">
+        </option>
+    </select><br/><br/>
+
+    <hr/>
+    <h3>Đơn vị tính</h3>
+
+    <table border="1" cellpadding="6" cellspacing="0">
+        <thead>
         <tr>
-            <td>Status:</td>
+            <th>#</th>
+            <th>Đơn vị</th>
+            <th>Giá trị quy đổi</th>
+            <th>Giá</th>
+            <th>Barcode</th>
+            <th>SKU</th>
+            <th>Đơn vị cơ bản</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(productResponse.productUnitsResponses)}">
+            <td colspan="7">Chưa có đơn vị tính nào.</td>
+        </tr>
+        <tr th:each="pu, stat : ${productResponse.productUnitsResponses}">
+            <td th:text="${stat.index + 1}"></td>
+            <td th:text="${pu.unit != null ? pu.unit.name : ''}"></td>
             <td>
-                <select th:field="*{status}">
-                    <option value="ACTIVE">ACTIVE</option>
-                    <option value="INACTIVE">INACTIVE</option>
-                </select>
+                <input type="number"
+                       th:name="'productUnitsRequest[' + ${stat.index} + '].conventionValue'"
+                       th:value="${pu.conventionValue}"
+                       style="width:70px"/>
             </td>
+            <td>
+                <input type="number"
+                       th:name="'productUnitsRequest[' + ${stat.index} + '].price'"
+                       th:value="${pu.price}"
+                       step="0.01"
+                       style="width:100px"/>
+            </td>
+            <td>
+                <input type="text"
+                       th:name="'productUnitsRequest[' + ${stat.index} + '].barcodeUnit'"
+                       th:value="${pu.barcodeUnit}"
+                       style="width:120px"/>
+            </td>
+            <td>
+                <input type="text"
+                       th:name="'productUnitsRequest[' + ${stat.index} + '].sku'"
+                       th:value="${pu.sku}"
+                       style="width:100px"/>
+            </td>
+            <td style="text-align:center">
+                <input type="checkbox"
+                       th:name="'productUnitsRequest[' + ${stat.index} + '].isBaseUnit'"
+                       value="true"
+                       th:checked="${pu.isBaseUnit}"/>
+            </td>
+            <!-- giữ lại unitId và productId ẩn để submit đúng -->
+            <input type="hidden"
+                   th:name="'productUnitsRequest[' + ${stat.index} + '].unitId'"
+                   th:value="${pu.unit != null ? pu.unit.id : ''}"/>
+            <input type="hidden"
+                   th:name="'productUnitsRequest[' + ${stat.index} + '].productId'"
+                   th:value="${productResponse.id}"/>
         </tr>
-
-        <tr>
-            <td><button type="submit">Update</button></td>
-        </tr>
-
+        </tbody>
     </table>
+
+    <br/><br/>
+    <button type="submit">Lưu thay đổi</button>
+    <a th:href="@{/product}">Hủy</a>
+
 </form>
+
 </body>
 </html>

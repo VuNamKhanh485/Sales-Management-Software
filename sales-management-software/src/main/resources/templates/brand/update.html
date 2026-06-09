@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Cập nhật Thương hiệu</title>
+</head>
+<body>
+
+<h2>Cập nhật Thương hiệu</h2>
+
+<a th:href="@{/brand}">← Quay lại</a>
+
+<br/><br/>
+
+<form th:action="@{/brand/update/{id}(id=${id})}" method="post">
+
+    <label>Tên thương hiệu:</label><br/>
+    <input type="text" name="brandName" th:value="${brandResponse.name}"/><br/><br/>
+
+    <label>Trạng thái:</label><br/>
+    <select name="brandStatus">
+        <option value="">-- Chọn trạng thái --</option>
+        <option th:each="status : ${T(com.g4fpt.sms.product.enums.BrandStatus).values()}"
+                th:value="${status}"
+                th:text="${status}"
+                th:selected="${brandResponse.status == status}">
+        </option>
+    </select><br/><br/>
+
+    <button type="submit">Lưu thay đổi</button>
+    <a th:href="@{/brand}">Hủy</a>
+
+</form>
+
+</body>
+</html>

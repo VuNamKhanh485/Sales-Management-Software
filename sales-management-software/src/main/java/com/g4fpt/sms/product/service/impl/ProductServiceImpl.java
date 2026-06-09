@@ -94,7 +94,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void deleteById(long id) {
-
+        //cần có phần orderTranscation
     }
 
     @Override

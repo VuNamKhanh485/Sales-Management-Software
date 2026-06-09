@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CategoryRequest {
-    @NotBlank
+
     private String categoryName;
 
     private String description;

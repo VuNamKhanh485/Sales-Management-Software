@@ -52,7 +52,7 @@ public class ProductUnitServiceImpl implements ProductUnitService {
 
     @Override
     public void deleteById(Long id) {
-
+        //cần có phần orderTranscation
     }
 
     @Override

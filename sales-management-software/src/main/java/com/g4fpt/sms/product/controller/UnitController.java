@@ -33,7 +33,7 @@ public class UnitController {
     @PostMapping("/create")
     public String create(@ModelAttribute UnitRequest unitRequest){
         unitService.create(unitRequest);
-        return "redirect:/productunit";
+        return "redirect:/unit";
     }
 
     @GetMapping("/update/{id}")
@@ -48,6 +48,6 @@ public class UnitController {
     @PostMapping("/update/{id}")
     public String update(@PathVariable Long id, @ModelAttribute UnitRequest unitRequest){
         unitService.update(id,unitRequest);
-        return "redirect:/productunit";
+        return "redirect:/unit";
     }
 }

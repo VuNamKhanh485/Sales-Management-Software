@@ -25,7 +25,6 @@ public class BrandServiceImpl implements BrandService {
     public void create(BrandRequest brandRequest) {
         Brand brand = brandMapper.toEntity(brandRequest);
         brandRepository.save(brand);
-
     }
 
     @Override
@@ -46,7 +45,7 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public void deleteById(long id) {
-        brandRepository.deleteById(id);
+        //cần có phần orderTranscation
     }
 
     @Override

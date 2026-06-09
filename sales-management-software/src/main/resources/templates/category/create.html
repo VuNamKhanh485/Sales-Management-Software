@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Thêm Danh mục</title>
+</head>
+<body>
+
+<h2>Thêm Danh mục</h2>
+
+<a th:href="@{/category}">← Quay lại</a>
+
+<br/><br/>
+
+<form th:action="@{/category/create}" th:object="${categoryRequest}" method="post">
+
+    <label>Tên danh mục:</label><br/>
+    <input type="text" th:field="*{categoryName}"/><br/><br/>
+
+    <label>Mô tả:</label><br/>
+    <textarea th:field="*{description}" rows="4" cols="40"></textarea><br/><br/>
+
+    <label>Trạng thái:</label><br/>
+    <select th:field="*{categoryStatus}">
+        <option value="">-- Chọn trạng thái --</option>
+        <option th:each="status : ${T(com.g4fpt.sms.product.enums.CategoryStatus).values()}"
+                th:value="${status}"
+                th:text="${status}">
+        </option>
+    </select><br/><br/>
+
+    <button type="submit">Lưu</button>
+    <a th:href="@{/category}">Hủy</a>
+
+</form>
+
+</body>
+</html>

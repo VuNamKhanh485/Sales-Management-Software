@@ -43,7 +43,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteById(long id) {
-        categoryRepository.deleteById(id);
+        //cần có phần orderTranscation
     }
 
     @Override
