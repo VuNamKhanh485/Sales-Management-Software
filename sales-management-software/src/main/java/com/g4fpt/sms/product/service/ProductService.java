@@ -24,5 +24,5 @@ public interface ProductService {
 
     List<ProductResponse> findAll();
 
-    void validate(ProductRequest productRequest);
+    void validate(ProductRequest productRequest, Long id);
 }

@@ -2,6 +2,7 @@ package com.g4fpt.sms.product.controller;
 
 import com.g4fpt.sms.product.dto.request.BrandRequest;
 import com.g4fpt.sms.product.dto.response.BrandResponse;
+import com.g4fpt.sms.product.exception.DuplicateException;
 import com.g4fpt.sms.product.service.BrandService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -33,7 +34,11 @@ public class BrandController {
 
     @PostMapping("/create")
     public String create(@ModelAttribute BrandRequest request) {
-        brandService.create(request);
+        try {
+            brandService.create(request);
+        }catch(DuplicateException e){
+            
+        }
         return "redirect:/brand";
     }
 

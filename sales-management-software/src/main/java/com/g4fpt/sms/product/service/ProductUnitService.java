@@ -9,10 +9,11 @@ import com.g4fpt.sms.product.util.ValidationError;
 import java.util.List;
 
 public interface ProductUnitService {
-    public void create(ProductUnitRequest productUnitRequest);
-    public void update(Long id, ProductUnitRequest productUnitRequest);
-    public void deleteById(Long id);
-    public List<ProductUnitResponse> findAll();
+    void create(ProductUnitRequest productUnitRequest);
+    void update(Long id, ProductUnitRequest productUnitRequest);
+    void deleteById(Long id);
+    List<ProductUnitResponse> findAll();
     ProductUnitResponse findById(Long id);
+    List<ProductUnitResponse> findByProductId(Long id);
     void validate(ProductUnitRequest productUnitRequest);
 }

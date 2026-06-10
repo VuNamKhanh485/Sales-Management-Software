@@ -45,14 +45,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void create(ProductRequest productRequest) {
-        validate(productRequest);
+        validate(productRequest, null);
         Product product = new Product();
 
         for(ProductUnitRequest productUnitRequest : productRequest.getProductUnitsRequest()){
             ProductUnit productUnit = new ProductUnit();
 
             Unit unit = unitRepository.findById(productUnitRequest.getUnitId())
-                    .orElseThrow(() -> new RuntimeException("Unit not found"));
+                    .orElseThrow(() -> new NotFoundException("Unit not found"));
             productUnit.setUnit(unit);
             productUnit.setProduct(product);
             productUnit.setConventionValue(productUnitRequest.getConventionValue());
@@ -74,7 +74,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void update(long id, ProductRequest productRequest) {
-        validate(productRequest);
+        validate(productRequest, id);
         Product product = getProductById(id);
         requestToProduct(productRequest, product);
         productRepository.save(product);
@@ -124,12 +124,18 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void validate(ProductRequest productRequest) {
+    public void validate(ProductRequest productRequest, Long excludeId) {
         List<ValidationError> errors = new ArrayList<>();
 
         // Check tên sản phẩm trùng
-        if (productRepository.existsByNameIgnoreCase(productRequest.getName())) {
-            errors.add(new ValidationError("name", "Tên sản phẩm đã tồn tại"));
+        if(excludeId == null){
+            if (productRepository.existsByNameIgnoreCase(productRequest.getName())) {
+                errors.add(new ValidationError("name", "Tên sản phẩm đã tồn tại"));
+            }
+        }else{
+            if (productRepository.existsByNameIgnoreCaseAndIdNot(productRequest.getName(), excludeId)) {
+                errors.add(new ValidationError("name", "Tên sản phẩm đã tồn tại"));
+            }
         }
 
         // Check từng productUnit trong list

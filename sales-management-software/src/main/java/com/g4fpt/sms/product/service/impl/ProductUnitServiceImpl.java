@@ -67,6 +67,14 @@ public class ProductUnitServiceImpl implements ProductUnitService {
     }
 
     @Override
+    public List<ProductUnitResponse> findByProductId(Long id) {
+        return productUnitRepository.findByProduct_Id(id)
+                .stream()
+                .map(productUnitMapper::toResponse)
+                .toList();
+    }
+
+    @Override
     public void validate(ProductUnitRequest productUnitRequest) {
         List<ValidationError> errors = new ArrayList<>();
         if(productUnitRepository.existsByBarcodeUnitIgnoreCase(productUnitRequest.getBarcodeUnit())) {
