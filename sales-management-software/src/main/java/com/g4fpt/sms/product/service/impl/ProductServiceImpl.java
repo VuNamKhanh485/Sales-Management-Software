@@ -122,11 +122,20 @@ public class ProductServiceImpl implements ProductService {
 
         // Check từng productUnit trong list
         for (ProductUnitRequest unitRequest : productRequest.getProductUnitsRequest()) {
-            if (productUnitRepository.existsBySkuIgnoreCase(unitRequest.getSku())) {
-                errors.add(new ValidationError("sku", "SKU " + unitRequest.getSku() + " đã tồn tại"));
-            }
-            if (productUnitRepository.existsByBarcodeUnitIgnoreCase(unitRequest.getBarcodeUnit())) {
-                errors.add(new ValidationError("barcodeUnit", "Barcode " + unitRequest.getBarcodeUnit() + " đã tồn tại"));
+            if(excludeId == null) {
+                if (productUnitRepository.existsBySkuIgnoreCase(unitRequest.getSku())) {
+                    errors.add(new ValidationError("sku", "SKU " + unitRequest.getSku() + " đã tồn tại"));
+                }
+                if (productUnitRepository.existsByBarcodeUnitIgnoreCase(unitRequest.getBarcodeUnit())) {
+                    errors.add(new ValidationError("barcodeUnit", "Barcode " + unitRequest.getBarcodeUnit() + " đã tồn tại"));
+                }
+            }else{
+                if (productUnitRepository.existsBySkuIgnoreCaseAndIdNot(unitRequest.getSku(), excludeId)) {
+                    errors.add(new ValidationError("sku", "SKU " + unitRequest.getSku() + " đã tồn tại"));
+                }
+                if (productUnitRepository.existsByBarcodeUnitIgnoreCaseAndIdNot(unitRequest.getBarcodeUnit(), excludeId)) {
+                    errors.add(new ValidationError("barcodeUnit", "Barcode " + unitRequest.getBarcodeUnit() + " đã tồn tại"));
+                }
             }
         }
 

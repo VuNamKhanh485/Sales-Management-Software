@@ -70,8 +70,7 @@ public class ProductController {
      */
     @GetMapping("/update/{id}")
     public String update(@PathVariable Long id, Model model) {
-        ProductResponse productResponse = productService.findById(id);
-        model.addAttribute("productResponse", productResponse);
+        model.addAttribute("productResponse", productService.findById(id));
         model.addAttribute("categoryList", categoryService.findAll());  // thêm
         model.addAttribute("brandList", brandService.findAll());
         return "product/update";
@@ -79,8 +78,10 @@ public class ProductController {
 
     @PostMapping("/update/{id}")
     public String update(@PathVariable Long id, @Valid @ModelAttribute ProductRequest productRequest,
-                         BindingResult result) {
+                         BindingResult result,
+                         Model model) {
         if (result.hasErrors()) {
+            model.addAttribute("productResponse", productService.findById(id));
             return "product/update";
         }
         try {

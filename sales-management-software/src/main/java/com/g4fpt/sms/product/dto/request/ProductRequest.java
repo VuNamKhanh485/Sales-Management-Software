@@ -16,9 +16,9 @@ import java.util.List;
 @Getter
 @Setter
 public class ProductRequest {
-    @NotBlank(message = "Category is required")
+    @NotNull(message = "Category is required")
     private Long categoryId;
-    @NotBlank(message = "Brand is required")
+    @NotNull(message = "Brand is required")
     private Long brandId;
     @NotBlank(message = "Name is required")
     @Size(message = "Name must be at least 3 chars")

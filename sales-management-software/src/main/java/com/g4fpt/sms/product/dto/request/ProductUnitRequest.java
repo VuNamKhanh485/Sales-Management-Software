@@ -2,6 +2,7 @@ package com.g4fpt.sms.product.dto.request;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,13 +10,13 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class ProductUnitRequest {
-    @NotBlank(message = "Product is required")
+    @NotNull(message = "Product is required")
     private Long productId;
-    @NotBlank(message = "Unit is required")
+    @NotNull(message = "Unit is required")
     private Long unitId;
     @Min(1)
     private int conventionValue;
-    @NotBlank(message = "Please enter price")
+    @NotNull(message = "Please enter price")
     private BigDecimal price;
     @NotBlank(message = "Barcode is required")
     private String barcodeUnit;
