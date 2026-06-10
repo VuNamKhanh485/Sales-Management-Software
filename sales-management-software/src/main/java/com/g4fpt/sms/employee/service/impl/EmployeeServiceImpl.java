@@ -1,8 +1,11 @@
 package com.g4fpt.sms.employee.service.impl;
 
+import com.g4fpt.sms.auth.security.CustomUserDetails;
 import com.g4fpt.sms.employee.entity.Employee;
 import com.g4fpt.sms.employee.repository.EmployeeRepository;
 import com.g4fpt.sms.employee.service.EmployeeService;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,8 +30,11 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public List<Employee> getAll() {
-        return repository.findAll();
+    public List<Employee> getAll(CustomUserDetails Userdetails) {
+        if(Userdetails.getBranchId() == null){
+            return repository.findAll();
+        }
+        return repository.findByBranchId(Userdetails.getBranchId());
     }
 
     @Override
@@ -63,5 +69,24 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public void delete(Long id) {
         repository.deleteById(id);
+    }
+
+    @Override
+    public List<Employee> search(String keyword,CustomUserDetails currentUser){
+        if (keyword == null || keyword.trim().isEmpty()) {
+            if (currentUser.getBranchId() == null) {
+                return repository.findAll(); // Owner: xem tất cả
+            } else {
+                return repository.findByBranchId(currentUser.getBranchId()); // Branch Manager: chỉ xem chi nhánh của mình
+            }
+        }
+
+
+        String cleanKeyword = keyword.trim();
+        if (currentUser.getBranchId() != null) {
+            return repository.findEmployeesContainingIgnoreCase(cleanKeyword, currentUser.getBranchId());
+        } else {
+            return repository.findAllByKeyword(cleanKeyword);
+        }
     }
 }

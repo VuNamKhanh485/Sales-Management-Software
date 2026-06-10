@@ -19,12 +19,12 @@
             <span>Kho hàng</span>
         </a>
 
-        <a sec:authorize="hasAnyRole('OWNER')" th:href="@{/employee}"
+        <a sec:authorize="hasAnyRole('OWNER', 'BRANCH_MANAGER')" th:href="@{/employee}"
            th:class="${page == 'employee' ? 'menu-item active' : 'menu-item'}">
             <span>Quản lý nhân viên</span>
         </a>
 
-        <a sec:authorize="hasAnyRole('OWNER', 'MANAGER')" th:href="@{/branch}" 
+        <a sec:authorize="hasAnyRole('OWNER')" th:href="@{/branch}" 
            th:class="${page == 'branch' ? 'menu-item active' : 'menu-item'}">
             <span>Quản lý chi nhánh</span>
         </a>

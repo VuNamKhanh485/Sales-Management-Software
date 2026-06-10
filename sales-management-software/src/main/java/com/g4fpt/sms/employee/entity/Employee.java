@@ -5,6 +5,7 @@ import com.g4fpt.sms.employee.utils.Gender;
 import com.g4fpt.sms.employee.utils.WorkStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -73,10 +74,11 @@ public class Employee {
     @Column(name = "gender")
     private Gender gender;
 
-
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "dob")
     private LocalDate dob;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "hired_date", nullable = false)
     private LocalDate hiredDate;
 

@@ -13,14 +13,16 @@ import java.util.Collection;
 
 @Component
 public class CustomSuccessHandler implements AuthenticationSuccessHandler {
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         String redirect = null;
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         for (GrantedAuthority authorityName : authorities) {
-            if (authorityName.getAuthority().equals("ROLE_OWNER")
-                    || authorityName.getAuthority().equals("ROLE_MANAGER")) {
+            if (authorityName.getAuthority().equals("ROLE_OWNER")) {
                 redirect = "/branch";
+            } else if (authorityName.getAuthority().equals("ROLE_BRANCH_MANAGER")) {
+                redirect = "/employee";
             } else if (authorityName.getAuthority().equals("ROLE_SALE_STAFF")) {
                 redirect = "/sale";
             }

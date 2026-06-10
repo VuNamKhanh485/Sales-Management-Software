@@ -12,7 +12,6 @@
     <main class="admin-main">
         <header class="admin-topbar">
             <div>
-                <p class="admin-kicker">Admin Panel</p>
                 <h1>Quản lý nhân viên</h1>
             </div>
         </header>
@@ -22,6 +21,11 @@
             <h2>Danh sách nhân viên</h2>
             <p th:text="'Tổng cộng ' + ${employees != null ? #lists.size(employees) : 0} + ' nhân viên'">Tổng cộng 0 nhân viên</p>
         </div>
+        <form th:action="@{/employee/search}" method="GET">
+            <input type="text" id="search"  name ="keyword" class="search-input" placeholder="Tìm kiếm nhân viên...">
+            <input type="submit">
+        </form>
+
         <a th:href="@{/employee/create}" class="primary-action">Thêm nhân viên</a>
     </div>
 
