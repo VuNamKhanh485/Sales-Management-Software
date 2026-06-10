@@ -48,8 +48,6 @@ public class BranchServiceImpl implements BranchService {
         branch.setEmail(request.getEmail());
         branch.setAddress(request.getAddress());
         branch.setStatus(request.getStatus());
-        branch.setOpenedAt(request.getOpenedAt());
-        branch.setClosedAt(request.getClosedAt());
         branch.setNote(request.getNote());
 
         branchRepository.save(branch);
@@ -67,8 +65,6 @@ public class BranchServiceImpl implements BranchService {
         branch.setEmail(request.getEmail());
         branch.setAddress(request.getAddress());
         branch.setStatus(request.getStatus());
-        branch.setOpenedAt(request.getOpenedAt());
-        branch.setClosedAt(request.getClosedAt());
         branch.setNote(request.getNote());
 
         branchRepository.save(branch);
@@ -126,27 +122,13 @@ public class BranchServiceImpl implements BranchService {
             errors.add("Email đã tồn tại");
         }
 
-        if (request.getOpenedAt() == null) {
-
-            errors.add("Ngày mở cửa không được để trống");
-        }
-
-        if (request.getClosedAt() != null
-                && request.getOpenedAt() != null
-                && request.getClosedAt().isBefore(request.getOpenedAt())) {
-
-            errors.add("Ngày đóng cửa phải sau ngày mở cửa");
-        }
-
         if (!errors.isEmpty()) {
             throw new RuntimeException(
                     String.join("|", errors));
         }
     }
 
-    private void validateUpdateRequest(
-            Long id,
-            BranchRequest request) {
+    private void validateUpdateRequest(Long id, BranchRequest request) {
 
         List<String> errors = new ArrayList<>();
 
@@ -165,10 +147,6 @@ public class BranchServiceImpl implements BranchService {
             errors.add("Email không được để trống");
         }
 
-        if (request.getOpenedAt() == null) {
-            errors.add("Ngày mở cửa không được để trống");
-        }
-
         if (request.getPhone() != null &&
                 !request.getPhone().trim().isEmpty() &&
                 branchRepository.existsByPhoneAndIdNot(
@@ -185,14 +163,6 @@ public class BranchServiceImpl implements BranchService {
             errors.add("Email đã tồn tại");
         }
 
-        if (request.getClosedAt() != null
-                && request.getOpenedAt() != null
-                && request.getClosedAt().isBefore(
-                request.getOpenedAt())) {
-
-            errors.add("Ngày đóng cửa phải sau ngày mở cửa");
-        }
-
         if (!errors.isEmpty()) {
 
             throw new RuntimeException(
@@ -200,4 +170,12 @@ public class BranchServiceImpl implements BranchService {
         }
     }
 
+    @Override
+    public List<Branch> search(String searchType, String keyword) {
+        if ("branchCode".equals(searchType)) {
+            return branchRepository.findByBranchCodeContainingIgnoreCase(keyword);
+        }
+
+        return branchRepository.findByNameContainingIgnoreCase(keyword);
+    }
 }

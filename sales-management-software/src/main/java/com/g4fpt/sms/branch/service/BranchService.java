@@ -16,4 +16,6 @@ public interface BranchService {
     void update(Long id, BranchRequest request);
 
     void delete(Long id);
+
+    List<Branch> search(String searchType, String keyword);
 }

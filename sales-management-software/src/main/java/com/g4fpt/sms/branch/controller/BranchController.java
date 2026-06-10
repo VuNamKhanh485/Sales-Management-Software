@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Controller
 @RequestMapping("/branch")
@@ -23,11 +24,21 @@ public class BranchController {
 
     //LIST
     @GetMapping
-    public String list(Model model) {
+    public String list(@RequestParam(required = false) String keyword,
+                       @RequestParam(required = false, defaultValue = "name") String searchType,
+                       Model model) {
+
+        List<Branch> branches;
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            branches = branchService.getAll();
+        } else {
+            branches = branchService.search(searchType, keyword);
+        }
         model.addAttribute("page", "branch");
-        model.addAttribute(
-                "branches",
-                branchService.getAll());
+        model.addAttribute("branches", branches);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("searchType", searchType);
         return "branch/list";
     }
 
@@ -70,9 +81,11 @@ public class BranchController {
             Model model) {
 
         Branch branch = branchService.getById(id);
-        model.addAttribute("branch", branch);
 
-        return "branch/edit";
+        model.addAttribute("branch", branch);
+        model.addAttribute("viewOnly", false);
+
+        return "branch/form";
     }
 
     @PostMapping("/edit/{id}")
@@ -82,17 +95,23 @@ public class BranchController {
             Model model) {
 
         try {
+
             branchService.update(id, request);
             return "redirect:/branch";
+
         } catch (Exception e) {
+
             model.addAttribute("branch", request);
             model.addAttribute("id", id);
+            model.addAttribute("viewOnly", false);
+
             model.addAttribute(
                     "errors",
                     Arrays.asList(
                             e.getMessage().split("\\|"))
             );
-            return "branch/edit";
+
+            return "branch/form";
         }
     }
 
@@ -112,10 +131,11 @@ public class BranchController {
             @PathVariable Long id,
             Model model) {
 
-        model.addAttribute(
-                "branch",
-                branchService.getById(id));
+        Branch branch = branchService.getById(id);
 
-        return "branch/detail";
+        model.addAttribute("branch", branch);
+        model.addAttribute("viewOnly", true);
+
+        return "branch/form";
     }
 }
