@@ -2,6 +2,7 @@ package com.g4fpt.sms.product.controller;
 
 import com.g4fpt.sms.product.dto.request.ProductRequest;
 import com.g4fpt.sms.product.dto.response.ProductResponse;
+import com.g4fpt.sms.product.exception.ValidationException;
 import com.g4fpt.sms.product.service.BrandService;
 import com.g4fpt.sms.product.service.CategoryService;
 import com.g4fpt.sms.product.service.ProductService;
@@ -52,8 +53,10 @@ public class ProductController {
 
         try{
             productService.create(productRequest);
-        }catch(Exception e){
-
+        }catch(ValidationException e){
+            e.getErrors().forEach(err ->
+                    result.rejectValue(err.getField(), "error", err.getMessage())
+            );
         }
 
         return "redirect:/product";
@@ -75,8 +78,19 @@ public class ProductController {
     }
 
     @PostMapping("/update/{id}")
-    public String update(@PathVariable Long id, @ModelAttribute ProductRequest productRequest) {
-        productService.update(id, productRequest);
+    public String update(@PathVariable Long id, @Valid @ModelAttribute ProductRequest productRequest,
+                         BindingResult result) {
+        if (result.hasErrors()) {
+            return "product/update";
+        }
+        try {
+            productService.update(id, productRequest);
+        }catch(ValidationException e){
+            e.getErrors().forEach(err ->
+                    result.rejectValue(err.getField(), "error", err.getMessage())
+            );
+        }
+
         return "redirect:/product";
     }
 
