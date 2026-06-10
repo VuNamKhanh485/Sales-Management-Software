@@ -3,6 +3,8 @@ package com.g4fpt.sms.product.service.impl;
 import com.g4fpt.sms.product.dto.request.CategoryRequest;
 import com.g4fpt.sms.product.dto.response.CategoryResponse;
 import com.g4fpt.sms.product.entity.Category;
+import com.g4fpt.sms.product.exception.DuplicateException;
+import com.g4fpt.sms.product.exception.NotFoundException;
 import com.g4fpt.sms.product.mapper.CategoryMapper;
 import com.g4fpt.sms.product.repository.CategoryRepository;
 import com.g4fpt.sms.product.service.CategoryService;
@@ -23,6 +25,9 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void create(CategoryRequest categoryRequest) {
+        if(categoryRepository.existsByName(categoryRequest.getCategoryName())){
+            throw new DuplicateException("This name is already in use");
+        }
         Category category = categoryMapper.toEntity(categoryRequest);
         categoryRepository.save(category);
     }
@@ -37,8 +42,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryResponse findById(long id) {
-        Category category = categoryRepository.findById(id).orElseThrow(() -> new RuntimeException("Category not found"));
-        return categoryMapper.toResponse(category);
+        return categoryMapper.toResponse(getCategoryById(id));
     }
 
     @Override
@@ -49,15 +53,17 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void update(long id, CategoryRequest categoryRequest) {
         Category category = getCategoryById(id);
-
+        if(categoryRepository.existsByName(categoryRequest.getCategoryName())){
+            throw new DuplicateException("This name is already in use");
+        }
         category.setName(categoryRequest.getCategoryName());
         category.setDescription(categoryRequest.getDescription());
         category.setStatus(categoryRequest.getCategoryStatus());
-        category.setUpdateAt(LocalDateTime.now());
+
         categoryRepository.save(category);
     }
 
     private Category getCategoryById(Long id){
-        return categoryRepository.findById(id).orElseThrow(() -> new RuntimeException("Category not found"));
+        return categoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Category not found"));
     }
 }

@@ -1,15 +1,19 @@
 package com.g4fpt.sms.product.service.impl;
 
+import com.g4fpt.sms.product.dto.request.BrandRequest;
 import com.g4fpt.sms.product.dto.request.ProductUnitRequest;
 import com.g4fpt.sms.product.dto.response.ProductUnitResponse;
 import com.g4fpt.sms.product.entity.ProductUnit;
+import com.g4fpt.sms.product.exception.NotFoundException;
 import com.g4fpt.sms.product.mapper.ProductUnitMapper;
 import com.g4fpt.sms.product.repository.ProductRepository;
 import com.g4fpt.sms.product.repository.ProductUnitRepository;
 import com.g4fpt.sms.product.repository.UnitRepository;
 import com.g4fpt.sms.product.service.ProductUnitService;
+import com.g4fpt.sms.product.util.ValidationError;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -37,6 +41,7 @@ public class ProductUnitServiceImpl implements ProductUnitService {
 
     @Override
     public void create(ProductUnitRequest productUnitRequest) {
+        validate(productUnitRequest);
         ProductUnit productUnit = new ProductUnit();
         requestToEntity(productUnitRequest, productUnit);
         productUnitRepository.save(productUnit);
@@ -44,8 +49,9 @@ public class ProductUnitServiceImpl implements ProductUnitService {
 
     @Override
     public void update(Long id, ProductUnitRequest productUnitRequest) {
-        ProductUnit productUnit = getProducUnitById(id);
-       requestToEntity(productUnitRequest, productUnit);
+        validate(productUnitRequest);
+        ProductUnit productUnit = getProductUnitById(id);
+        requestToEntity(productUnitRequest, productUnit);
         productUnitRepository.save(productUnit);
     }
 
@@ -56,20 +62,32 @@ public class ProductUnitServiceImpl implements ProductUnitService {
 
     @Override
     public ProductUnitResponse findById(Long id) {
-        ProductUnit productUnit = productUnitRepository.findById(id).orElseThrow(() -> new RuntimeException("product unit not found"));
-        return  productUnitMapper.toResponse(productUnit);
+        return  productUnitMapper.toResponse(getProductUnitById(id));
+    }
+
+    @Override
+    public List<ValidationError> validate(ProductUnitRequest productUnitRequest) {
+        List<ValidationError> errors = new ArrayList<>();
+        if(productUnitRepository.existsByBarcodeUnitIgnoreCase(productUnitRequest.getBarcodeUnit())) {
+            errors.add(new ValidationError("Barcode","Barcode is existed"));
+        }
+        if (productUnitRepository.existsBySkuIgnoreCase(productUnitRequest.getSku())) {
+            errors.add(new ValidationError("Sku","Sku is existed"));
+        }
+
+        return errors;
     }
 
     private void requestToEntity(ProductUnitRequest productUnitRequest, ProductUnit productUnit) {
         productUnit.setProduct(
                 productRepository.findById(
                                 productUnitRequest.getProductId())
-                        .orElseThrow(() -> new RuntimeException("product not found"))
+                        .orElseThrow(() -> new NotFoundException("product not found"))
         );
         productUnit.setUnit(
                 unitRepository.findById(
                                 productUnitRequest.getUnitId())
-                        .orElseThrow(() -> new RuntimeException("unit not found"))
+                        .orElseThrow(() -> new NotFoundException("unit not found"))
         );
 
         productUnit.setSku(productUnitRequest.getSku());
@@ -81,7 +99,7 @@ public class ProductUnitServiceImpl implements ProductUnitService {
         );
     }
 
-    private ProductUnit getProducUnitById(Long id) {
-        return productUnitRepository.findById(id).orElseThrow(() -> new RuntimeException("product not found"));
+    private ProductUnit getProductUnitById(Long id) {
+        return productUnitRepository.findById(id).orElseThrow(() -> new NotFoundException("product not found"));
     }
 }

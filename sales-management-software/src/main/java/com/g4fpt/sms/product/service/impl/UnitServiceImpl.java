@@ -3,6 +3,8 @@ package com.g4fpt.sms.product.service.impl;
 import com.g4fpt.sms.product.dto.request.UnitRequest;
 import com.g4fpt.sms.product.dto.response.UnitResponse;
 import com.g4fpt.sms.product.entity.Unit;
+import com.g4fpt.sms.product.exception.DuplicateException;
+import com.g4fpt.sms.product.exception.NotFoundException;
 import com.g4fpt.sms.product.mapper.UnitMapper;
 import com.g4fpt.sms.product.repository.UnitRepository;
 import com.g4fpt.sms.product.service.UnitService;
@@ -31,6 +33,9 @@ public class UnitServiceImpl implements UnitService {
 
     @Override
     public void create(UnitRequest unitRequest) {
+        if(unitRepository.existsByName(unitRequest.getName())){
+            throw new DuplicateException("This name is already in use");
+        }
         Unit unit = unitMapper.toEntity(unitRequest);
         unitRepository.save(unit);
     }
@@ -49,11 +54,10 @@ public class UnitServiceImpl implements UnitService {
 
     @Override
     public UnitResponse findById(Long id) {
-        Unit unit =  unitRepository.findById(id).orElseThrow(() -> new RuntimeException("unit not found"));
-        return unitMapper.toResponse(unit);
+        return unitMapper.toResponse(getUnitById(id));
     }
 
     private Unit getUnitById(Long id){
-        return unitRepository.findById(id).orElseThrow(() -> new RuntimeException("unit not found"));
+        return unitRepository.findById(id).orElseThrow(() -> new NotFoundException("unit not found"));
     }
 }

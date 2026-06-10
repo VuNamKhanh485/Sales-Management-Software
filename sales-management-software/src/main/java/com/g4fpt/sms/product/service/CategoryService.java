@@ -1,7 +1,10 @@
 package com.g4fpt.sms.product.service;
 
+import com.g4fpt.sms.product.dto.request.BrandRequest;
 import com.g4fpt.sms.product.dto.request.CategoryRequest;
 import com.g4fpt.sms.product.dto.response.CategoryResponse;
+import com.g4fpt.sms.product.util.ValidationError;
+
 import java.util.List;
 
 public interface CategoryService {
