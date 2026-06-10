@@ -52,7 +52,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void update(long id, CategoryRequest categoryRequest) {
         Category category = getCategoryById(id);
-        if(categoryRepository.existsByNameIgnoreCase(categoryRequest.getCategoryName())){
+        if(categoryRepository.existsByNameIgnoreCaseAndIdNot(categoryRequest.getCategoryName(), id)){
             throw new DuplicateException("This name is already in use");
         }
         category.setName(categoryRequest.getCategoryName());

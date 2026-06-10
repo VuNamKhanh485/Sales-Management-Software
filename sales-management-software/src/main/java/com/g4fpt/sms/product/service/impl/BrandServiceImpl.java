@@ -53,7 +53,7 @@ public class BrandServiceImpl implements BrandService {
     @Override
     public void update(long id, BrandRequest brandRequest) {
         Brand brand = getBrandById(id);
-        if(brandRepository.existsByNameIgnoreCase(brandRequest.getBrandName())){
+        if(brandRepository.existsByNameIgnoreCaseAndIdNot(brandRequest.getBrandName(), id)){
             throw new DuplicateException("This name is already in use");
         }
         brand.setName(brandRequest.getBrandName());

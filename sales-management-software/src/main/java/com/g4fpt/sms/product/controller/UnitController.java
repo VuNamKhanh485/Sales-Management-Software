@@ -3,9 +3,12 @@ package com.g4fpt.sms.product.controller;
 import com.g4fpt.sms.product.dto.request.UnitRequest;
 import com.g4fpt.sms.product.dto.response.UnitResponse;
 import com.g4fpt.sms.product.entity.Unit;
+import com.g4fpt.sms.product.exception.DuplicateException;
 import com.g4fpt.sms.product.service.UnitService;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
@@ -31,8 +34,17 @@ public class UnitController {
     }
 
     @PostMapping("/create")
-    public String create(@ModelAttribute UnitRequest unitRequest){
-        unitService.create(unitRequest);
+    public String create(@Valid @ModelAttribute UnitRequest unitRequest,
+                         BindingResult result){
+        if (result.hasErrors()){
+            return "unit/create";
+        }
+        try{
+            unitService.create(unitRequest);
+        }catch(DuplicateException e){
+            result.rejectValue("UnitName", "error.UnitName",e.getMessage());
+        }
+
         return "redirect:/unit";
     }
 
@@ -46,8 +58,18 @@ public class UnitController {
     }
 
     @PostMapping("/update/{id}")
-    public String update(@PathVariable Long id, @ModelAttribute UnitRequest unitRequest){
-        unitService.update(id,unitRequest);
+    public String update(@PathVariable Long id, @Valid @ModelAttribute UnitRequest unitRequest,
+                         BindingResult result){
+        if (result.hasErrors()){
+            return "unit/update";
+        }
+
+        try{
+            unitService.update(id,unitRequest);
+        }catch(DuplicateException e){
+            result.rejectValue("UnitName", "error.UnitName",e.getMessage());
+        }
+
         return "redirect:/unit";
     }
 }

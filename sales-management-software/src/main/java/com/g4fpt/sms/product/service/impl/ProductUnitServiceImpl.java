@@ -42,7 +42,7 @@ public class ProductUnitServiceImpl implements ProductUnitService {
 
     @Override
     public void create(ProductUnitRequest productUnitRequest) {
-        validate(productUnitRequest);
+        validate(productUnitRequest, null);
         ProductUnit productUnit = new ProductUnit();
         requestToEntity(productUnitRequest, productUnit);
         productUnitRepository.save(productUnit);
@@ -50,7 +50,7 @@ public class ProductUnitServiceImpl implements ProductUnitService {
 
     @Override
     public void update(Long id, ProductUnitRequest productUnitRequest) {
-        validate(productUnitRequest);
+        validate(productUnitRequest, id);
         ProductUnit productUnit = getProductUnitById(id);
         requestToEntity(productUnitRequest, productUnit);
         productUnitRepository.save(productUnit);
@@ -75,15 +75,23 @@ public class ProductUnitServiceImpl implements ProductUnitService {
     }
 
     @Override
-    public void validate(ProductUnitRequest productUnitRequest) {
+    public void validate(ProductUnitRequest productUnitRequest, Long excludeId) {
         List<ValidationError> errors = new ArrayList<>();
-        if(productUnitRepository.existsByBarcodeUnitIgnoreCase(productUnitRequest.getBarcodeUnit())) {
-            errors.add(new ValidationError("Barcode","Barcode is existed"));
+        if(excludeId != null) {
+            if(productUnitRepository.existsByBarcodeUnitIgnoreCaseAndIdNot(productUnitRequest.getBarcodeUnit(), excludeId)) {
+                errors.add(new ValidationError("Barcode","Barcode is existed"));
+            }
+            if (productUnitRepository.existsBySkuIgnoreCaseAndIdNot(productUnitRequest.getSku(), excludeId)) {
+                errors.add(new ValidationError("Sku","Sku is existed"));
+            }
+        }else {
+            if (productUnitRepository.existsByBarcodeUnitIgnoreCase(productUnitRequest.getBarcodeUnit())) {
+                errors.add(new ValidationError("Barcode", "Barcode is existed"));
+            }
+            if (productUnitRepository.existsBySkuIgnoreCase(productUnitRequest.getSku())) {
+                errors.add(new ValidationError("Sku", "Sku is existed"));
+            }
         }
-        if (productUnitRepository.existsBySkuIgnoreCase(productUnitRequest.getSku())) {
-            errors.add(new ValidationError("Sku","Sku is existed"));
-        }
-
         throw new ValidationException(errors);
     }
 

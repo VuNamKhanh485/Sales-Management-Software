@@ -12,5 +12,9 @@ public interface ProductUnitRepository extends JpaRepository<ProductUnit, Long> 
 
     boolean existsByBarcodeUnitIgnoreCase(String barcodeUnit);
 
+    boolean existsBySkuIgnoreCaseAndIdNot(String sku, Long id);
+
+    boolean existsByBarcodeUnitIgnoreCaseAndIdNot(String barcodeUnit, Long id);
+
     List<ProductUnit> findByProduct_Id(Long id);
 }

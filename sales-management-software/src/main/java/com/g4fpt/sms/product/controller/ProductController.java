@@ -6,8 +6,10 @@ import com.g4fpt.sms.product.service.BrandService;
 import com.g4fpt.sms.product.service.CategoryService;
 import com.g4fpt.sms.product.service.ProductService;
 import com.g4fpt.sms.product.service.UnitService;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -42,8 +44,18 @@ public class ProductController {
     }
 
     @PostMapping("/create")
-    public String create(@ModelAttribute ProductRequest productRequest) {
-        productService.create(productRequest);
+    public String create(@Valid @ModelAttribute ProductRequest productRequest,
+                         BindingResult result) {
+        if (result.hasErrors()) {
+            return "product/create";
+        }
+
+        try{
+            productService.create(productRequest);
+        }catch(Exception e){
+
+        }
+
         return "redirect:/product";
     }
 

@@ -15,5 +15,5 @@ public interface ProductUnitService {
     List<ProductUnitResponse> findAll();
     ProductUnitResponse findById(Long id);
     List<ProductUnitResponse> findByProductId(Long id);
-    void validate(ProductUnitRequest productUnitRequest);
+    void validate(ProductUnitRequest productUnitRequest, Long excludeId);
 }

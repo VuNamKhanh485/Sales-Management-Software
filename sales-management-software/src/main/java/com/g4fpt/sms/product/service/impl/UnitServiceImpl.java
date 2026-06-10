@@ -42,6 +42,9 @@ public class UnitServiceImpl implements UnitService {
 
     @Override
     public void update(Long id, UnitRequest unitRequest) {
+        if(unitRepository.existsByNameIgnoreCaseAndIdNot(unitRequest.getName(),id)){
+            throw new DuplicateException("This name is already in use");
+        }
         Unit unit = getUnitById(id);
         unit.setName(unitRequest.getName());
         unitRepository.save(unit);

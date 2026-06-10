@@ -47,28 +47,7 @@ public class ProductServiceImpl implements ProductService {
     public void create(ProductRequest productRequest) {
         validate(productRequest, null);
         Product product = new Product();
-
-        for(ProductUnitRequest productUnitRequest : productRequest.getProductUnitsRequest()){
-            ProductUnit productUnit = new ProductUnit();
-
-            Unit unit = unitRepository.findById(productUnitRequest.getUnitId())
-                    .orElseThrow(() -> new NotFoundException("Unit not found"));
-            productUnit.setUnit(unit);
-            productUnit.setProduct(product);
-            productUnit.setConventionValue(productUnitRequest.getConventionValue());
-            productUnit.setPrice(productUnitRequest.getPrice());
-            productUnit.setBarcodeUnit(productUnitRequest.getBarcodeUnit());
-            productUnit.setIsBaseUnit(
-                    Boolean.TRUE.equals(productUnitRequest.getIsBaseUnit()));
-            productUnit.setSku(productUnitRequest.getSku());
-
-            product.getProductUnits().add(productUnit);
-        }
-
         requestToProduct(productRequest, product);
-
-        product.setCreatedAt(LocalDateTime.now());
-
         productRepository.save(product);
     }
 
@@ -78,7 +57,6 @@ public class ProductServiceImpl implements ProductService {
         Product product = getProductById(id);
         requestToProduct(productRequest, product);
         productRepository.save(product);
-
     }
 
     @Override
@@ -123,6 +101,10 @@ public class ProductServiceImpl implements ProductService {
                 .toList();
     }
 
+    private Product getProductById(long id) {
+        return productRepository.findById(id).orElseThrow(() -> new NotFoundException("product not found"));
+    }
+
     @Override
     public void validate(ProductRequest productRequest, Long excludeId) {
         List<ValidationError> errors = new ArrayList<>();
@@ -165,11 +147,26 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-    private Product getProductById(long id) {
-        return productRepository.findById(id).orElseThrow(() -> new NotFoundException("product not found"));
-    }
-
     private void requestToProduct(ProductRequest productRequest, Product product) {
+        for(ProductUnitRequest productUnitRequest : productRequest.getProductUnitsRequest()){
+            ProductUnit productUnit = new ProductUnit();
+
+            Unit unit = unitRepository.findById(productUnitRequest.getUnitId())
+                    .orElseThrow(() -> new NotFoundException("Unit not found"));
+
+            productUnit.setUnit(unit);
+            productUnit.setProduct(product);
+
+            productUnit.setConventionValue(productUnitRequest.getConventionValue());
+            productUnit.setPrice(productUnitRequest.getPrice());
+            productUnit.setBarcodeUnit(productUnitRequest.getBarcodeUnit());
+            productUnit.setIsBaseUnit(
+                    Boolean.TRUE.equals(productUnitRequest.getIsBaseUnit()));
+            productUnit.setSku(productUnitRequest.getSku());
+
+            product.getProductUnits().add(productUnit);
+        }
+
         product.setCategory(categoryRepository.findById(productRequest.getCategoryId())
                 .orElseThrow(() -> new NotFoundException("Category not found")));
         product.setBrand(brandRepository.findById(productRequest.getBrandId())
