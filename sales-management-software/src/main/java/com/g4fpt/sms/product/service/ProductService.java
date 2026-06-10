@@ -24,5 +24,5 @@ public interface ProductService {
 
     List<ProductResponse> findAll();
 
-    List<ValidationError> validate(ProductRequest productRequest);
+    void validate(ProductRequest productRequest);
 }

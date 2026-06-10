@@ -33,7 +33,7 @@ public class UnitServiceImpl implements UnitService {
 
     @Override
     public void create(UnitRequest unitRequest) {
-        if(unitRepository.existsByName(unitRequest.getName())){
+        if(unitRepository.existsByNameIgnoreCase(unitRequest.getName())){
             throw new DuplicateException("This name is already in use");
         }
         Unit unit = unitMapper.toEntity(unitRequest);

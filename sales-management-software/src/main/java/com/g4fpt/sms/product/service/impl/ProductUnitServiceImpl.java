@@ -5,6 +5,7 @@ import com.g4fpt.sms.product.dto.request.ProductUnitRequest;
 import com.g4fpt.sms.product.dto.response.ProductUnitResponse;
 import com.g4fpt.sms.product.entity.ProductUnit;
 import com.g4fpt.sms.product.exception.NotFoundException;
+import com.g4fpt.sms.product.exception.ValidationException;
 import com.g4fpt.sms.product.mapper.ProductUnitMapper;
 import com.g4fpt.sms.product.repository.ProductRepository;
 import com.g4fpt.sms.product.repository.ProductUnitRepository;
@@ -66,7 +67,7 @@ public class ProductUnitServiceImpl implements ProductUnitService {
     }
 
     @Override
-    public List<ValidationError> validate(ProductUnitRequest productUnitRequest) {
+    public void validate(ProductUnitRequest productUnitRequest) {
         List<ValidationError> errors = new ArrayList<>();
         if(productUnitRepository.existsByBarcodeUnitIgnoreCase(productUnitRequest.getBarcodeUnit())) {
             errors.add(new ValidationError("Barcode","Barcode is existed"));
@@ -75,7 +76,7 @@ public class ProductUnitServiceImpl implements ProductUnitService {
             errors.add(new ValidationError("Sku","Sku is existed"));
         }
 
-        return errors;
+        throw new ValidationException(errors);
     }
 
     private void requestToEntity(ProductUnitRequest productUnitRequest, ProductUnit productUnit) {
@@ -95,8 +96,7 @@ public class ProductUnitServiceImpl implements ProductUnitService {
         productUnit.setConventionValue(productUnitRequest.getConventionValue());
         productUnit.setPrice(productUnitRequest.getPrice());
         productUnit.setIsBaseUnit(
-                productUnitRequest.getIsBaseUnit() != null ? productUnitRequest.getIsBaseUnit() : false
-        );
+                Boolean.TRUE.equals(productUnitRequest.getIsBaseUnit()));
     }
 
     private ProductUnit getProductUnitById(Long id) {

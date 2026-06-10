@@ -8,10 +8,8 @@ import com.g4fpt.sms.product.exception.NotFoundException;
 import com.g4fpt.sms.product.mapper.BrandMapper;
 import com.g4fpt.sms.product.repository.BrandRepository;
 import com.g4fpt.sms.product.service.BrandService;
-import com.g4fpt.sms.product.util.ValidationError;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -27,7 +25,7 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public void create(BrandRequest brandRequest) {
-        if(brandRepository.existsByName(brandRequest.getBrandName())){
+        if(brandRepository.existsByNameIgnoreCase(brandRequest.getBrandName())){
             throw new DuplicateException("This name is already in use");
         }
         Brand brand = brandMapper.toEntity(brandRequest);
@@ -55,7 +53,7 @@ public class BrandServiceImpl implements BrandService {
     @Override
     public void update(long id, BrandRequest brandRequest) {
         Brand brand = getBrandById(id);
-        if(brandRepository.existsByName(brandRequest.getBrandName())){
+        if(brandRepository.existsByNameIgnoreCase(brandRequest.getBrandName())){
             throw new DuplicateException("This name is already in use");
         }
         brand.setName(brandRequest.getBrandName());

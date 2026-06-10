@@ -10,7 +10,6 @@ import com.g4fpt.sms.product.repository.CategoryRepository;
 import com.g4fpt.sms.product.service.CategoryService;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -25,7 +24,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void create(CategoryRequest categoryRequest) {
-        if(categoryRepository.existsByName(categoryRequest.getCategoryName())){
+        if(categoryRepository.existsByNameIgnoreCase(categoryRequest.getCategoryName())){
             throw new DuplicateException("This name is already in use");
         }
         Category category = categoryMapper.toEntity(categoryRequest);
@@ -53,7 +52,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void update(long id, CategoryRequest categoryRequest) {
         Category category = getCategoryById(id);
-        if(categoryRepository.existsByName(categoryRequest.getCategoryName())){
+        if(categoryRepository.existsByNameIgnoreCase(categoryRequest.getCategoryName())){
             throw new DuplicateException("This name is already in use");
         }
         category.setName(categoryRequest.getCategoryName());

@@ -14,5 +14,5 @@ public interface ProductUnitService {
     public void deleteById(Long id);
     public List<ProductUnitResponse> findAll();
     ProductUnitResponse findById(Long id);
-    List<ValidationError> validate(ProductUnitRequest productUnitRequest);
+    void validate(ProductUnitRequest productUnitRequest);
 }
