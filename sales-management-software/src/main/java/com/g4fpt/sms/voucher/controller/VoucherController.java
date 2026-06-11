@@ -49,78 +49,73 @@ public class VoucherController {
         return "voucher/list";
     }
 
-    @GetMapping("/vouchers/create")
-    public String createForm(Model model) {
-        model.addAttribute("request", new VoucherCreateRequest());
-        model.addAttribute("isEdit", false);
+    @GetMapping({"/vouchers/create", "/vouchers/edit/{id}"})
+    public String form(@PathVariable(required = false) Long id, Model model) {
+        if (id != null) {
+            VoucherResponse response = voucherService.getById(id);
+            VoucherCreateRequest request = VoucherCreateRequest.builder()
+                    .code(response.getCode())
+                    .name(response.getName())
+                    .discountType(response.getDiscountType())
+                    .discountValue(response.getDiscountValue())
+                    .minOrderAmount(response.getMinOrderAmount())
+                    .maxDiscountAmount(response.getMaxDiscountAmount())
+                    .startAt(response.getStartAt())
+                    .endAt(response.getEndAt())
+                    .status(response.getStatus())
+                    .build();
+            model.addAttribute("request", request);
+            model.addAttribute("voucherId", id);
+        } else {
+            model.addAttribute("request", new VoucherCreateRequest());
+        }
+
         return "voucher/form";
     }
 
-    @PostMapping("/vouchers/create")
-    public String createMvc(
+
+    @PostMapping({"/vouchers/create", "/vouchers/edit/{id}"})
+    public String save(
+            @PathVariable(required = false) Long id,
             @Valid @ModelAttribute("request") VoucherCreateRequest request,
             BindingResult bindingResult,
             Model model,
             RedirectAttributes redirectAttributes) {
-        
+
         if (bindingResult.hasErrors()) {
-            model.addAttribute("isEdit", false);
+            if (id != null) {
+                model.addAttribute("voucherId", id);
+            }
             return "voucher/form";
         }
+
         try {
-            voucherService.create(request);
-            redirectAttributes.addFlashAttribute("successMessage", "Tạo voucher thành công!");
+            if (id != null) {
+                VoucherUpdateRequest updateRequest = VoucherUpdateRequest.builder()
+                        .code(request.getCode())
+                        .name(request.getName())
+                        .discountType(request.getDiscountType())
+                        .discountValue(request.getDiscountValue())
+                        .minOrderAmount(request.getMinOrderAmount())
+                        .maxDiscountAmount(request.getMaxDiscountAmount())
+                        .startAt(request.getStartAt())
+                        .endAt(request.getEndAt())
+                        .status(request.getStatus())
+                        .build();
+                voucherService.update(id, updateRequest);
+                redirectAttributes.addFlashAttribute("successMessage", "Cập nhật voucher thành công!");
+            } else {
+                voucherService.create(request);
+                redirectAttributes.addFlashAttribute("successMessage", "Tạo voucher thành công!");
+            }
         } catch (AppException e) {
             model.addAttribute("errorMessage", e.getMessage());
-            model.addAttribute("isEdit", false);
+            if (id != null) {
+                model.addAttribute("voucherId", id);
+            }
             return "voucher/form";
         }
-        return "redirect:/vouchers";
-    }
 
-    @GetMapping("/vouchers/edit/{id}")
-    public String editForm(@PathVariable Long id, Model model) {
-        var response = voucherService.getById(id);
-        VoucherUpdateRequest request = VoucherUpdateRequest.builder()
-                .code(response.getCode())
-                .name(response.getName())
-                .discountType(response.getDiscountType())
-                .discountValue(response.getDiscountValue())
-                .minOrderAmount(response.getMinOrderAmount())
-                .maxDiscountAmount(response.getMaxDiscountAmount())
-                .startAt(response.getStartAt())
-                .endAt(response.getEndAt())
-                .status(response.getStatus())
-                .build();
-        
-        model.addAttribute("request", request);
-        model.addAttribute("voucherId", id);
-        model.addAttribute("isEdit", true);
-        return "voucher/form";
-    }
-
-    @PostMapping("/vouchers/edit/{id}")
-    public String editMvc(
-            @PathVariable Long id,
-            @Valid @ModelAttribute("request") VoucherUpdateRequest request,
-            BindingResult bindingResult,
-            Model model,
-            RedirectAttributes redirectAttributes) {
-        
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("isEdit", true);
-            model.addAttribute("voucherId", id);
-            return "voucher/form";
-        }
-        try {
-            voucherService.update(id, request);
-            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật voucher thành công!");
-        } catch (AppException e) {
-            model.addAttribute("errorMessage", e.getMessage());
-            model.addAttribute("isEdit", true);
-            model.addAttribute("voucherId", id);
-            return "voucher/form";
-        }
         return "redirect:/vouchers";
     }
 
