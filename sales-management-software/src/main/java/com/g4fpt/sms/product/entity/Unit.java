@@ -36,7 +36,6 @@ public class Unit {
     @ToString.Include
     private String name;
 
-
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;

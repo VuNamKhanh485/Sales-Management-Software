@@ -1,7 +1,6 @@
 package com.g4fpt.sms.product.controller;
 
 import com.g4fpt.sms.product.dto.request.ProductRequest;
-import com.g4fpt.sms.product.dto.response.ProductResponse;
 import com.g4fpt.sms.product.exception.ValidationException;
 import com.g4fpt.sms.product.service.BrandService;
 import com.g4fpt.sms.product.service.CategoryService;
@@ -71,9 +70,9 @@ public class ProductController {
     @GetMapping("/update/{id}")
     public String update(@PathVariable Long id, Model model) {
         model.addAttribute("productResponse", productService.findById(id));
-        model.addAttribute("categoryList", categoryService.findAll());  // thêm
+        model.addAttribute("categoryList", categoryService.findAll());
         model.addAttribute("brandList", brandService.findAll());
-        return "product/update";
+        return "save";
     }
 
     @PostMapping("/update/{id}")
@@ -82,7 +81,9 @@ public class ProductController {
                          Model model) {
         if (result.hasErrors()) {
             model.addAttribute("productResponse", productService.findById(id));
-            return "product/update";
+            model.addAttribute("categoryList", categoryService.findAll());
+            model.addAttribute("brandList", brandService.findAll());
+            return "save";
         }
         try {
             productService.update(id, productRequest);
@@ -90,6 +91,7 @@ public class ProductController {
             e.getErrors().forEach(err ->
                     result.rejectValue(err.getField(), "error", err.getMessage())
             );
+            return "save";
         }
 
         return "redirect:/product";

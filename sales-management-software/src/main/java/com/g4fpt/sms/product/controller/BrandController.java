@@ -28,57 +28,39 @@ public class BrandController {
         return "brand/list";
     }
 
-    @GetMapping("/create")
-    public String createPage(Model model) {
-        model.addAttribute("brandRequest", new BrandRequest());
-        return "brand/create";
-    }
-
-    @PostMapping("/create")
-    public String create(@Valid @ModelAttribute BrandRequest request,
-                         BindingResult result) {
-        if (result.hasErrors()) {
-            return "brand/create";
-        }
-
-        try {
-            brandService.create(request);
-        }catch(DuplicateException e){
-            result.rejectValue("BrandName", "error.BrandName",e.getMessage());
-            return "brand/create";
-        }
-        return "redirect:/brand";
-    }
-
-    @GetMapping("/update/{id}")
+    @GetMapping("/save/{id}")
     public String updatePage(@PathVariable Long id, Model model) {
-        BrandResponse brandResponse = brandService.findById(id);
+        if(id == 0){
+            model.addAttribute("brandRequest", new BrandRequest());
+        } else {
+            BrandResponse brandResponse = brandService.findById(id);
+            BrandRequest brandRequest = new BrandRequest();
 
-        model.addAttribute("brandResponse", brandResponse);
-        model.addAttribute("id", id);
-        return "brand/update";
+            brandRequest.setBrandName(brandResponse.getName());
+            brandRequest.setBrandStatus(brandResponse.getStatus());
+
+            model.addAttribute("brandRequest", brandRequest);
+        }
+        return "brand/save";
     }
 
-    @PostMapping("/update/{id}")
+    @PostMapping("/save/{id}")
     public String update(@PathVariable Long id,@Valid @ModelAttribute BrandRequest brandRequest,
-                         BindingResult result) {
+                         BindingResult result,
+                         Model model) {
         if (result.hasErrors()) {
-            return "brand/update";
+            return "brand/save";
         }
-
         try {
-            brandService.update(id, brandRequest);
-        }catch(DuplicateException e){
-            result.rejectValue("BrandName", "error.BrandName",e.getMessage());
+            if (id == 0){
+                brandService.create(brandRequest);
+          }else{
+                brandService.update(id, brandRequest);
+            }
+        } catch (DuplicateException e) {
+            result.rejectValue("BrandName", "error.BrandName", e.getMessage());
+            return "brand/save";
         }
-
         return "redirect:/brand";
     }
-
-
-
-
-
-
-
 }

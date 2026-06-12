@@ -2,23 +2,23 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8"/>
-    <title>Thêm Thương hiệu</title>
+    <title>Cập nhật Thương hiệu</title>
 </head>
 <body>
 
-<h2>Thêm Thương hiệu</h2>
+<h2>Cập nhật Thương hiệu</h2>
 
 <a th:href="@{/brand}">← Quay lại</a>
 
 <br/><br/>
 
-<form th:action="@{/brand/create}" th:object="${brandRequest}" method="post">
+<form th:action="@{/brand/save/{id}(id=${id})}" th:object="${brandRequest}" method="post">
 
     <label>Tên thương hiệu:</label><br/>
-    <input type="text" th:field="*{brandName}"/><br/><br/>
+    <input type="text" name="brandName" th:field="*{brandName}"/><br/><br/>
 
     <label>Trạng thái:</label><br/>
-    <select th:field="*{brandStatus}">
+    <select name="brandStatus", th:field="*{brandStatus}">
         <option value="">-- Chọn trạng thái --</option>
         <option th:each="status : ${T(com.g4fpt.sms.product.enums.BrandStatus).values()}"
                 th:value="${status}"
@@ -26,7 +26,7 @@
         </option>
     </select><br/><br/>
 
-    <button type="submit">Lưu</button>
+    <button type="submit">Lưu thay đổi</button>
     <a th:href="@{/brand}">Hủy</a>
 
 </form>

@@ -29,44 +29,38 @@ public class CategoryController {
         return "category/list";
     }
 
-    @GetMapping("/create")
-    public String createPage(Model model) {
-        model.addAttribute("categoryRequest", new CategoryRequest());
-        return "category/create";
-    }
-
-    @PostMapping("/create")
-    public String create(@Valid @ModelAttribute CategoryRequest categoryRequest,
-                         BindingResult result) {
-        if (result.hasErrors()) {
-            return "category/create";
-        }
-
-        try {
-            categoryService.create(categoryRequest);
-        }catch(DuplicateException e) {
-            result.rejectValue("CategoryName", "error.CategoryName",e.getMessage());
-        }
-        return "redirect:/category";
-    }
-
-    @GetMapping("/update/{id}")
+    @GetMapping("/save/{id}")
     public String updatePage(@PathVariable Long id, Model model) {
-        CategoryResponse categoryResponse = categoryService.findById(id);
-        model.addAttribute("categoryResponse", categoryResponse);
-        return "category/update";
+        if(id == 0){
+            model.addAttribute("categoryRequest", new CategoryRequest());
+        }else {
+            CategoryResponse categoryResponse = categoryService.findById(id);
+
+            CategoryRequest categoryRequest = new CategoryRequest();
+            categoryRequest.setCategoryName(categoryResponse.getName());
+            categoryRequest.setCategoryStatus(categoryResponse.getCategoryStatus());
+            categoryRequest.setDescription(categoryResponse.getDescription());
+
+            model.addAttribute("categoryRequest", categoryRequest);
+        }
+        return "category/save";
     }
 
-    @PostMapping("/update/{id}")
+    @PostMapping("/save/{id}")
     public String update(@PathVariable Long id, @Valid @ModelAttribute CategoryRequest categoryRequest,
                          BindingResult result) {
         if (result.hasErrors()) {
-            return "category/update";
+            return "category/save";
         }
         try {
-            categoryService.update(id, categoryRequest);
+            if(id == 0){
+                categoryService.create(categoryRequest);
+            }else {
+                categoryService.update(id, categoryRequest);
+            }
         }catch(DuplicateException e) {
             result.rejectValue("CategoryName", "error.CategoryName",e.getMessage());
+            return "category/save";
         }
         return "redirect:/category";
     }

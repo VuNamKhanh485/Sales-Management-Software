@@ -2,34 +2,35 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8"/>
-    <title>Thêm Danh mục</title>
+    <title>Cập nhật Danh mục</title>
 </head>
 <body>
 
-<h2>Thêm Danh mục</h2>
+<h2>Cập nhật Danh mục</h2>
 
 <a th:href="@{/category}">← Quay lại</a>
 
 <br/><br/>
 
-<form th:action="@{/category/create}" th:object="${categoryRequest}" method="post">
+<form th:action="@{/category/save/{id}(id=${categoryResponse.id})}" method="post">
 
     <label>Tên danh mục:</label><br/>
-    <input type="text" th:field="*{categoryName}"/><br/><br/>
+    <input type="text" name="categoryName" th:value="${categoryResponse.name}"/><br/><br/>
 
     <label>Mô tả:</label><br/>
-    <textarea th:field="*{description}" rows="4" cols="40"></textarea><br/><br/>
+    <textarea name="description" rows="4" cols="40" th:text="${categoryResponse.description}"></textarea><br/><br/>
 
     <label>Trạng thái:</label><br/>
-    <select th:field="*{categoryStatus}">
+    <select name="categoryStatus">
         <option value="">-- Chọn trạng thái --</option>
         <option th:each="status : ${T(com.g4fpt.sms.product.enums.CategoryStatus).values()}"
                 th:value="${status}"
-                th:text="${status}">
+                th:text="${status}"
+                th:selected="${categoryResponse.categoryStatus == status}">
         </option>
     </select><br/><br/>
 
-    <button type="submit">Lưu</button>
+    <button type="submit">Lưu thay đổi</button>
     <a th:href="@{/category}">Hủy</a>
 
 </form>

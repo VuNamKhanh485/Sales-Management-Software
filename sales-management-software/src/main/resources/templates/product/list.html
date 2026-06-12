@@ -8,7 +8,7 @@
 
 <h2>Danh sách Sản phẩm</h2>
 
-<a th:href="@{/product/create}">+ Thêm sản phẩm</a>
+<a th:href="@{/product/save}">+ Thêm sản phẩm</a>
 
 <br/><br/>
 
@@ -34,7 +34,7 @@
         <td th:text="${p.brand != null ? p.brand.name : ''}"></td>
         <td th:text="${p.status}"></td>
         <td>
-            <a th:href="@{/product/update/{id}(id=${p.id})}">Sửa</a>
+            <a th:href="@{/product/save/{id}(id=${p.id})}">Sửa</a>
         </td>
     </tr>
     </tbody>

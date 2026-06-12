@@ -121,22 +121,24 @@ public class ProductServiceImpl implements ProductService {
         }
 
         // Check từng productUnit trong list
+        int i = 0;
         for (ProductUnitRequest unitRequest : productRequest.getProductUnitsRequest()) {
             if(excludeId == null) {
                 if (productUnitRepository.existsBySkuIgnoreCase(unitRequest.getSku())) {
-                    errors.add(new ValidationError("sku", "SKU " + unitRequest.getSku() + " đã tồn tại"));
+                    errors.add(new ValidationError("productUnitsRequest["+i+"].sku", "SKU " + unitRequest.getSku() + " đã tồn tại"));
                 }
                 if (productUnitRepository.existsByBarcodeUnitIgnoreCase(unitRequest.getBarcodeUnit())) {
-                    errors.add(new ValidationError("barcodeUnit", "Barcode " + unitRequest.getBarcodeUnit() + " đã tồn tại"));
+                    errors.add(new ValidationError("productUnitsRequest["+i+"].barcodeUnit", "Barcode " + unitRequest.getBarcodeUnit() + " đã tồn tại"));
                 }
             }else{
                 if (productUnitRepository.existsBySkuIgnoreCaseAndIdNot(unitRequest.getSku(), excludeId)) {
-                    errors.add(new ValidationError("sku", "SKU " + unitRequest.getSku() + " đã tồn tại"));
+                    errors.add(new ValidationError("productUnitsRequest["+i+"].sku", "SKU " + unitRequest.getSku() + " đã tồn tại"));
                 }
                 if (productUnitRepository.existsByBarcodeUnitIgnoreCaseAndIdNot(unitRequest.getBarcodeUnit(), excludeId)) {
-                    errors.add(new ValidationError("barcodeUnit", "Barcode " + unitRequest.getBarcodeUnit() + " đã tồn tại"));
+                    errors.add(new ValidationError("productUnitsRequest["+i+"].barcodeUnit", "Barcode " + unitRequest.getBarcodeUnit() + " đã tồn tại"));
                 }
             }
+            i++;
         }
 
         // Check phải có đúng 1 base unit
@@ -182,6 +184,7 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new NotFoundException("Brand not found")));
         product.setName(productRequest.getName());
         product.setDescription(productRequest.getDescription());
+        product.setImageUrl(productRequest.getImageUrl());
         product.setStatus(productRequest.getStatus());
         product.setNote(productRequest.getNote());
     }
