@@ -4,9 +4,13 @@ package com.g4fpt.sms.product.mapper;
 import com.g4fpt.sms.product.dto.request.CategoryRequest;
 import com.g4fpt.sms.product.dto.response.CategoryResponse;
 import com.g4fpt.sms.product.entity.Category;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
+@NoArgsConstructor
 public class CategoryMapper {
     public Category toEntity(CategoryRequest request) {
         if (request == null) {

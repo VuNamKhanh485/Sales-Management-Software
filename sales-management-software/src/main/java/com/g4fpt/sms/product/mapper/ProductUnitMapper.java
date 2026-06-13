@@ -1,18 +1,35 @@
 package com.g4fpt.sms.product.mapper;
 
 
+import com.g4fpt.sms.product.dto.request.ProductUnitRequest;
 import com.g4fpt.sms.product.dto.response.ProductUnitResponse;
 import com.g4fpt.sms.product.entity.ProductUnit;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class ProductUnitMapper {
     private final UnitMapper unitMapper;
 
-    public ProductUnitMapper(UnitMapper unitMapper) {
-        this.unitMapper = unitMapper;
-    }
+    public ProductUnitRequest toRequest(ProductUnitResponse response) {
 
+        if (response == null) {
+            return null;
+        }
+
+        ProductUnitRequest request = new ProductUnitRequest();
+
+        request.setUnitId(response.getUnit().getId());
+        request.setSku(response.getSku());
+        request.setPrice(response.getPrice());
+        request.setIsBaseUnit(response.getIsBaseUnit());
+        request.setConventionValue(response.getConventionValue());
+        request.setBarcodeUnit(response.getBarcodeUnit());
+
+        return request;
+    }
 
     public ProductUnitResponse toResponse(ProductUnit productUnit) {
         if (productUnit == null) {

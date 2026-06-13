@@ -28,7 +28,7 @@ public class BrandController {
         return "brand/list";
     }
 
-    @GetMapping("/save/{id}")
+    @GetMapping("/form/{id}")
     public String updatePage(@PathVariable Long id, Model model) {
         if(id == 0){
             model.addAttribute("brandRequest", new BrandRequest());
@@ -41,15 +41,15 @@ public class BrandController {
 
             model.addAttribute("brandRequest", brandRequest);
         }
-        return "brand/save";
+        return "form";
     }
 
-    @PostMapping("/save/{id}")
+    @PostMapping("/form/{id}")
     public String update(@PathVariable Long id,@Valid @ModelAttribute BrandRequest brandRequest,
                          BindingResult result,
                          Model model) {
         if (result.hasErrors()) {
-            return "brand/save";
+            return "form";
         }
         try {
             if (id == 0){
@@ -59,7 +59,7 @@ public class BrandController {
             }
         } catch (DuplicateException e) {
             result.rejectValue("BrandName", "error.BrandName", e.getMessage());
-            return "brand/save";
+            return "form";
         }
         return "redirect:/brand";
     }

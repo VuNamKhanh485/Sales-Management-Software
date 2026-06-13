@@ -6,53 +6,52 @@
 </head>
 <body>
 
-<h2>Cập nhật Sản phẩm</h2>
+<h2>Sản phẩm</h2>
 
 <a th:href="@{/product}">← Quay lại</a>
 
 <br/><br/>
 
-<form th:action="@{/product/update/{id}(id=${productResponse.id})}" method="post">
+<form th:action="${id != null}
+    ? @{/product/update/{id}(id=${id})}
+    : @{/product/create}" method="post">
 
     <label>Tên sản phẩm:</label><br/>
-    <input type="text" name="name" th:value="${productResponse.name}"/><br/><br/>
+    <input type="text" name="name" th:field="${productRequest}"/>
 
     <label>Danh mục:</label><br/>
-    <select name="categoryId">
+    <select name="categoryId" th:field="*{categoryId}">
         <option value="">-- Chọn danh mục --</option>
         <option th:each="c : ${categoryList}"
                 th:value="${c.id}"
                 th:text="${c.name}"
-                th:selected="${productResponse.category != null and productResponse.category.id == c.id}">
         </option>
     </select><br/><br/>
 
     <label>Thương hiệu:</label><br/>
-    <select name="brandId">
+    <select name="brandId" th:field="*{brandId}">
         <option value="">-- Chọn thương hiệu --</option>
         <option th:each="b : ${brandList}"
                 th:value="${b.id}"
                 th:text="${b.name}"
-                th:selected="${productResponse.brand != null and productResponse.brand.id == b.id}">
         </option>
     </select><br/><br/>
 
     <label>Ảnh (URL):</label><br/>
-    <input type="text" name="imageUrl" th:value="${productResponse.imageUrl}"/><br/><br/>
+    <input type="text" name="imageUrl" th:value="*{imageUrl}"/><br/><br/>
 
     <label>Mô tả:</label><br/>
-    <textarea name="description" rows="3" cols="40" th:text="${productResponse.description}"></textarea><br/><br/>
+    <textarea name="description" rows="3" cols="40" th:text="*{description}"></textarea><br/><br/>
 
     <label>Ghi chú:</label><br/>
-    <textarea name="note" rows="3" cols="40" th:text="${productResponse.note}"></textarea><br/><br/>
+    <textarea name="note" rows="3" cols="40" th:text="*{note}"></textarea><br/><br/>
 
     <label>Trạng thái:</label><br/>
-    <select name="status">
+    <select name="status" th:field="*{status}">
         <option value="">-- Chọn trạng thái --</option>
         <option th:each="s : ${T(com.g4fpt.sms.product.enums.ProductStatus).values()}"
                 th:value="${s}"
                 th:text="${s}"
-                th:selected="${productResponse.status == s}">
         </option>
     </select><br/><br/>
 

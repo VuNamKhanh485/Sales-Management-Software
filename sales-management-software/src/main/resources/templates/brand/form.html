@@ -12,17 +12,17 @@
 
 <br/><br/>
 
-<form th:action="@{/brand/save/{id}(id=${id})}" th:object="${brandRequest}" method="post">
+<form th:action="@{/brand/form/{id}(id=${id})}" th:object="${brandRequest}" method="post">
 
     <label>Tên thương hiệu:</label><br/>
     <input type="text" name="brandName" th:field="*{brandName}"/><br/><br/>
 
     <label>Trạng thái:</label><br/>
-    <select name="brandStatus", th:field="*{brandStatus}">
+    <select name="brandStatus" th:field="*{brandStatus}">
         <option value="">-- Chọn trạng thái --</option>
         <option th:each="status : ${T(com.g4fpt.sms.product.enums.BrandStatus).values()}"
                 th:value="${status}"
-                th:text="${status}">
+                th:text="${status}"
         </option>
     </select><br/><br/>
 

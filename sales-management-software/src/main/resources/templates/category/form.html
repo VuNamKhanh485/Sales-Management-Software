@@ -12,21 +12,20 @@
 
 <br/><br/>
 
-<form th:action="@{/category/save/{id}(id=${categoryResponse.id})}" method="post">
+<form th:action="@{/category/save/{id}(id=${categoryRequest})}" method="post">
 
     <label>Tên danh mục:</label><br/>
-    <input type="text" name="categoryName" th:value="${categoryResponse.name}"/><br/><br/>
+    <input type="text" name="categoryName" th:field="*{categoryName}"/><br/><br/>
 
     <label>Mô tả:</label><br/>
-    <textarea name="description" rows="4" cols="40" th:text="${categoryResponse.description}"></textarea><br/><br/>
+    <textarea name="description" rows="4" cols="40" th:field="*{categoryDescription}"></textarea><br/><br/>
 
     <label>Trạng thái:</label><br/>
-    <select name="categoryStatus">
+    <select name="categoryStatus" th:field="*{categoryStatus}">
         <option value="">-- Chọn trạng thái --</option>
         <option th:each="status : ${T(com.g4fpt.sms.product.enums.CategoryStatus).values()}"
                 th:value="${status}"
                 th:text="${status}"
-                th:selected="${categoryResponse.categoryStatus == status}">
         </option>
     </select><br/><br/>
 

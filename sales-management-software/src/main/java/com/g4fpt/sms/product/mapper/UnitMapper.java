@@ -3,10 +3,14 @@ package com.g4fpt.sms.product.mapper;
 import com.g4fpt.sms.product.dto.request.UnitRequest;
 import com.g4fpt.sms.product.dto.response.UnitResponse;
 import com.g4fpt.sms.product.entity.Unit;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class UnitMapper {
+
     public Unit toEntity(UnitRequest request) {
         if (request == null) {
             return null;

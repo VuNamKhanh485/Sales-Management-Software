@@ -9,7 +9,7 @@ import com.g4fpt.sms.product.util.ValidationError;
 import java.util.List;
 
 public interface ProductUnitService {
-    void create(ProductUnitRequest productUnitRequest);
+    ProductUnit create(ProductUnitRequest productUnitRequest);
     void update(Long id, ProductUnitRequest productUnitRequest);
     void deleteById(Long id);
     List<ProductUnitResponse> findAll();

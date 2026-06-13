@@ -3,9 +3,12 @@ package com.g4fpt.sms.product.mapper;
 import com.g4fpt.sms.product.dto.request.BrandRequest;
 import com.g4fpt.sms.product.dto.response.BrandResponse;
 import com.g4fpt.sms.product.entity.Brand;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class BrandMapper {
 
     public Brand toEntity(BrandRequest request) {

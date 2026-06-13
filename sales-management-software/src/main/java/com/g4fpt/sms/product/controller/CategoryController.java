@@ -29,7 +29,7 @@ public class CategoryController {
         return "category/list";
     }
 
-    @GetMapping("/save/{id}")
+    @GetMapping("/form/{id}")
     public String updatePage(@PathVariable Long id, Model model) {
         if(id == 0){
             model.addAttribute("categoryRequest", new CategoryRequest());
@@ -43,14 +43,14 @@ public class CategoryController {
 
             model.addAttribute("categoryRequest", categoryRequest);
         }
-        return "category/save";
+        return "category/form";
     }
 
-    @PostMapping("/save/{id}")
+    @PostMapping("/form/{id}")
     public String update(@PathVariable Long id, @Valid @ModelAttribute CategoryRequest categoryRequest,
                          BindingResult result) {
         if (result.hasErrors()) {
-            return "category/save";
+            return "category/form";
         }
         try {
             if(id == 0){
@@ -60,7 +60,7 @@ public class CategoryController {
             }
         }catch(DuplicateException e) {
             result.rejectValue("CategoryName", "error.CategoryName",e.getMessage());
-            return "category/save";
+            return "category/form";
         }
         return "redirect:/category";
     }

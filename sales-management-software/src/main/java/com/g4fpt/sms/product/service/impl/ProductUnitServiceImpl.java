@@ -41,11 +41,11 @@ public class ProductUnitServiceImpl implements ProductUnitService {
     }
 
     @Override
-    public void create(ProductUnitRequest productUnitRequest) {
+    public ProductUnit create(ProductUnitRequest productUnitRequest) {
         validate(productUnitRequest, null);
         ProductUnit productUnit = new ProductUnit();
         requestToEntity(productUnitRequest, productUnit);
-        productUnitRepository.save(productUnit);
+        return productUnitRepository.save(productUnit);
     }
 
     @Override
