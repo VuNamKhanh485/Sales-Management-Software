@@ -41,68 +41,47 @@ public class ProductController {
         if(id != null) {
             ProductResponse productResponse = productService.findById(id);
             productRequest = productMapper.toRequest(productResponse);
-            model.addAttribute("id", id);
         }
 
-        model.addAttribute("categoryList", categoryService.findAll());
-        model.addAttribute("brandList", brandService.findAll());
-        model.addAttribute("unitList", unitService.findAll());
+        addAttributeToForm(model, id);
         model.addAttribute("productRequest",  productRequest);
         return "product/form";
     }
 
-    @PostMapping("/create")
-    public String create(@Valid @ModelAttribute ProductRequest productRequest,
-                         BindingResult result) {
+    @PostMapping({"/form", "/form/{id}"})
+    public String form(@Valid @ModelAttribute ProductRequest productRequest,
+                         BindingResult result, Model model,
+                         @PathVariable(required = false) Long id) {
         if (result.hasErrors()) {
+            addAttributeToForm(model, id);
             return "product/form";
         }
 
         try{
-            productService.create(productRequest);
+            if(id == null){
+                productService.create(productRequest);
+            }else{
+                productService.update(id, productRequest);
+            }
+
         }catch(ValidationException e){
+            addAttributeToForm(model, id);
             e.getErrors().forEach(err ->
                     result.rejectValue(err.getField(), "error", err.getMessage())
             );
+            return "product/form";
         }
 
         return "redirect:/product";
     }
 
-    /**
-     * Update all attribute
-     * @param id
-     * @param model
-     * @return
-     */
-    @GetMapping("/update/{id}")
-    public String update(@PathVariable Long id, Model model) {
-        model.addAttribute("productResponse", productService.findById(id));
+    private void addAttributeToForm(Model model, Long id){
+        if(id != null) {
+            model.addAttribute("id", id);
+        }
         model.addAttribute("categoryList", categoryService.findAll());
         model.addAttribute("brandList", brandService.findAll());
-        return "save";
-    }
-
-    @PostMapping("/update/{id}")
-    public String update(@PathVariable Long id, @Valid @ModelAttribute ProductRequest productRequest,
-                         BindingResult result,
-                         Model model) {
-        if (result.hasErrors()) {
-            model.addAttribute("productResponse", productService.findById(id));
-            model.addAttribute("categoryList", categoryService.findAll());
-            model.addAttribute("brandList", brandService.findAll());
-            return "save";
-        }
-        try {
-            productService.update(id, productRequest);
-        }catch(ValidationException e){
-            e.getErrors().forEach(err ->
-                    result.rejectValue(err.getField(), "error", err.getMessage())
-            );
-            return "save";
-        }
-
-        return "redirect:/product";
+        model.addAttribute("unitList", unitService.findAll());
     }
 /**
     @GetMapping

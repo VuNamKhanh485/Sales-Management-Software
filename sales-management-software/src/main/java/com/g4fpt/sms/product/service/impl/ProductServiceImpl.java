@@ -12,7 +12,9 @@ import com.g4fpt.sms.product.exception.ValidationException;
 import com.g4fpt.sms.product.mapper.ProductMapper;
 import com.g4fpt.sms.product.repository.*;
 import com.g4fpt.sms.product.service.ProductService;
+import com.g4fpt.sms.product.service.ProductUnitService;
 import com.g4fpt.sms.product.util.ValidationError;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,28 +22,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
-    private final UnitRepository unitRepository;
-    private final ProductUnitRepository productUnitRepository;
-
-    public ProductServiceImpl(ProductRepository productRepository,
-                              BrandRepository brandRepository,
-                              CategoryRepository categoryRepository,
-                              ProductMapper productMapper,
-                              UnitRepository unitRepository,
-                              ProductUnitRepository productUnitRepository) {
-        this.productRepository = productRepository;
-        this.brandRepository = brandRepository;
-        this.categoryRepository = categoryRepository;
-        this.productMapper = productMapper;
-        this.unitRepository = unitRepository;
-        this.productUnitRepository = productUnitRepository;
-    }
+    private final ProductUnitService productUnitService;
 
     @Override
     public void create(ProductRequest productRequest) {

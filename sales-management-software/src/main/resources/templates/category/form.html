@@ -12,7 +12,7 @@
 
 <br/><br/>
 
-<form th:action="@{/category/save/{id}(id=${categoryRequest})}" method="post">
+<form th:action="@{/category/save/{id}(id=${id})}" method="post">
 
     <label>Tên danh mục:</label><br/>
     <input type="text" name="categoryName" th:field="*{categoryName}"/><br/><br/>
