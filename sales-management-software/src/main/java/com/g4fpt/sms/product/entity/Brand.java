@@ -16,7 +16,7 @@ import java.util.List;
  * @author Nam Khanh
  */
 @Entity
-@Table(name = "brand")
+@Table(name = "Brand")
 @Getter
 @Setter
 @AllArgsConstructor

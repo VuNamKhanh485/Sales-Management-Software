@@ -16,7 +16,7 @@ import java.util.List;
  */
 
 @Entity
-@Table(name = "category")
+@Table(name = "Category")
 @Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor

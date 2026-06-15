@@ -18,7 +18,7 @@ import java.util.List;
  */
 
 @Entity
-@Table(name = "product")
+@Table(name = "Product")
 @Getter
 @Setter
 @AllArgsConstructor
