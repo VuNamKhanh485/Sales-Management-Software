@@ -16,9 +16,7 @@ public class BranchController {
 
     private final BranchService branchService;
 
-    public BranchController(
-            BranchService branchService) {
-
+    public BranchController(BranchService branchService) {
         this.branchService = branchService;
     }
 
@@ -42,39 +40,27 @@ public class BranchController {
         return "branch/list";
     }
 
+    //DETAIL
+    @GetMapping("/detail/{id}")
+    public String detail(@PathVariable Long id, Model model) {
+
+        Branch branch = branchService.getById(id);
+        model.addAttribute("branch", branch);
+
+        return "branch/detail";
+    }
+
     //CREATE
     @GetMapping("/create")
     public String createForm(Model model) {
 
-        model.addAttribute(
-                "branch",
-                new BranchRequest());
+        model.addAttribute("branch", new BranchRequest());
+        model.addAttribute("isEdit", false);
 
-        return "branch/create";
+        return "branch/form";
     }
 
-    @PostMapping("/create")
-    public String create(
-            @ModelAttribute("branch")
-            BranchRequest request,
-            Model model) {
-
-        try {
-            branchService.create(request);
-
-            return "redirect:/branch";
-        } catch (Exception e) {
-            model.addAttribute("branch", request);
-            model.addAttribute(
-                    "errors",
-                    Arrays.asList(e.getMessage().split("\\|"))
-            );
-            return "branch/create";
-        }
-
-    }
-
-    //UPDATE
+    // EDIT
     @GetMapping("/edit/{id}")
     public String editForm(
             @PathVariable Long id,
@@ -83,59 +69,61 @@ public class BranchController {
         Branch branch = branchService.getById(id);
 
         model.addAttribute("branch", branch);
-        model.addAttribute("viewOnly", false);
+        model.addAttribute("isEdit", true);
 
         return "branch/form";
     }
 
-    @PostMapping("/edit/{id}")
-    public String update(
-            @PathVariable Long id,
-            @ModelAttribute("branch") BranchRequest request,
-            Model model) {
+    // SAVE
+    @PostMapping("/save")
+    public String save(@RequestParam(required = false) Long id,
+                       @ModelAttribute("branch") BranchRequest request,
+                       Model model) {
+        if (id == null) {
+            try {
+                branchService.create(request);
 
-        try {
+                return "redirect:/branch";
+            } catch (Exception e) {
+                model.addAttribute("branch", request);
+                model.addAttribute(
+                        "errors",
+                        Arrays.asList(e.getMessage().split("\\|"))
+                );
+                return "branch/form";
+            }
+        } else {
+            try {
 
-            branchService.update(id, request);
-            return "redirect:/branch";
+                branchService.update(id, request);
+                return "redirect:/branch";
 
-        } catch (Exception e) {
+            } catch (Exception e) {
 
-            model.addAttribute("branch", request);
-            model.addAttribute("id", id);
-            model.addAttribute("viewOnly", false);
+                model.addAttribute("branch", request);
+                model.addAttribute("id", id);
+                model.addAttribute("viewOnly", false);
 
-            model.addAttribute(
-                    "errors",
-                    Arrays.asList(
-                            e.getMessage().split("\\|"))
-            );
+                model.addAttribute(
+                        "errors",
+                        Arrays.asList(
+                                e.getMessage().split("\\|"))
+                );
 
-            return "branch/form";
+                return "branch/form";
+            }
         }
     }
 
+
     //DELETE
     @GetMapping("/delete/{id}")
-    public String delete(
-            @PathVariable Long id) {
+    public String delete(@PathVariable Long id) {
 
         branchService.delete(id);
 
         return "redirect:/branch";
     }
 
-    //DETAIL
-    @GetMapping("/detail/{id}")
-    public String detail(
-            @PathVariable Long id,
-            Model model) {
 
-        Branch branch = branchService.getById(id);
-
-        model.addAttribute("branch", branch);
-        model.addAttribute("viewOnly", true);
-
-        return "branch/form";
-    }
 }

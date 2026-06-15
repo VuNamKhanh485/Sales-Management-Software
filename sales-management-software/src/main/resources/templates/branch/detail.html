@@ -1,0 +1,206 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chi tiết chi nhánh</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          th:href="@{/css/branch/detail.css}">
+</head>
+
+<body>
+
+<div class="container mt-4">
+
+    <!-- Header -->
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+
+        <h1>Chi tiết chi nhánh</h1>
+
+        <a th:href="@{/branch}"
+           class="btn btn-secondary">
+            Quay lại
+        </a>
+
+    </div>
+
+    <div class="form-card">
+
+        <div class="row">
+
+            <!-- Mã chi nhánh -->
+            <div class="col-md-6 mb-3">
+
+                <label class="form-label">
+                    Mã chi nhánh
+                </label>
+
+                <input type="text"
+                       class="form-control"
+                       th:value="${branch.branchCode}"
+                       readonly>
+
+            </div>
+
+            <!-- Tên chi nhánh -->
+            <div class="col-md-6 mb-3">
+
+                <label class="form-label">
+                    Tên chi nhánh
+                </label>
+
+                <input type="text"
+                       class="form-control"
+                       th:value="${branch.name}"
+                       readonly>
+
+            </div>
+
+            <!-- Số điện thoại -->
+            <div class="col-md-6 mb-3">
+
+                <label class="form-label">
+                    Số điện thoại
+                </label>
+
+                <input type="text"
+                       class="form-control"
+                       th:value="${branch.phone}"
+                       readonly>
+
+            </div>
+
+            <!-- Email -->
+            <div class="col-md-6 mb-3">
+
+                <label class="form-label">
+                    Email
+                </label>
+
+                <input type="email"
+                       class="form-control"
+                       th:value="${branch.email}"
+                       readonly>
+
+            </div>
+
+            <!-- Địa chỉ -->
+            <div class="col-12 mb-3">
+
+                <label class="form-label">
+                    Địa chỉ
+                </label>
+
+                <input type="text"
+                       class="form-control"
+                       th:value="${branch.address}"
+                       readonly>
+
+            </div>
+
+            <!-- Trạng thái -->
+            <div class="col-md-6 mb-3">
+
+                <label class="form-label d-block">
+                    Trạng thái
+                </label>
+
+                <label class="me-3">
+
+                    <input type="radio"
+                           disabled
+                           th:checked="${branch.status.name() == 'ACTIVE'}">
+
+                    Hoạt động
+
+                </label>
+
+                <label>
+
+                    <input type="radio"
+                           disabled
+                           th:checked="${branch.status.name() == 'INACTIVE'}">
+
+                    Ngừng hoạt động
+
+                </label>
+
+            </div>
+
+            <!-- Ngày tạo -->
+            <div class="col-md-6 mb-3">
+
+                <label class="form-label">
+                    Ngày tạo
+                </label>
+
+                <input type="text"
+                       class="form-control"
+                       th:value="${branch.createdAt != null ?
+                       #temporals.format(branch.createdAt,'dd/MM/yyyy') : ''}"
+                       readonly>
+
+            </div>
+
+            <!-- Ngày cập nhật -->
+            <div class="col-md-6 mb-3">
+
+                <label class="form-label">
+                    Ngày cập nhật
+                </label>
+
+                <input type="text"
+                       class="form-control"
+                       th:value="${branch.updatedAt != null ?
+                       #temporals.format(branch.updatedAt,'dd/MM/yyyy')
+                       : 'Chưa cập nhật'}"
+                       readonly>
+
+            </div>
+
+            <!-- Ghi chú -->
+            <div class="col-12 mb-3">
+
+                <label class="form-label">
+                    Ghi chú
+                </label>
+
+                <textarea rows="4"
+                          class="form-control"
+                          readonly
+                          th:text="${branch.note}">
+                </textarea>
+
+            </div>
+
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mt-4 d-flex gap-2">
+
+            <a th:href="@{/branch/edit/{id}(id=${branch.id})}"
+               class="btn btn-warning">
+                Chỉnh sửa
+            </a>
+
+            <a th:href="@{/branch/delete/{id}(id=${branch.id})}"
+               class="btn btn-danger"
+               onclick="return confirm('Bạn có chắc chắn muốn xóa chi nhánh này?')">
+                Xóa
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
+

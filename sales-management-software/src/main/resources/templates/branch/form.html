@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title th:text="${viewOnly ? 'Chi tiết chi nhánh' : 'Chỉnh sửa chi nhánh'}">
+    <title th:text="${isEdit ? 'Chỉnh sửa chi nhánh' : 'Thêm chi nhánh'}">
         Chi nhánh
     </title>
 
@@ -12,7 +12,7 @@
           rel="stylesheet">
 
     <link rel="stylesheet"
-          th:href="@{/css/branch/edit.css}">
+          th:href="@{/css/branch/form.css}">
 </head>
 
 <body>
@@ -20,9 +20,9 @@
 <div class="container mt-4">
 
     <!-- Header -->
-    <div class="page-header">
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
 
-        <h1 th:text="${viewOnly ? 'Chi tiết chi nhánh' : 'Chỉnh sửa chi nhánh'}">
+        <h1 th:text="${isEdit ? 'Chỉnh sửa chi nhánh' : 'Thêm chi nhánh'}">
         </h1>
 
         <a th:href="@{/branch}"
@@ -34,9 +34,15 @@
 
     <div class="form-card">
 
-        <form th:action="@{/branch/edit/{id}(id=${branch.id})}"
+        <form th:action="@{/branch/save}"
               th:object="${branch}"
               method="post">
+
+            <!-- hidden id khi edit -->
+            <input type="hidden"
+                   name="id"
+                   th:if="${isEdit}"
+                   th:value="${branch.id}">
 
             <div class="row">
 
@@ -50,7 +56,8 @@
                     <input type="text"
                            th:field="*{branchCode}"
                            class="form-control"
-                           readonly>
+                           required
+                           th:readonly="${isEdit}">
 
                 </div>
 
@@ -64,7 +71,7 @@
                     <input type="text"
                            th:field="*{name}"
                            class="form-control"
-                           th:readonly="${viewOnly}">
+                           required>
 
                 </div>
 
@@ -77,8 +84,7 @@
 
                     <input type="text"
                            th:field="*{phone}"
-                           class="form-control"
-                           th:readonly="${viewOnly}">
+                           class="form-control">
 
                 </div>
 
@@ -91,8 +97,7 @@
 
                     <input type="email"
                            th:field="*{email}"
-                           class="form-control"
-                           th:readonly="${viewOnly}">
+                           class="form-control">
 
                 </div>
 
@@ -106,7 +111,7 @@
                     <input type="text"
                            th:field="*{address}"
                            class="form-control"
-                           th:readonly="${viewOnly}">
+                           required>
 
                 </div>
 
@@ -121,8 +126,7 @@
 
                         <input type="radio"
                                th:field="*{status}"
-                               value="ACTIVE"
-                               th:disabled="${viewOnly}">
+                               value="ACTIVE">
 
                         Hoạt động
 
@@ -132,8 +136,7 @@
 
                         <input type="radio"
                                th:field="*{status}"
-                               value="INACTIVE"
-                               th:disabled="${viewOnly}">
+                               value="INACTIVE">
 
                         Ngừng hoạt động
 
@@ -150,15 +153,14 @@
 
                     <textarea th:field="*{note}"
                               rows="4"
-                              class="form-control"
-                              th:readonly="${viewOnly}">
+                              class="form-control">
                     </textarea>
 
                 </div>
 
             </div>
 
-            <!-- Hiển thị lỗi -->
+            <!-- Error -->
             <div th:if="${errors}"
                  class="alert alert-danger">
 
@@ -172,33 +174,15 @@
 
             </div>
 
-            <!-- DETAIL MODE -->
-            <div th:if="${viewOnly}"
-                 class="button-group">
-
-                <a th:href="@{/branch/edit/{id}(id=${branch.id})}"
-                   class="btn btn-warning">
-                    Chỉnh sửa
-                </a>
-
-                <a th:href="@{/branch/delete/{id}(id=${branch.id})}"
-                   class="btn btn-danger"
-                   onclick="return confirm('Bạn có chắc chắn muốn xóa chi nhánh này?')">
-                    Xóa
-                </a>
-
-            </div>
-
-            <!-- EDIT MODE -->
-            <div th:unless="${viewOnly}"
-                 class="button-group">
+            <!-- Buttons -->
+            <div class="mt-4 d-flex gap-2">
 
                 <button type="submit"
-                        class="btn btn-warning">
-                    Cập nhật
+                        class="btn btn-primary"
+                        th:text="${isEdit ? 'Cập nhật' : 'Lưu'}">
                 </button>
 
-                <a th:href="@{/branch/detail/{id}(id=${branch.id})}"
+                <a th:href="@{/branch}"
                    class="btn btn-outline-secondary">
                     Hủy
                 </a>
