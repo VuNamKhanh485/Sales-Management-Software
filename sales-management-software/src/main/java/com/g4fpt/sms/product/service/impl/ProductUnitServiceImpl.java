@@ -3,6 +3,7 @@ package com.g4fpt.sms.product.service.impl;
 import com.g4fpt.sms.product.dto.request.BrandRequest;
 import com.g4fpt.sms.product.dto.request.ProductUnitRequest;
 import com.g4fpt.sms.product.dto.response.ProductUnitResponse;
+import com.g4fpt.sms.product.entity.Product;
 import com.g4fpt.sms.product.entity.ProductUnit;
 import com.g4fpt.sms.product.exception.NotFoundException;
 import com.g4fpt.sms.product.exception.ValidationException;
@@ -41,24 +42,37 @@ public class ProductUnitServiceImpl implements ProductUnitService {
     }
 
     @Override
-    public ProductUnit create(ProductUnitRequest productUnitRequest) {
-        validate(productUnitRequest, null);
-        ProductUnit productUnit = new ProductUnit();
-        requestToEntity(productUnitRequest, productUnit);
-        return productUnitRepository.save(productUnit);
+    public ProductUnit create(ProductUnitRequest productUnitRequest, Product product) {
+            validate(productUnitRequest, null);
+            ProductUnit productUnit = new ProductUnit();
+            requestToEntity(productUnitRequest, productUnit, product);
+        return productUnit;
     }
 
     @Override
-    public void update(Long id, ProductUnitRequest productUnitRequest) {
-        validate(productUnitRequest, id);
-        ProductUnit productUnit = getProductUnitById(id);
-        requestToEntity(productUnitRequest, productUnit);
-        productUnitRepository.save(productUnit);
+    public ProductUnit update(ProductUnitRequest productUnitRequest, Product product) {
+        validate(productUnitRequest, productUnitRequest.getId());
+        ProductUnit productUnit = getProductUnitByIdAndProduct(productUnitRequest.getId(), product.getId());
+        requestToEntity(productUnitRequest, productUnit, product);
+        return productUnit;
     }
 
     @Override
     public void deleteById(Long id) {
         //cần có phần orderTranscation
+    }
+
+    public List<ProductUnit> productUnitSync(List<ProductUnitRequest> productUnitRequests, Product product) {
+        List<ProductUnit> productUnitList = new ArrayList<>();
+
+        for (ProductUnitRequest productUnitRequest : productUnitRequests) {
+            if(productUnitRequest.getId() == null){
+                productUnitList.add(create(productUnitRequest, product));
+            }else{
+                productUnitList.add(update(productUnitRequest, product));
+            }
+        }
+        return productUnitList;
     }
 
     @Override
@@ -95,12 +109,8 @@ public class ProductUnitServiceImpl implements ProductUnitService {
         throw new ValidationException(errors);
     }
 
-    private void requestToEntity(ProductUnitRequest productUnitRequest, ProductUnit productUnit) {
-        productUnit.setProduct(
-                productRepository.findById(
-                                productUnitRequest.getProductId())
-                        .orElseThrow(() -> new NotFoundException("product not found"))
-        );
+    private void requestToEntity(ProductUnitRequest productUnitRequest, ProductUnit productUnit, Product product) {
+        productUnit.setProduct(product);
         productUnit.setUnit(
                 unitRepository.findById(
                                 productUnitRequest.getUnitId())
@@ -115,7 +125,11 @@ public class ProductUnitServiceImpl implements ProductUnitService {
                 Boolean.TRUE.equals(productUnitRequest.getIsBaseUnit()));
     }
 
-    private ProductUnit getProductUnitById(Long id) {
-        return productUnitRepository.findById(id).orElseThrow(() -> new NotFoundException("product not found"));
+    private ProductUnit getProductUnitById(Long id){
+        return productUnitRepository.findById(id).orElseThrow(() -> new NotFoundException("Product unit not found"));
+    }
+
+    private ProductUnit getProductUnitByIdAndProduct(Long id, Long productId) {
+        return productUnitRepository.findByIdAndProduct_Id(id, productId);
     }
 }

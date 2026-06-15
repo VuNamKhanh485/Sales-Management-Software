@@ -36,6 +36,9 @@ public class ProductServiceImpl implements ProductService {
         validate(productRequest, null);
         Product product = new Product();
         requestToProduct(productRequest, product);
+        product.setProductUnits(
+                productUnitService.create(productRequest.getProductUnitsRequest(),
+                        product));
         productRepository.save(product);
     }
 
@@ -108,28 +111,6 @@ public class ProductServiceImpl implements ProductService {
             }
         }
 
-        // Check từng productUnit trong list
-        int i = 0;
-        for (ProductUnitRequest unitRequest : productRequest.getProductUnitsRequest()) {
-            if(excludeId == null) {
-                if (productUnitRepository.existsBySkuIgnoreCase(unitRequest.getSku())) {
-                    errors.add(new ValidationError("productUnitsRequest["+i+"].sku", "SKU " + unitRequest.getSku() + " đã tồn tại"));
-                }
-                if (productUnitRepository.existsByBarcodeUnitIgnoreCase(unitRequest.getBarcodeUnit())) {
-                    errors.add(new ValidationError("productUnitsRequest["+i+"].barcodeUnit", "Barcode " + unitRequest.getBarcodeUnit() + " đã tồn tại"));
-                }
-            }else{
-                if (productUnitRepository.existsBySkuIgnoreCaseAndIdNot(unitRequest.getSku(), excludeId)) {
-                    errors.add(new ValidationError("productUnitsRequest["+i+"].sku", "SKU " + unitRequest.getSku() + " đã tồn tại"));
-                }
-                if (productUnitRepository.existsByBarcodeUnitIgnoreCaseAndIdNot(unitRequest.getBarcodeUnit(), excludeId)) {
-                    errors.add(new ValidationError("productUnitsRequest["+i+"].barcodeUnit", "Barcode " + unitRequest.getBarcodeUnit() + " đã tồn tại"));
-                }
-            }
-            i++;
-        }
-
-        // Check phải có đúng 1 base unit
         long baseUnitCount = productRequest.getProductUnitsRequest()
                 .stream()
                 .filter(u -> Boolean.TRUE.equals(u.getIsBaseUnit()))
@@ -147,25 +128,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private void requestToProduct(ProductRequest productRequest, Product product) {
-        for(ProductUnitRequest productUnitRequest : productRequest.getProductUnitsRequest()){
-            ProductUnit productUnit = new ProductUnit();
-
-            Unit unit = unitRepository.findById(productUnitRequest.getUnitId())
-                    .orElseThrow(() -> new NotFoundException("Unit not found"));
-
-            productUnit.setUnit(unit);
-            productUnit.setProduct(product);
-
-            productUnit.setConventionValue(productUnitRequest.getConventionValue());
-            productUnit.setPrice(productUnitRequest.getPrice());
-            productUnit.setBarcodeUnit(productUnitRequest.getBarcodeUnit());
-            productUnit.setIsBaseUnit(
-                    Boolean.TRUE.equals(productUnitRequest.getIsBaseUnit()));
-            productUnit.setSku(productUnitRequest.getSku());
-
-            product.getProductUnits().add(productUnit);
-        }
-
         product.setCategory(categoryRepository.findById(productRequest.getCategoryId())
                 .orElseThrow(() -> new NotFoundException("Category not found")));
         product.setBrand(brandRepository.findById(productRequest.getBrandId())

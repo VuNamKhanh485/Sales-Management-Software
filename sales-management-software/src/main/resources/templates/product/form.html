@@ -13,7 +13,6 @@
 <br/><br/>
 
 <form th:action="@{/product/form/{id}(id=${id})}" method="post" th:object="${productRequest}">
-
     <label>Tên sản phẩm:</label><br/>
     <input type="text" name="name" th:field="*{name}"/>
 
@@ -74,7 +73,11 @@
         </tr>
         <tr th:each="pu, stat : ${productRequest.productUnitsRequest}">
             <td th:text="${stat.index + 1}"></td>
-            <select th:field="*{productRequest[__${stat.index}__].unitId}">
+
+            <input type="hidden"
+                   th:field="*{productUnitsRequest[__${stat.index}__].id}">
+
+            <select th:field="*{productUnitsRequest[__${stat.index}__].unitId}">
                 <option th.each="unit : ${unitList}"
                         th.value="${unit.id}"
                         th:text="${unit.name}">

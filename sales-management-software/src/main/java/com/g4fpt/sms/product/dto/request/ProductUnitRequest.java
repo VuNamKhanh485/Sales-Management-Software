@@ -10,8 +10,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class ProductUnitRequest {
-    @NotNull(message = "Product is required")
-    private Long productId;
+    private Long id;
     @NotNull(message = "Unit is required")
     private Long unitId;
     @Min(1)

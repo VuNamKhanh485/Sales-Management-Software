@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
-@AllArgsConstructor
-@NoArgsConstructor
 public class CategoryMapper {
     public Category toEntity(CategoryRequest request) {
         if (request == null) {

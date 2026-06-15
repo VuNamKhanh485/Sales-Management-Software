@@ -1,16 +1,14 @@
 package com.g4fpt.sms.product.service;
 
-import com.g4fpt.sms.product.dto.request.BrandRequest;
 import com.g4fpt.sms.product.dto.request.ProductUnitRequest;
 import com.g4fpt.sms.product.dto.response.ProductUnitResponse;
+import com.g4fpt.sms.product.entity.Product;
 import com.g4fpt.sms.product.entity.ProductUnit;
-import com.g4fpt.sms.product.util.ValidationError;
-
 import java.util.List;
 
 public interface ProductUnitService {
-    ProductUnit create(ProductUnitRequest productUnitRequest);
-    void update(Long id, ProductUnitRequest productUnitRequest);
+    ProductUnit create(ProductUnitRequest productUnitRequest, Product product);
+    ProductUnit update(ProductUnitRequest productUnitRequest, Product product);
     void deleteById(Long id);
     List<ProductUnitResponse> findAll();
     ProductUnitResponse findById(Long id);
