@@ -13,7 +13,7 @@ import java.math.BigDecimal;
  * @author Nam Khanh
  */
 @Entity
-@Table(name = "productunit")
+@Table(name = "ProductUnit")
 @Getter
 @Setter
 @AllArgsConstructor
