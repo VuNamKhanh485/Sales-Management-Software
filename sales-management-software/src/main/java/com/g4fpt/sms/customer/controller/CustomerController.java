@@ -114,16 +114,111 @@ public class CustomerController {
             model.addAttribute("genders", Gender.values());
             return "customer/form";
         }
-
         return "redirect:/customers";
     }
 
-    @GetMapping("/debug-data")
-    @ResponseBody
-    public String debugData() {
-        long count = customerRepository.count();
-        var list = customerRepository.findAll();
-        return "Tổng số khách hàng: " + count +
-                " | Tên khách đầu tiên: " + (list.isEmpty() ? "Trống" : list.get(0).getFullName());
-    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//    @PostMapping("/save")
+//    public String saveCustomer(
+//            @ModelAttribute("customerDTO") CustomerRequestDTO dto,
+//            Model model,
+//            RedirectAttributes redirectAttributes) {
+//
+//        Long currentUserId = 1L;
+//        try {
+//                customerService.save(dto, currentUserId);
+//                redirectAttributes.addFlashAttribute("successMessage", dto.getId() == null ? "Thêm mới thành công!" : "Cập nhật thành công!");
+//            } catch(Exception e){
+//
+//                model.addAttribute("errorMessage", e.getMessage());
+//                model.addAttribute("customerDTO", dto);
+//                model.addAttribute("ranks", customerRankService.getAllRanks());
+//                model.addAttribute("genders", Gender.values());
+//                return "customer/form";
+//            }
+//            return "redirect:/customers";
+//        }
 }

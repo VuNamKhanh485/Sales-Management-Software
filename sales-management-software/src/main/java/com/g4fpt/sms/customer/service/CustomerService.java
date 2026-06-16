@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 public interface CustomerService {
     Customer createCustomer(CustomerRequestDTO requestDTO, Long createdById);
     Customer updateCustomer(Long id, CustomerRequestDTO requestDTO, Long updatedById);
+//    Customer save(CustomerRequestDTO dto, Long currentUserId);
     Customer getCustomerById(Long id);
     Page<Customer> getCustomers(String keyword, int page, int size);
 }

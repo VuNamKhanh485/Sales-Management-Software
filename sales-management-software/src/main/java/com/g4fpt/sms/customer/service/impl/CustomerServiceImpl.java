@@ -75,7 +75,7 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setGender(dto.getGender());
         customer.setDob(dto.getDob());
         customer.setNote(dto.getNote());
-        
+
         if (dto.getCustomerRankId() != null) {
             CustomerRank rank = customerRankRepository.findById(dto.getCustomerRankId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy hạng thẻ"));
@@ -109,4 +109,100 @@ public class CustomerServiceImpl implements CustomerService {
 
         return customerRepository.findAll(pageable);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//    @Override
+//    @Transactional
+//    public Customer save(CustomerRequestDTO dto, Long currentUserId) {
+//
+//        Customer customer;
+//
+//        if (dto.getId() == null) {
+//            // ===== THÊM MỚI =====
+//            if (customerRepository.existsByPhone(dto.getPhone())) {
+//                throw new RuntimeException("Số điện thoại đã tồn tại trong hệ thống!");
+//            }
+//            customer = new Customer();
+//            customer.setCustomerCode("CUS-" + System.currentTimeMillis());
+//
+//            // set người tạo
+//            if (currentUserId != null) {
+//                Employee creator = employeeRepository.findById(currentUserId).orElse(null);
+//                customer.setCreatedBy(creator);
+//            }
+//        } else {
+//            // ===== CẬP NHẬT =====
+//            customer = getCustomerById(dto.getId());
+//
+//            if (!customer.getPhone().equals(dto.getPhone())
+//                    && customerRepository.existsByPhone(dto.getPhone())) {
+//                throw new RuntimeException("Số điện thoại đã được sử dụng bởi khách hàng khác!");
+//            }
+//
+//            // set người cập nhật
+//            Employee updater = employeeRepository.findById(currentUserId).orElse(null);
+//            customer.setUpdatedBy(updater);
+//        }
+//
+//        // ===== PHẦN CHUNG (thêm và sửa đều dùng) =====
+//        customer.setFullName(dto.getFullName());
+//        customer.setPhone(dto.getPhone());
+//        customer.setEmail(dto.getEmail());
+//        customer.setAddress(dto.getAddress());
+//        customer.setGender(dto.getGender());
+//        customer.setDob(dto.getDob());
+//        customer.setNote(dto.getNote());
+//        customer.setStatus(dto.getStatus() != null ? dto.getStatus() : CustomerStatus.ACTIVE);
+//
+//        if (dto.getCustomerRankId() != null) {
+//            CustomerRank rank = customerRankRepository.findById(dto.getCustomerRankId())
+//                    .orElseThrow(() -> new RuntimeException("Không tìm thấy hạng thẻ"));
+//            customer.setCustomerRank(rank);
+//        } else {
+//            customer.setCustomerRank(null);
+//        }
+//
+//        return customerRepository.save(customer);
 }
