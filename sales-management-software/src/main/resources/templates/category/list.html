@@ -8,7 +8,7 @@
 
 <h2>Danh sách Danh mục</h2>
 
-<a th:href="@{/category/save/{id}(id=0)">+ Thêm danh mục</a>
+<a th:href="@{/category/form/{id}(id=0)}">+ Thêm danh mục</a>
 
 <br/><br/>
 
@@ -32,7 +32,7 @@
         <td th:text="${c.description}"></td>
         <td th:text="${c.categoryStatus}"></td>
         <td>
-            <a th:href="@{/category/update/{id}(id=${c.id})}">Sửa</a>
+            <a th:href="@{/category/form/{id}(id=${c.id})}">Sửa</a>
         </td>
     </tr>
     </tbody>

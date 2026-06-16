@@ -13,25 +13,23 @@ import com.g4fpt.sms.product.repository.ProductUnitRepository;
 import com.g4fpt.sms.product.repository.UnitRepository;
 import com.g4fpt.sms.product.service.ProductUnitService;
 import com.g4fpt.sms.product.util.ValidationError;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class ProductUnitServiceImpl implements ProductUnitService {
 
     private final ProductUnitRepository productUnitRepository;
     private final ProductRepository productRepository;
     private final UnitRepository unitRepository;
     private final ProductUnitMapper productUnitMapper;
-
-    public ProductUnitServiceImpl(ProductUnitRepository productUnitRepository, ProductRepository productRepository, UnitRepository unitRepository, ProductUnitMapper productUnitMapper) {
-        this.productUnitRepository = productUnitRepository;
-        this.productRepository = productRepository;
-        this.unitRepository = unitRepository;
-        this.productUnitMapper = productUnitMapper;
-    }
 
     @Override
     public List<ProductUnitResponse> findAll() {
@@ -64,6 +62,16 @@ public class ProductUnitServiceImpl implements ProductUnitService {
 
     public List<ProductUnit> productUnitSync(List<ProductUnitRequest> productUnitRequests, Product product) {
         List<ProductUnit> productUnitList = new ArrayList<>();
+
+        Set<Long> requestIds = productUnitRequests.stream()
+                .map(ProductUnitRequest::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        for(ProductUnit unit : product.getProductUnits()){
+            if(!requestIds.contains(unit.getId())){
+                deleteById(unit.getId());
+            }
+        }
 
         for (ProductUnitRequest productUnitRequest : productUnitRequests) {
             if(productUnitRequest.getId() == null){

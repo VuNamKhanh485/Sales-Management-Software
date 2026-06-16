@@ -37,7 +37,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = new Product();
         requestToProduct(productRequest, product);
         product.setProductUnits(
-                productUnitService.create(productRequest.getProductUnitsRequest(),
+                productUnitService.productUnitSync(productRequest.getProductUnitsRequest(),
                         product));
         productRepository.save(product);
     }
@@ -47,6 +47,9 @@ public class ProductServiceImpl implements ProductService {
         validate(productRequest, id);
         Product product = getProductById(id);
         requestToProduct(productRequest, product);
+        product.setProductUnits(
+                productUnitService.productUnitSync(productRequest.getProductUnitsRequest(),
+                        product));
         productRepository.save(product);
     }
 

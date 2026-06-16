@@ -41,7 +41,7 @@ public class BrandController {
 
             model.addAttribute("brandRequest", brandRequest);
         }
-        return "form";
+        return "brand/form";
     }
 
     @PostMapping("/form/{id}")
@@ -49,7 +49,7 @@ public class BrandController {
                          BindingResult result,
                          Model model) {
         if (result.hasErrors()) {
-            return "form";
+            return "brand/form";
         }
         try {
             if (id == 0){
@@ -59,7 +59,7 @@ public class BrandController {
             }
         } catch (DuplicateException e) {
             result.rejectValue("BrandName", "error.BrandName", e.getMessage());
-            return "form";
+            return "brand/form";
         }
         return "redirect:/brand";
     }

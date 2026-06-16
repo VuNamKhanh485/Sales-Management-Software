@@ -8,7 +8,7 @@
 
 <h2>Danh sách Thương hiệu</h2>
 
-<a th:href="@{/brand/save/{id}(id=0)}">+ Thêm thương hiệu</a>
+<a th:href="@{/brand/form/{id}(id=0)}">+ Thêm thương hiệu</a>
 
 <br/><br/>
 
@@ -30,7 +30,7 @@
         <td th:text="${b.name}"></td>
         <td th:text="${b.status}"></td>
         <td>
-            <a th:href="@{/brand/save/{id}(id=${b.id})}">Sửa</a>
+            <a th:href="@{/brand/form/{id}(id=${b.id})}">Sửa</a>
         </td>
     </tr>
     </tbody>

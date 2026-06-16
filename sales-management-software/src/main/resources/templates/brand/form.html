@@ -22,7 +22,7 @@
         <option value="">-- Chọn trạng thái --</option>
         <option th:each="status : ${T(com.g4fpt.sms.product.enums.BrandStatus).values()}"
                 th:value="${status}"
-                th:text="${status}"
+                th:text="${status}">
         </option>
     </select><br/><br/>
 
