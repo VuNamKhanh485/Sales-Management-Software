@@ -20,8 +20,9 @@
             <div class="table-toolbar">
                 <div>
                     <h2>Danh sách chi nhánh</h2>
-                    <p th:text="'Tổng cộng ' + ${branches != null ? #lists.size(branches) : 0} + ' chi nhánh'">Tổng cộng
-                        0 chi nhánh</p>
+                    <p th:text="'Tổng cộng ' + ${branchPage.totalElements} + ' chi nhánh'">
+                        Tổng cộng 0 chi nhánh
+                    </p>
                 </div>
                 <div class="d-flex gap-2">
                     <form th:action="@{/branch}"
@@ -73,7 +74,7 @@
                     </thead>
 
                     <tbody>
-                    <tr th:each="branch : ${branches}">
+                    <tr th:each="branch : ${branchPage.content}">
                         <td th:text="${branch.branchCode}"></td>
                         <td th:text="${branch.name}"></td>
                         <td th:text="${branch.address}"></td>
@@ -87,11 +88,40 @@
                                onclick="return confirm('Bạn có chắc chắn muốn xóa chi nhánh này?')">Xóa</a>
                         </td>
                     </tr>
-                    <tr th:if="${#lists.isEmpty(branches)}">
+                    <tr th:if="${branchPage.empty}">
                         <td colspan="6" class="empty-row">Chưa có chi nhánh nào.</td>
                     </tr>
                     </tbody>
                 </table>
+
+
+                <div th:if="${branchPage.totalPages > 1}">
+
+                    <a th:if="${!branchPage.first}"
+                       th:href="@{/branch(page=${branchPage.number - 1}, keyword=${keyword}, searchType=${searchType})}">
+                        Trước
+                    </a>
+
+                    <span th:each="i : ${#numbers.sequence(0, branchPage.totalPages - 1)}">
+
+                        <a th:if="${i != branchPage.number}"
+                           th:text="${i + 1}"
+                           th:href="@{/branch(page=${i}, keyword=${keyword}, searchType=${searchType})}">
+                        </a>
+
+                        <strong th:if="${i == branchPage.number}"
+                                th:text="${i + 1}">
+                        </strong>
+
+                    </span>
+
+                    <a th:if="${!branchPage.last}"
+                       th:href="@{/branch(page=${branchPage.number + 1}, keyword=${keyword}, searchType=${searchType})}">
+                        Sau
+                    </a>
+                </div>
+
+
             </div>
         </section>
     </main>

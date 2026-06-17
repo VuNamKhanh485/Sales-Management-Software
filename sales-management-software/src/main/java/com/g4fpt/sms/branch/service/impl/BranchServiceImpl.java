@@ -4,6 +4,8 @@ import com.g4fpt.sms.branch.dto.BranchRequest;
 import com.g4fpt.sms.branch.entity.Branch;
 import com.g4fpt.sms.branch.repository.BranchRepository;
 import com.g4fpt.sms.branch.service.BranchService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,11 @@ public class BranchServiceImpl implements BranchService {
     @Override
     public List<Branch> getAll() {
         return branchRepository.findAll();
+    }
+
+    @Override
+    public Page<Branch> getAll(Pageable pageable) {
+        return branchRepository.findAll(pageable);
     }
 
     @Override
@@ -171,11 +178,13 @@ public class BranchServiceImpl implements BranchService {
     }
 
     @Override
-    public List<Branch> search(String searchType, String keyword) {
-        if ("branchCode".equals(searchType)) {
-            return branchRepository.findByBranchCodeContainingIgnoreCase(keyword);
-        }
+    public Page<Branch> search(String searchType, String keyword, Pageable pageable) {
 
-        return branchRepository.findByNameContainingIgnoreCase(keyword);
+        if ("branchCode".equals(searchType)) {
+            return branchRepository.findByBranchCodeContainsIgnoreCase(keyword, pageable);
+        }
+        return branchRepository.findByNameContainingIgnoreCase(keyword, pageable);
     }
+
+
 }

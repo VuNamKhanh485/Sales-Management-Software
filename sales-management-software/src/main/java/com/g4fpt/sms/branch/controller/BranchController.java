@@ -3,12 +3,13 @@ package com.g4fpt.sms.branch.controller;
 import com.g4fpt.sms.branch.dto.BranchRequest;
 import com.g4fpt.sms.branch.entity.Branch;
 import com.g4fpt.sms.branch.service.BranchService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
-import java.util.List;
 
 @Controller
 @RequestMapping("/branch")
@@ -24,19 +25,26 @@ public class BranchController {
     @GetMapping
     public String list(@RequestParam(required = false) String keyword,
                        @RequestParam(required = false, defaultValue = "name") String searchType,
+                       @RequestParam(defaultValue = "0") int page,
+                       @RequestParam(defaultValue = "5") int size,
                        Model model) {
 
-        List<Branch> branches;
+        PageRequest pageRequest = PageRequest.of(page, size);
+
+        Page<Branch> branchPage;
 
         if (keyword == null || keyword.trim().isEmpty()) {
-            branches = branchService.getAll();
+            branchPage = branchService.getAll(pageRequest);
         } else {
-            branches = branchService.search(searchType, keyword);
+            branchPage = branchService.search(searchType, keyword, pageRequest);
         }
+
         model.addAttribute("page", "branch");
-        model.addAttribute("branches", branches);
+        model.addAttribute("branchPage", branchPage);
+        model.addAttribute("branches", branchPage.getContent());
         model.addAttribute("keyword", keyword);
         model.addAttribute("searchType", searchType);
+
         return "branch/list";
     }
 

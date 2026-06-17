@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Danh sách Sản phẩm</title>
+</head>
+<body>
+
+<h2>Danh sách Sản phẩm</h2>
+
+<a th:href="@{/product/save}">+ Thêm sản phẩm</a>
+
+<br/><br/>
+
+<table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Tên sản phẩm</th>
+        <th>Danh mục</th>
+        <th>Thương hiệu</th>
+        <th>Trạng thái</th>
+        <th>Thao tác</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:if="${#lists.isEmpty(productList)}">
+        <td colspan="6">Chưa có sản phẩm nào.</td>
+    </tr>
+    <tr th:each="p, stat : ${productList}">
+        <td th:text="${stat.index + 1}"></td>
+        <td th:text="${p.name}"></td>
+        <td th:text="${p.category != null ? p.category.name : ''}"></td>
+        <td th:text="${p.brand != null ? p.brand.name : ''}"></td>
+        <td th:text="${p.status}"></td>
+        <td>
+            <a th:href="@{/product/save/{id}(id=${p.id})}">Sửa</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

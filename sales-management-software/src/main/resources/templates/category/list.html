@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Danh sách Danh mục</title>
+</head>
+<body>
+
+<h2>Danh sách Danh mục</h2>
+
+<a th:href="@{/category/save/{id}(id=0)">+ Thêm danh mục</a>
+
+<br/><br/>
+
+<table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Tên danh mục</th>
+        <th>Mô tả</th>
+        <th>Trạng thái</th>
+        <th>Thao tác</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:if="${#lists.isEmpty(categoryList)}">
+        <td colspan="5">Chưa có danh mục nào.</td>
+    </tr>
+    <tr th:each="c, stat : ${categoryList}">
+        <td th:text="${stat.index + 1}"></td>
+        <td th:text="${c.name}"></td>
+        <td th:text="${c.description}"></td>
+        <td th:text="${c.categoryStatus}"></td>
+        <td>
+            <a th:href="@{/category/update/{id}(id=${c.id})}">Sửa</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

@@ -1,9 +1,9 @@
 package com.g4fpt.sms.branch.repository;
 
 import com.g4fpt.sms.branch.entity.Branch;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import java.util.List;
 
 public interface BranchRepository extends JpaRepository<Branch, Long> {
 
@@ -17,8 +17,9 @@ public interface BranchRepository extends JpaRepository<Branch, Long> {
 
     boolean existsByEmailAndIdNot(String email, Long id);
 
-    List<Branch> findByBranchCodeContainingIgnoreCase(String branchCode);
+    Page<Branch> findByBranchCodeContainsIgnoreCase(String branchCode, Pageable pageable);
 
-    List<Branch> findByNameContainingIgnoreCase(String name);
+    Page<Branch> findByNameContainingIgnoreCase(String name, Pageable pageable);
+
 
 }
