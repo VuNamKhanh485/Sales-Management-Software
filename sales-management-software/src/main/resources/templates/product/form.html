@@ -67,7 +67,7 @@
             <th>Đơn vị cơ bản</th>
         </tr>
         </thead>
-        <tbody>
+        <tbody id="unitTable">
         <tr th:if="${#lists.isEmpty(productRequest.productUnitsRequest)}">
             <td colspan="7">Chưa có đơn vị tính nào.</td>
         </tr>
@@ -108,12 +108,37 @@
         </tr>
         </tbody>
     </table>
-
+    <button type="button" onclick="addUnitRow()">Add unit</button>
     <br/><br/>
     <button type="submit">Lưu thay đổi</button>
     <a th:href="@{/product}">Hủy</a>
 
 </form>
+<script th:inline="javascript">
+    const unit = [];
+    let rowIndex = document.querySelectorAll('#unitTable tr').length;
+    function addUnitRow() {
+        const tbody = document.getElementById('unitTable');
+        const i = rowIndex++;
 
+        let options = '<option value="">-- Chọn --</option>';
+        units.forEach(u => {
+            options += `<option value="${u.id}">${u.name}</option>`;
+        });
+
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+            `<td>${i + 1}</td>
+            <td><select name="productUnitsRequest[${i}].unitId">${options}</select></td>
+            <td><input type="number" name="productUnitsRequest[${i}].conventionValue" value="1" min="1" style="width:70px"/></td>
+            <td><input type="number" name="productUnitsRequest[${i}].price" step="0.01" style="width:100px"/></td>
+            <td><input type="text" name="productUnitsRequest[${i}].barcodeUnit" style="width:120px"/></td>
+            <td><input type="text" name="productUnitsRequest[${i}].sku" style="width:100px"/></td>
+            <td style="text-align:center"><input type="checkbox" name="productUnitsRequest[${i}].isBaseUnit" value="true"/></td>
+            <td><button type="button" onclick="this.closest('tr').remove()">Xóa</button></td>
+            `;
+        tbody.appendChild(tr);
+    }
+</script>
 </body>
 </html>
