@@ -6,6 +6,7 @@ import com.g4fpt.sms.product.entity.Unit;
 import com.g4fpt.sms.product.exception.DuplicateException;
 import com.g4fpt.sms.product.service.UnitService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -22,8 +23,23 @@ public class UnitController {
     }
 
     @GetMapping
-    public String list(Model model){
-        model.addAttribute("unitList", unitService.findAll());
+    public String list(Model model,
+                       @RequestParam(defaultValue = "") String keyword,
+                       @RequestParam(defaultValue = "0") int page,
+                       @RequestParam(defaultValue = "10") int size,
+                       @RequestParam(defaultValue = "name") String sortField,
+                       @RequestParam(defaultValue = "asc") String sortDir){
+        Page<UnitResponse> unitPage = unitService.findAll(keyword, page, size, sortField, sortDir);
+
+        model.addAttribute("unitPage", unitPage);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("size", size);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", unitPage.getTotalPages());
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        // Dùng để render nút toggle asc/desc trên header bảng
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
         return "unit/list";
     }
 

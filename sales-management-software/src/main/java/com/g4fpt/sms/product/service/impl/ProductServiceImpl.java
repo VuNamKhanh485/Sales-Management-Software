@@ -1,5 +1,6 @@
 package com.g4fpt.sms.product.service.impl;
 
+import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
 import com.g4fpt.sms.product.dto.request.ProductRequest;
 import com.g4fpt.sms.product.dto.request.ProductUnitRequest;
 import com.g4fpt.sms.product.dto.response.ProductResponse;
@@ -13,8 +14,14 @@ import com.g4fpt.sms.product.mapper.ProductMapper;
 import com.g4fpt.sms.product.repository.*;
 import com.g4fpt.sms.product.service.ProductService;
 import com.g4fpt.sms.product.service.ProductUnitService;
+import com.g4fpt.sms.product.util.ProductSpecification;
 import com.g4fpt.sms.product.util.ValidationError;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -84,15 +91,23 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void deleteById(long id) {
-        //cần có phần orderTranscation
+        getProductById(id); // kiểm tra tồn tại
+        // TODO: kiểm tra ràng buộc orderTransaction trước khi xóa
+        productRepository.deleteById(id);
     }
 
     @Override
-    public List<ProductResponse> findAll() {
-        return productRepository.findAll()
-                .stream()
-                .map(productMapper::toResponse)
-                .toList();
+    public Page<ProductResponse> findAll(ProductFilterRequest filter, int page, int size,
+                                         String sortField, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase("asc")
+                ? Sort.by(sortField).ascending()
+                : Sort.by(sortField).descending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Specification<Product> spec = ProductSpecification.fromFilter(filter);
+
+        return productRepository.findAll(spec, pageable)
+                .map(productMapper::toResponse);
     }
 
     private Product getProductById(long id) {

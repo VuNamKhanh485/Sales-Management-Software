@@ -8,6 +8,10 @@ import com.g4fpt.sms.product.exception.NotFoundException;
 import com.g4fpt.sms.product.mapper.BrandMapper;
 import com.g4fpt.sms.product.repository.BrandRepository;
 import com.g4fpt.sms.product.service.BrandService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,6 +37,24 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
+    public Page<BrandResponse> findAll(String keyword, int size, int page, String sortField, String sortDirection) {
+        Sort sort = sortDirection.equalsIgnoreCase("asc")
+                ? Sort.by(sortField).ascending()
+                : Sort.by(sortField).descending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Brand> brandPage;
+        if(keyword == null||keyword.isBlank()){
+            brandPage = brandRepository.findAll(pageable);
+        }else{
+            brandPage = brandRepository.findByNameContainingIgnoreCase(keyword, pageable);
+        }
+
+        return brandPage.map(brandMapper::toResponse);
+    }
+
+    @Override
     public List<BrandResponse> findAll() {
         return brandRepository.findAll()
                 .stream()
@@ -42,12 +64,13 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public BrandResponse findById(long id) {
-        return  brandMapper.toResponse(getBrandById(id));
+        return brandMapper.toResponse(getBrandById(id));
     }
 
     @Override
     public void deleteById(long id) {
         //cần có phần orderTranscation
+        brandRepository.deleteById(id);
     }
 
     @Override

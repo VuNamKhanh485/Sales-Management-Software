@@ -8,6 +8,10 @@ import com.g4fpt.sms.product.exception.NotFoundException;
 import com.g4fpt.sms.product.mapper.CategoryMapper;
 import com.g4fpt.sms.product.repository.CategoryRepository;
 import com.g4fpt.sms.product.service.CategoryService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,6 +36,24 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    public Page<CategoryResponse> findAll(String keyword, int size, int page, String sortField, String sortDirection) {
+        Sort sort = sortDirection.equalsIgnoreCase("asc")
+                ? Sort.by(sortField).ascending()
+                : Sort.by(sortField).descending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Category> categoryPage;
+        if(keyword == null || keyword.isBlank()){
+            categoryPage = categoryRepository.findAll(pageable);
+        }else{
+            categoryPage = categoryRepository.findByNameContainingIgnoreCase(keyword, pageable);
+        }
+
+        return categoryPage.map(categoryMapper::toResponse);
+    }
+
+    @Override
     public List<CategoryResponse> findAll() {
         return categoryRepository.findAll()
                 .stream()
@@ -47,6 +69,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void deleteById(long id) {
         //cần có phần orderTranscation
+        categoryRepository.deleteById(id);
     }
 
     @Override

@@ -8,6 +8,12 @@
 
 <h2>Danh sách Thương hiệu</h2>
 
+<form th:action="@{/brand}" method="get">
+    <input type="text" name="keyword" placeholder="Nhập tên thương hiệu..." th:value="${keyword}">
+
+    <button type="submit">Tìm kiếm</button>
+</form>
+
 <a th:href="@{/brand/form/{id}(id=0)}">+ Thêm thương hiệu</a>
 
 <br/><br/>
@@ -16,17 +22,25 @@
     <thead>
     <tr>
         <th>#</th>
-        <th>Tên thương hiệu</th>
+
+        <th>
+            <a th:href="@{/brand(
+                keyword=${keyword},
+                page=${currentPage},
+                size=${size},
+                sortField='name',
+                sortDir=${reverseSortDir})}"></a>
+            Tên thương hiệu</th>
         <th>Trạng thái</th>
         <th>Thao tác</th>
     </tr>
     </thead>
     <tbody>
-    <tr th:if="${#lists.isEmpty(brand)}">
+    <tr th:if="${brandPage.content.isEmpty()}">
         <td colspan="4">Chưa có thương hiệu nào.</td>
     </tr>
-    <tr th:each="b, stat : ${brand}">
-        <td th:text="${stat.index + 1}"></td>
+    <tr th:each="b, stat : ${brandPage.content}">
+        <td th:text="${currentPage * size + stat.index + 1}"></td>
         <td th:text="${b.name}"></td>
         <td th:text="${b.status}"></td>
         <td>
@@ -35,6 +49,27 @@
     </tr>
     </tbody>
 </table>
+
+<div th:if="${brandPagr.totalPages > 1}">
+    <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+
+        <a th:if="${i != currentPage}"
+           th:href="@{/brand(
+                keyword=${keyword},
+                page=${i},
+                size=${size},
+                sortField=${sortField},
+                sortDir=${sortDir})}"
+           th:text="${i + 1}">
+        </a>
+
+        <span th:if="${i == currentPage}"
+              th:text="${i + 1}">
+        </span>
+
+        &nbsp;
+    </span>
+</div>
 
 </body>
 </html>

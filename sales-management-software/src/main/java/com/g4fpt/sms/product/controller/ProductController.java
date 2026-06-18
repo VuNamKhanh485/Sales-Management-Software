@@ -1,15 +1,18 @@
 package com.g4fpt.sms.product.controller;
 
+import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
 import com.g4fpt.sms.product.dto.request.ProductRequest;
 import com.g4fpt.sms.product.dto.request.ProductUnitRequest;
 import com.g4fpt.sms.product.dto.response.ProductResponse;
 import com.g4fpt.sms.product.dto.response.ProductUnitResponse;
 import com.g4fpt.sms.product.entity.Product;
+import com.g4fpt.sms.product.enums.ProductStatus;
 import com.g4fpt.sms.product.exception.ValidationException;
 import com.g4fpt.sms.product.mapper.ProductMapper;
 import com.g4fpt.sms.product.service.*;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -25,12 +28,41 @@ public class ProductController {
     private final CategoryService categoryService;
     private final BrandService brandService;
     private final UnitService unitService;
-    private final ProductUnitService productUnitService;
     private final ProductMapper productMapper;
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("productList", productService.findAll());
+    public String list(Model model,
+                       @RequestParam(defaultValue = "") String keyword,
+                       @RequestParam(required = false) Long brandId,
+                       @RequestParam(required = false) Long categoryId,
+                       @RequestParam(required = false) ProductStatus status,
+                       @RequestParam(defaultValue = "0") int page,
+                       @RequestParam(defaultValue = "10") int size,
+                       @RequestParam(defaultValue = "name") String sortField,
+                       @RequestParam(defaultValue = "asc") String sortDir) {
+
+        ProductFilterRequest filter = new ProductFilterRequest();
+        filter.setKeyword(keyword);
+        filter.setBrandId(brandId);
+        filter.setCategoryId(categoryId);
+        filter.setStatus(status);
+
+        Page<ProductResponse> productPage = productService.findAll(filter, page, size, sortField, sortDir);
+
+        model.addAttribute("productPage", productPage);
+        model.addAttribute("filter", filter);
+        model.addAttribute("size", size);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", productPage.getTotalPages());
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+
+        // Cho dropdown filter
+        model.addAttribute("brandList", brandService.findAll());
+        model.addAttribute("categoryList", categoryService.findAll());
+        model.addAttribute("statuses", ProductStatus.values());
+
         return "product/list";
     }
 
@@ -75,6 +107,12 @@ public class ProductController {
         return "redirect:/product";
     }
 
+    @PostMapping("/delete/{id}")
+    public String delete(@PathVariable Long id) {
+        productService.deleteById(id);
+        return "redirect:/product";
+    }
+    
     private void addAttributeToForm(Model model, Long id){
         if(id != null) {
             model.addAttribute("id", id);

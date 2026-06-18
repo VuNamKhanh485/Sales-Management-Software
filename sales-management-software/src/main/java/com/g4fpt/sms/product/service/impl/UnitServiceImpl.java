@@ -8,6 +8,10 @@ import com.g4fpt.sms.product.exception.NotFoundException;
 import com.g4fpt.sms.product.mapper.UnitMapper;
 import com.g4fpt.sms.product.repository.UnitRepository;
 import com.g4fpt.sms.product.service.UnitService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +25,23 @@ public class UnitServiceImpl implements UnitService {
     public UnitServiceImpl(UnitRepository unitRepository, UnitMapper unitMapper) {
         this.unitRepository = unitRepository;
         this.unitMapper = unitMapper;
+    }
+
+    @Override
+    public Page<UnitResponse> findAll(String keyword, int page, int size, String sortField, String sortDirection) {
+        Sort sort = sortDirection.equalsIgnoreCase("asc")
+                ? Sort.by(sortField).ascending()
+                : Sort.by(sortField).descending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Unit> unitPage;
+        if(keyword == null||keyword.isBlank()){
+            unitPage = unitRepository.findAll(pageable);
+        }else{
+            unitPage = unitRepository.findByNameContainingIgnoreCase(keyword, pageable);
+        }
+        return unitPage.map(unitMapper::toResponse);
     }
 
     @Override
