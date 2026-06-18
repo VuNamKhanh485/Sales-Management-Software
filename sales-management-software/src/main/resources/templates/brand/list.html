@@ -16,8 +16,6 @@
 
 <a th:href="@{/brand/form/{id}(id=0)}">+ Thêm thương hiệu</a>
 
-<br/><br/>
-
 <table border="1" cellpadding="8" cellspacing="0">
     <thead>
     <tr>
@@ -29,9 +27,16 @@
                 page=${currentPage},
                 size=${size},
                 sortField='name',
-                sortDir=${reverseSortDir})}"></a>
-            Tên thương hiệu</th>
-        <th>Trạng thái</th>
+                sortDir=${reverseSortDir})}">Tên thương hiệu</a>
+        </th>
+        <th>
+            <a th:href="@{/brand(
+                keyword=${keyword},
+                page=${currentPage},
+                size=${size},
+                sortField='status',
+                sortDir=${reverseSortDir})}">Trạng thái</a>
+        </th>
         <th>Thao tác</th>
     </tr>
     </thead>
@@ -44,13 +49,13 @@
         <td th:text="${b.name}"></td>
         <td th:text="${b.status}"></td>
         <td>
-            <a th:href="@{/brand/form/{id}(id=${b.id})}">Sửa</a>
+            <a th:href="@{/brand/form/{id}(id=${b.id})}">Chi tiết</a>
         </td>
     </tr>
     </tbody>
 </table>
 
-<div th:if="${brandPagr.totalPages > 1}">
+<div th:if="${brandPage.totalPages > 1}">
     <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
 
         <a th:if="${i != currentPage}"

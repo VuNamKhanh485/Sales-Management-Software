@@ -30,7 +30,7 @@ public class BrandController {
                        @RequestParam(defaultValue = "10") int size,
                        @RequestParam(defaultValue = "name") String sortField,
                        @RequestParam(defaultValue = "asc") String sortDir) {
-        Page<BrandResponse> brandPage = brandService.findAll(keyword, page, size, sortField, sortDir);
+        Page<BrandResponse> brandPage = brandService.findAll(keyword, size, page, sortField, sortDir);
 
         model.addAttribute("brandPage", brandPage);
         model.addAttribute("keyword", keyword);

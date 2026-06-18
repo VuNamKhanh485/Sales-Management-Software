@@ -28,13 +28,12 @@ public class CategoryController {
                        @RequestParam(defaultValue = "10") int size,
                        @RequestParam(defaultValue = "name") String sortField,
                        @RequestParam(defaultValue = "asc") String sortDir) {
-        Page<CategoryResponse> categoryPage = categoryService.findAll(keyword, page, size, sortField, sortDir);
+        Page<CategoryResponse> categoryPage = categoryService.findAll(keyword, size, page, sortField, sortDir);
 
         model.addAttribute("categoryPage", categoryPage);
         model.addAttribute("keyword", keyword);
         model.addAttribute("size", size);
         model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", categoryPage.getTotalPages());
         model.addAttribute("sortField", sortField);
         model.addAttribute("sortDir", sortDir);
         model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");

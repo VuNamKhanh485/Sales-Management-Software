@@ -29,13 +29,12 @@ public class UnitController {
                        @RequestParam(defaultValue = "10") int size,
                        @RequestParam(defaultValue = "name") String sortField,
                        @RequestParam(defaultValue = "asc") String sortDir){
-        Page<UnitResponse> unitPage = unitService.findAll(keyword, page, size, sortField, sortDir);
+        Page<UnitResponse> unitPage = unitService.findAll(keyword, size, page, sortField, sortDir);
 
         model.addAttribute("unitPage", unitPage);
         model.addAttribute("keyword", keyword);
         model.addAttribute("size", size);
         model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", unitPage.getTotalPages());
         model.addAttribute("sortField", sortField);
         model.addAttribute("sortDir", sortDir);
         // Dùng để render nút toggle asc/desc trên header bảng
