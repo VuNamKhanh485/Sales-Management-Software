@@ -2,118 +2,173 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Chi tiết đơn hàng</title>
+    <title>Chi tiết hóa đơn</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link th:href="@{/css/order-detail.css}" rel="stylesheet">
 </head>
 <body class="bg-light">
-<div class="container mt-4" style="max-width: 800px;">
+<div class="container mt-4" style="max-width: 850px;">
 
-    <!-- Nút quay lại -->
-    <a th:if="${order.customer != null}"
-       th:href="@{/customers/detail/{id}(id=${order.customer.id})}"
-       class="btn btn-outline-secondary mb-3">&larr; Quay lại</a>
-    <a th:unless="${order.customer != null}"
-       th:href="@{/customers}"
-       class="btn btn-outline-secondary mb-3">&larr; Quay lại</a>
-
-    <!-- Header bill -->
-    <div class="card shadow-sm mb-3">
-        <div class="card-header bg-primary text-white d-flex justify-content-between">
-            <h5 class="mb-0">Đơn hàng: <span th:text="${order.code}"></span></h5>
-            <span class="badge"
-                  th:classappend="${order.status == 'COMPLETED'} ? 'bg-success' :
-                                 (${order.status == 'CANCELLED'} ? 'bg-danger' :
-                                 (${order.status == 'PENDING'} ? 'bg-warning text-dark' : 'bg-secondary'))"
-                  th:text="${order.status}">
-            </span>
+    <!-- Nút quay lại & In ấn -->
+    <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+        <div>
+            <a th:if="${order.customer != null}"
+               th:href="@{/customers/detail/{id}(id=${order.customer.id})}"
+               class="btn btn-outline-secondary btn-sm rounded-pill">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại
+            </a>
+            <a th:unless="${order.customer != null}"
+               th:href="@{/customers}"
+               class="btn btn-outline-secondary btn-sm rounded-pill">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại
+            </a>
         </div>
-        <div class="card-body row">
-            <div class="col-md-6">
-                <p><strong>Ngày tạo:</strong>
-                    <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></span></p>
-                <p><strong>Khách hàng:</strong>
-                    <span th:text="${order.customer != null ? order.customer.fullName : 'Khách lẻ'}"></span></p>
-                <p><strong>SĐT:</strong>
-                    <span th:text="${order.customer != null ? order.customer.phone : '—'}"></span></p>
-            </div>
-            <div class="col-md-6">
-                <p><strong>Mã voucher:</strong>
-                    <span th:text="${order.voucher != null ? order.voucher.code : '—'}"></span></p>
-                <p><strong>Ghi chú:</strong>
-                    <span th:text="${order.note != null ? order.note : '—'}"></span></p>
-            </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-success btn-sm rounded-pill px-3" onclick="downloadPdf()">
+                <i class="bi bi-file-pdf me-1"></i> Xuất PDF
+            </button>
+            <button class="btn btn-primary btn-sm rounded-pill px-3" onclick="printReceipt()">
+                <i class="bi bi-printer me-1"></i> In hóa đơn
+            </button>
         </div>
     </div>
 
-    <!-- Danh sách sản phẩm -->
-    <div class="card shadow-sm mb-3">
-        <div class="card-header"><h6 class="mb-0">Sản phẩm</h6></div>
-        <div class="card-body p-0">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                <tr>
-                    <th>Sản phẩm</th>
-                    <th>Đơn vị</th>
-                    <th class="text-center">SL</th>
-                    <th class="text-end">Đơn giá</th>
-                    <th class="text-end">Giảm giá</th>
-                    <th class="text-end">Thành tiền</th>
-                </tr>
+    <!-- Hóa đơn chính -->
+    <div id="receiptContent" class="invoice-card">
+        <!-- Header -->
+        <div class="invoice-header row align-items-center">
+            <div class="col-sm-6 mb-3 mb-sm-0">
+                <div class="store-logo mb-1">
+                    <i class="bi bi-shop me-2"></i><span th:text="${branch != null ? branch.name : 'SMS STORE'}">SMS STORE</span>
+                </div>
+                <div class="text-muted small" th:text="${branch != null ? branch.address : '123 Đường Láng, Đống Đa, Hà Nội'}">123 Đường Láng, Đống Đa, Hà Nội</div>
+                <div class="text-muted small">Điện thoại: 0987 654 321</div>
+            </div>
+            <div class="col-sm-6 text-sm-end">
+                <div class="invoice-title-text text-primary mb-1">HÓA ĐƠN BÁN HÀNG</div>
+                <div class="text-muted small">Mã hóa đơn: <strong class="text-dark" th:text="${order.code}"></strong></div>
+                <div class="text-muted small">Ngày tạo: <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></span></div>
+            </div>
+        </div>
+
+        <!-- Thông tin khách hàng & Giao dịch -->
+        <div class="row mb-4">
+            <div class="col-sm-6 mb-3 mb-sm-0">
+                <div class="p-3 bg-light rounded h-100">
+                    <div class="info-label">Khách hàng</div>
+                    <div class="info-value mb-1" th:text="${order.customer != null ? order.customer.fullName : 'Khách lẻ'}"></div>
+                    <div class="text-muted small" th:if="${order.customer != null}">
+                        <i class="bi bi-telephone me-1"></i> <span th:text="${order.customer.phone}"></span>
+                    </div>
+                    <div class="text-muted small" th:if="${order.customer != null and order.customer.address != null}">
+                        <i class="bi bi-geo-alt me-1"></i> <span th:text="${order.customer.address}"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="p-3 bg-light rounded h-100 text-sm-end">
+                    <div class="info-label">Thông tin thanh toán</div>
+                    <div class="info-value mb-1">
+                        Phương thức: <span class="text-dark" th:text="${order.paymentMethodId == 2 ? 'Chuyển khoản' : 'Tiền mặt'}"></span>
+                    </div>
+                    <div class="text-muted small" th:if="${order.voucher != null}">
+                        Khuyến mãi: <span class="badge bg-success-subtle text-success border border-success-subtle" th:text="${order.voucher.code}"></span>
+                    </div>
+                    <div class="text-muted small">
+                        Trạng thái: 
+                        <span class="badge" th:classappend="${order.status == 'COMPLETED'} ? 'bg-success' : 'bg-secondary'" th:text="${order.status}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ghi chú nếu có -->
+        <div class="mb-4" th:if="${order.note != null and !#strings.isEmpty(order.note)}">
+            <div class="info-label">Ghi chú</div>
+            <div class="p-2 border rounded bg-light-subtle text-muted small" th:text="${order.note}"></div>
+        </div>
+
+        <!-- Bảng sản phẩm -->
+        <div class="table-responsive mb-4">
+            <table class="table table-invoice align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width: 50px;">STT</th>
+                        <th>Tên sản phẩm</th>
+                        <th class="text-center" style="width: 80px;">ĐVT</th>
+                        <th class="text-center" style="width: 80px;">SL</th>
+                        <th class="text-end" style="width: 120px;">Đơn giá</th>
+                        <th class="text-end" style="width: 120px;">Giảm giá</th>
+                        <th class="text-end" style="width: 120px;">Thành tiền</th>
+                    </tr>
                 </thead>
                 <tbody>
-                <tr th:each="detail : ${order.details}">
-                    <td th:text="${detail.productUnit.product.name}"></td>
-                    <td th:text="${detail.productUnit.unit.name}"></td>
-                    <td class="text-center" th:text="${detail.quantity}"></td>
-                    <td class="text-end"
-                        th:text="${#numbers.formatDecimal(detail.salePrice, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
-                    <td class="text-end"
-                        th:text="${#numbers.formatDecimal(detail.discountAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
-                    <td class="text-end"
-                        th:text="${#numbers.formatDecimal(detail.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
-                </tr>
+                    <tr th:each="detail, stat : ${order.details}">
+                        <td class="text-center text-muted" th:text="${stat.count}"></td>
+                        <td>
+                            <div class="fw-semibold text-dark" th:text="${detail.productUnit.product.name}"></div>
+                            <div class="text-muted small" style="font-size: 11px;" th:text="'SKU: ' + ${detail.productUnit.sku}"></div>
+                        </td>
+                        <td class="text-center" th:text="${detail.productUnit.unit.name}"></td>
+                        <td class="text-center fw-bold" th:text="${detail.quantity}"></td>
+                        <td class="text-end" th:text="${#numbers.formatDecimal(detail.salePrice, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                        <td class="text-end text-danger" th:text="${detail.discountAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? ('-' + ${#numbers.formatDecimal(detail.discountAmount, 0, 'COMMA', 0, 'POINT')} + 'đ') : '—'"></td>
+                        <td class="text-end fw-semibold text-dark" th:text="${#numbers.formatDecimal(detail.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                    </tr>
                 </tbody>
             </table>
         </div>
-    </div>
 
-    <!-- Tổng tiền -->
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <div class="row justify-content-end">
-                <div class="col-md-5">
-                    <table class="table table-borderless mb-0">
-                        <tr>
-                            <td>Tổng tiền hàng:</td>
-                            <td class="text-end fw-bold"
-                                th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
-                        </tr>
-                        <tr>
-                            <td>Giảm giá:</td>
-                            <td class="text-end text-danger"
-                                th:text="'- ' + ${#numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
-                        </tr>
-                        <tr class="border-top">
-                            <td><strong>Khách phải trả:</strong></td>
-                            <td class="text-end fw-bold text-primary fs-5"
-                                th:text="${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
-                        </tr>
-                        <tr>
-                            <td>Tiền khách đưa:</td>
-                            <td class="text-end"
-                                th:text="${#numbers.formatDecimal(order.paidAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
-                        </tr>
-                        <tr>
-                            <td>Tiền thừa:</td>
-                            <td class="text-end"
-                                th:text="${#numbers.formatDecimal(order.changeAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
-                        </tr>
-                    </table>
-                </div>
+        <!-- Phần tổng cộng -->
+        <div class="row justify-content-end">
+            <div class="col-md-6 col-lg-5">
+                <table class="table table-borderless summary-table mb-0">
+                    <tr>
+                        <td class="text-muted">Tổng tiền hàng:</td>
+                        <td class="text-end fw-semibold text-dark" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                    </tr>
+                    <tr th:if="${order.discountAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                        <td class="text-muted">Giảm giá:</td>
+                        <td class="text-end text-danger" th:text="'-' + ${#numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Thuế VAT (8%):</td>
+                        <td class="text-end text-dark" th:text="${#numbers.formatDecimal(order.finalAmount.add(order.discountAmount).subtract(order.totalAmount), 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                    </tr>
+                    <tr class="total-row">
+                        <td>KHÁCH PHẢI TRẢ:</td>
+                        <td class="text-end fw-bold fs-5" th:text="${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted small">Tiền khách đưa:</td>
+                        <td class="text-end text-muted small" th:text="${#numbers.formatDecimal(order.paidAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted small">Tiền thừa trả khách:</td>
+                        <td class="text-end text-muted small" th:text="${#numbers.formatDecimal(order.changeAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                    </tr>
+                </table>
             </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-5 pt-3 border-top text-muted small">
+            <p class="mb-0">Cảm ơn quý khách đã tin dùng sản phẩm của chúng tôi!</p>
+            <p class="mb-0 text-muted" style="font-size: 10px;">Phần mềm Quản lý Bán hàng SMS</p>
         </div>
     </div>
 
 </div>
+
+<!-- Thư viện và JS điều khiển in/pdf riêng biệt -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script th:inline="javascript">
+    const orderCode = /*[[${order.code}]]*/ 'SMS';
+</script>
+<script th:src="@{/js/order-detail.js}"></script>
 </body>
 </html>
+
+

@@ -1,12 +1,11 @@
 package com.g4fpt.sms.order.controller;
 
+import com.g4fpt.sms.branch.repository.BranchRepository;
 import com.g4fpt.sms.customer.entity.Customer;
 import com.g4fpt.sms.customer.repository.CustomerRepository;
-import com.g4fpt.sms.order.dto.POSCartItemRequest;
-import com.g4fpt.sms.order.dto.POSCheckoutRequest;
-import com.g4fpt.sms.order.dto.PosCart;
-import com.g4fpt.sms.order.dto.PosCartItem;
+import com.g4fpt.sms.order.dto.*;
 import com.g4fpt.sms.order.entity.OrderTransaction;
+import com.g4fpt.sms.order.repository.OrderTransactionRepository;
 import com.g4fpt.sms.order.service.OrderTransactionService;
 import com.g4fpt.sms.product.entity.Category;
 import com.g4fpt.sms.product.entity.ProductUnit;
@@ -29,7 +28,7 @@ import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/pos")
-@SessionAttributes("sessionCart")
+@SessionAttributes("posSession")
 @RequiredArgsConstructor
 public class PosController {
 
@@ -37,10 +36,12 @@ public class PosController {
     private final ProductUnitRepository productUnitRepo;
     private final CategoryRepository categoryRepository;
     private final CustomerRepository customerRepository;
+    private final OrderTransactionRepository orderTransactionRepository;
+    private final BranchRepository branchRepository;
 
-    @ModelAttribute("sessionCart")
-    public PosCart setupCart() {
-        return new PosCart();
+    @ModelAttribute("posSession")
+    public PosSessionData setupSession() {
+        return new PosSessionData();
     }
 
     // =============================================
@@ -48,57 +49,77 @@ public class PosController {
     // =============================================
     @GetMapping
     public String showPosScreen(
-            @ModelAttribute("sessionCart") PosCart cart,
-            @RequestParam(value = "categoryId", required = false) Long categoryId,
-            @RequestParam(value = "keyword", required = false) String keyword,
+            @ModelAttribute("posSession") PosSessionData session,
+            @RequestParam(required = false) Long successOrderId,
             Model model) {
 
-        // Danh sách category cho tab
+        // Đổi tên từ "session" thành "posData"
+        model.addAttribute("posData", session);
+        model.addAttribute("cart", session.getActiveCart());
+
         List<Category> categories = categoryRepository.findAll();
         model.addAttribute("categories", categories);
-        model.addAttribute("selectedCategoryId", categoryId);
-        model.addAttribute("keyword", keyword);
 
-        // Lấy tất cả ProductUnit có product ACTIVE
-        List<ProductUnit> allProducts = productUnitRepo.findAll()
-                .stream()
-                .filter(pu -> pu.getProduct() != null
-                        && pu.getProduct().getStatus() == ProductStatus.ACTIVE)
-                .collect(Collectors.toList());
-
-        // Filter theo keyword
-        if (keyword != null && !keyword.isBlank()) {
-            String kw = keyword.trim().toLowerCase();
-            allProducts = allProducts.stream()
-                    .filter(pu ->
-                            pu.getProduct().getName().toLowerCase().contains(kw)
-                                    || pu.getSku().toLowerCase().contains(kw))
-                    .collect(Collectors.toList());
+        if (successOrderId != null) {
+            orderTransactionRepository.findById(successOrderId).ifPresent(order -> {
+                model.addAttribute("successOrder", order);
+                if (order.getBranchId() != null) {
+                    branchRepository.findById(order.getBranchId()).ifPresent(branch -> {
+                        model.addAttribute("successBranch", branch);
+                    });
+                }
+            });
         }
-        // Filter theo category
-        else if (categoryId != null) {
-            allProducts = allProducts.stream()
-                    .filter(pu -> pu.getProduct().getCategory() != null
-                            && pu.getProduct().getCategory().getId().equals(categoryId))
-                    .collect(Collectors.toList());
-        }
-
-        model.addAttribute("products", allProducts);
-        model.addAttribute("cart", cart);
-
-        // Flash message
-        model.addAttribute("cart", cart);
 
         return "order/pos";
     }
+    // =============================================
+    // 2. Thêm đơn mới
+    // =============================================
+    @GetMapping("/new-order")
+    public String newOrder(
+            @ModelAttribute("posSession") PosSessionData session,
+            RedirectAttributes ra) {
+
+        if (!session.canAddOrder()) {
+            ra.addFlashAttribute("error", "Tối đa 5 đơn hàng cùng lúc!");
+        } else {
+            session.addNewOrder();
+        }
+        return "redirect:/pos";
+    }
 
     // =============================================
-    // 2. Thêm sản phẩm bằng SKU/barcode (quét mã)
+    // 3. Chuyển đơn
+    // =============================================
+    @GetMapping("/switch/{index}")
+    public String switchOrder(
+            @PathVariable int index,
+            @ModelAttribute("posSession") PosSessionData session) {
+
+        session.switchOrder(index);
+        return "redirect:/pos";
+    }
+
+    // =============================================
+    // 4. Đóng đơn
+    // =============================================
+    @GetMapping("/close/{index}")
+    public String closeOrder(
+            @PathVariable int index,
+            @ModelAttribute("posSession") PosSessionData session) {
+
+        session.removeOrder(index);
+        return "redirect:/pos";
+    }
+
+    // =============================================
+    // 5. Thêm sản phẩm bằng SKU/barcode
     // =============================================
     @GetMapping("/add")
     public String addToCart(
             @RequestParam String keyword,
-            @ModelAttribute("sessionCart") PosCart cart,
+            @ModelAttribute("posSession") PosSessionData session,
             RedirectAttributes ra) {
 
         String kw = keyword.trim();
@@ -106,42 +127,41 @@ public class PosController {
                 .orElseGet(() -> productUnitRepo.findByBarcodeUnit(kw).orElse(null));
 
         if (pu != null) {
-            addProductToCart(cart, pu);
+            addProductToCart(session.getActiveCart(), pu);
         } else {
             ra.addFlashAttribute("error", "Không tìm thấy sản phẩm: " + kw);
         }
-
         return "redirect:/pos";
     }
 
     // =============================================
-    // 3. Thêm sản phẩm từ grid (click card)
+    // 6. Thêm sản phẩm bằng ID (từ modal)
     // =============================================
     @GetMapping("/add-by-id")
     public String addToCartById(
             @RequestParam Long productUnitId,
-            @ModelAttribute("sessionCart") PosCart cart,
+            @ModelAttribute("posSession") PosSessionData session,
             RedirectAttributes ra) {
 
         ProductUnit pu = productUnitRepo.findById(productUnitId).orElse(null);
         if (pu != null) {
-            addProductToCart(cart, pu);
+            addProductToCart(session.getActiveCart(), pu);
         } else {
             ra.addFlashAttribute("error", "Không tìm thấy sản phẩm");
         }
-
         return "redirect:/pos";
     }
 
     // =============================================
-    // 4. Cập nhật số lượng
+    // 7. Cập nhật số lượng
     // =============================================
     @GetMapping("/update-qty")
     public String updateQuantity(
             @RequestParam int index,
             @RequestParam int quantity,
-            @ModelAttribute("sessionCart") PosCart cart) {
+            @ModelAttribute("posSession") PosSessionData session) {
 
+        PosCart cart = session.getActiveCart();
         if (index >= 0 && index < cart.getItems().size()) {
             if (quantity <= 0) {
                 cart.getItems().remove(index);
@@ -153,13 +173,14 @@ public class PosController {
     }
 
     // =============================================
-    // 5. Xóa 1 sản phẩm khỏi giỏ
+    // 8. Xóa sản phẩm
     // =============================================
     @GetMapping("/remove")
     public String removeCartItem(
             @RequestParam int index,
-            @ModelAttribute("sessionCart") PosCart cart) {
+            @ModelAttribute("posSession") PosSessionData session) {
 
+        PosCart cart = session.getActiveCart();
         if (index >= 0 && index < cart.getItems().size()) {
             cart.getItems().remove(index);
         }
@@ -167,10 +188,11 @@ public class PosController {
     }
 
     // =============================================
-    // 6. Xóa toàn bộ giỏ hàng
+    // 9. Xóa hết giỏ
     // =============================================
     @GetMapping("/clear")
-    public String clearCart(@ModelAttribute("sessionCart") PosCart cart) {
+    public String clearCart(@ModelAttribute("posSession") PosSessionData session) {
+        PosCart cart = session.getActiveCart();
         cart.getItems().clear();
         cart.setCustomerId(null);
         cart.setCustomerName(null);
@@ -182,7 +204,7 @@ public class PosController {
     }
 
     // =============================================
-    // 7. API tìm khách hàng theo SĐT (AJAX)
+    // 10. API tìm khách hàng
     // =============================================
     @GetMapping("/api/customer")
     @ResponseBody
@@ -202,22 +224,21 @@ public class PosController {
                     ? customer.getCustomerRank().getName() : "Thường");
         } else {
             result.put("found", false);
-            result.put("message", "Không tìm thấy khách hàng");
         }
-
         return ResponseEntity.ok(result);
     }
 
     // =============================================
-    // 8. Gán khách hàng vào giỏ
+    // 11. Gán khách hàng
     // =============================================
-    @PostMapping("/set-customer")
+    @GetMapping("/set-customer")
     public String setCustomer(
             @RequestParam Long customerId,
             @RequestParam String customerName,
             @RequestParam String customerPhone,
-            @ModelAttribute("sessionCart") PosCart cart) {
+            @ModelAttribute("posSession") PosSessionData session) {
 
+        PosCart cart = session.getActiveCart();
         cart.setCustomerId(customerId);
         cart.setCustomerName(customerName);
         cart.setCustomerPhone(customerPhone);
@@ -225,10 +246,11 @@ public class PosController {
     }
 
     // =============================================
-    // 9. Xóa khách hàng khỏi giỏ
+    // 12. Xóa khách hàng
     // =============================================
     @GetMapping("/remove-customer")
-    public String removeCustomer(@ModelAttribute("sessionCart") PosCart cart) {
+    public String removeCustomer(@ModelAttribute("posSession") PosSessionData session) {
+        PosCart cart = session.getActiveCart();
         cart.setCustomerId(null);
         cart.setCustomerName(null);
         cart.setCustomerPhone(null);
@@ -236,18 +258,18 @@ public class PosController {
     }
 
     // =============================================
-    // 10. API kiểm tra voucher (AJAX)
+    // 13. API kiểm tra voucher
     // =============================================
     @GetMapping("/api/voucher")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> checkVoucher(
             @RequestParam String code,
-            @ModelAttribute("sessionCart") PosCart cart) {
+            @ModelAttribute("posSession") PosSessionData session) {
 
         Map<String, Object> result = new HashMap<>();
+        PosCart cart = session.getActiveCart();
         try {
             Voucher voucher = posService.validateVoucher(code, cart.getTotalAmount());
-
             BigDecimal discount;
             if (voucher.getDiscountType().name().equals("PERCENT")) {
                 discount = cart.getTotalAmount()
@@ -259,10 +281,8 @@ public class PosController {
             } else {
                 discount = voucher.getDiscountValue();
             }
-
             cart.setVoucherCode(code);
             cart.setVoucherDiscount(discount);
-
             result.put("success", true);
             result.put("discount", discount);
             result.put("message", "Áp dụng thành công! Giảm " + discount + "đ");
@@ -270,32 +290,75 @@ public class PosController {
             result.put("success", false);
             result.put("message", e.getMessage());
         }
-
         return ResponseEntity.ok(result);
     }
 
     // =============================================
-    // 11. Xóa voucher
+    // 14. Xóa voucher
     // =============================================
     @GetMapping("/remove-voucher")
-    public String removeVoucher(@ModelAttribute("sessionCart") PosCart cart) {
+    public String removeVoucher(@ModelAttribute("posSession") PosSessionData session) {
+        PosCart cart = session.getActiveCart();
         cart.setVoucherCode(null);
         cart.setVoucherDiscount(BigDecimal.ZERO);
         return "redirect:/pos";
     }
 
     // =============================================
-    // 12. Thanh toán
+    // 15. API lấy sản phẩm theo category (cho modal)
+    // =============================================
+    @GetMapping("/api/products")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getProducts(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String keyword) {
+
+        List<ProductUnit> all = productUnitRepo.findAll().stream()
+                .filter(pu -> pu.getProduct() != null
+                        && pu.getProduct().getStatus() == ProductStatus.ACTIVE)
+                .collect(Collectors.toList());
+
+        if (keyword != null && !keyword.isBlank()) {
+            String kw = keyword.trim().toLowerCase();
+            all = all.stream()
+                    .filter(pu -> pu.getProduct().getName().toLowerCase().contains(kw)
+                            || pu.getSku().toLowerCase().contains(kw))
+                    .collect(Collectors.toList());
+        } else if (categoryId != null) {
+            all = all.stream()
+                    .filter(pu -> pu.getProduct().getCategory() != null
+                            && pu.getProduct().getCategory().getId().equals(categoryId))
+                    .collect(Collectors.toList());
+        }
+
+        List<Map<String, Object>> result = all.stream().map(pu -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", pu.getId());
+            map.put("name", pu.getProduct().getName());
+            map.put("sku", pu.getSku());
+            map.put("price", pu.getPrice());
+            map.put("imageUrl", pu.getProduct().getImageUrl());
+            map.put("unitName", pu.getUnit() != null ? pu.getUnit().getName() : "");
+            map.put("category", pu.getProduct().getCategory() != null
+                    ? pu.getProduct().getCategory().getName() : "");
+            return map;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
+    }
+
+    // =============================================
+    // 16. Thanh toán
     // =============================================
     @PostMapping("/checkout")
     public String checkoutOrder(
-            @ModelAttribute("sessionCart") PosCart cart,
+            @ModelAttribute("posSession") PosSessionData session,
             @RequestParam(required = false) String note,
             @RequestParam Long paymentMethodId,
             @RequestParam BigDecimal givenAmount,
-            RedirectAttributes ra,
-            Model model) {
+            RedirectAttributes ra) {
 
+        PosCart cart = session.getActiveCart();
         if (cart.getItems().isEmpty()) {
             ra.addFlashAttribute("error", "Giỏ hàng trống!");
             return "redirect:/pos";
@@ -320,18 +383,12 @@ public class PosController {
 
             OrderTransaction savedOrder = posService.processCheckout(request);
 
-            // Reset giỏ sau thanh toán
-            cart.getItems().clear();
-            cart.setCustomerId(null);
-            cart.setCustomerName(null);
-            cart.setCustomerPhone(null);
-            cart.setVoucherCode(null);
-            cart.setVoucherDiscount(BigDecimal.ZERO);
-            cart.setGivenAmount(BigDecimal.ZERO);
+            // Đóng đơn hiện tại sau khi thanh toán
+            session.removeOrder(session.getActiveIndex());
 
             ra.addFlashAttribute("success",
                     "Thanh toán thành công! Mã đơn: " + savedOrder.getCode());
-            return "redirect:/pos";
+            return "redirect:/pos?successOrderId=" + savedOrder.getId();
 
         } catch (Exception e) {
             ra.addFlashAttribute("error", e.getMessage());
@@ -340,7 +397,7 @@ public class PosController {
     }
 
     // =============================================
-    // Helper: thêm sản phẩm vào giỏ
+    // Helper
     // =============================================
     private void addProductToCart(PosCart cart, ProductUnit pu) {
         PosCartItem existing = cart.getItems().stream()
@@ -356,7 +413,7 @@ public class PosController {
             newItem.setName(pu.getProduct().getName());
             newItem.setPrice(pu.getPrice());
             newItem.setQuantity(1);
-            newItem.setUnitName(pu.getUnit().getName());
+            newItem.setUnitName(pu.getUnit() != null ? pu.getUnit().getName() : "");
             newItem.setImageUrl(pu.getProduct().getImageUrl());
             cart.getItems().add(newItem);
         }

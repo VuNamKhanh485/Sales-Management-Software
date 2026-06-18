@@ -21,7 +21,7 @@ public class PosCart {
     private String voucherCode;
     private BigDecimal voucherDiscount = BigDecimal.ZERO;
 
-    private BigDecimal vatRate = new BigDecimal("0.08"); // 8% VAT
+    private BigDecimal vatRate = new BigDecimal("0.08"); // 8%
     private Long paymentMethodId;
     private BigDecimal givenAmount = BigDecimal.ZERO;
 
@@ -34,19 +34,23 @@ public class PosCart {
 
     // Tiền VAT
     public BigDecimal getVatAmount() {
-        return getTotalAmount().multiply(vatRate).setScale(0, RoundingMode.HALF_UP);
+        return getTotalAmount()
+                .multiply(vatRate)
+                .setScale(0, RoundingMode.HALF_UP);
     }
 
-    // Khách phải trả = tổng + VAT - voucher
+    // Khách phải trả
     public BigDecimal getFinalAmount() {
-        BigDecimal result = getTotalAmount()
+        return getTotalAmount()
                 .add(getVatAmount())
-                .subtract(voucherDiscount);
-        return result.max(BigDecimal.ZERO);
+                .subtract(voucherDiscount)
+                .max(BigDecimal.ZERO);
     }
 
     // Tiền thừa
     public BigDecimal getChangeAmount() {
-        return givenAmount.subtract(getFinalAmount()).max(BigDecimal.ZERO);
+        return givenAmount
+                .subtract(getFinalAmount())
+                .max(BigDecimal.ZERO);
     }
 }
