@@ -114,74 +114,9 @@ public class CustomerController {
             model.addAttribute("genders", Gender.values());
             return "customer/form";
         }
+
         return "redirect:/customers";
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -209,16 +144,18 @@ public class CustomerController {
 //
 //        Long currentUserId = 1L;
 //        try {
-//                customerService.save(dto, currentUserId);
-//                redirectAttributes.addFlashAttribute("successMessage", dto.getId() == null ? "Thêm mới thành công!" : "Cập nhật thành công!");
-//            } catch(Exception e){
-//
-//                model.addAttribute("errorMessage", e.getMessage());
-//                model.addAttribute("customerDTO", dto);
-//                model.addAttribute("ranks", customerRankService.getAllRanks());
-//                model.addAttribute("genders", Gender.values());
-//                return "customer/form";
-//            }
-//            return "redirect:/customers";
+//            customerService.save(dto, currentUserId);
+//            redirectAttributes.addFlashAttribute("successMessage",
+//                    dto.getId() == null ? "Thêm mới thành công!" : "Cập nhật thành công!");
+//        } catch (Exception e) {
+//            model.addAttribute("errorMessage", e.getMessage());
+//            model.addAttribute("customerDTO", dto);
+//            model.addAttribute("ranks", customerRankService.getAllRanks());
+//            model.addAttribute("genders", Gender.values());
+//            return "customer/form";
 //        }
+//
+//        return "redirect:/customers";
+//    }
+
 }

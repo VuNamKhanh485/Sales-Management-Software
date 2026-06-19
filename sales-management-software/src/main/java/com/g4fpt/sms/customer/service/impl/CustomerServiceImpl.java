@@ -75,7 +75,7 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setGender(dto.getGender());
         customer.setDob(dto.getDob());
         customer.setNote(dto.getNote());
-
+        
         if (dto.getCustomerRankId() != null) {
             CustomerRank rank = customerRankRepository.findById(dto.getCustomerRankId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy hạng thẻ"));
@@ -103,21 +103,12 @@ public class CustomerServiceImpl implements CustomerService {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("id").descending());
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-      
-            return customerRepository.findByPhoneContaining(keyword.trim(), pageable);
+            String cleanKeyword = keyword.trim();
+            return customerRepository.findByPhoneContainingOrFullNameContainingIgnoreCase(cleanKeyword, cleanKeyword, pageable);
         }
 
         return customerRepository.findAll(pageable);
     }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -205,4 +196,5 @@ public class CustomerServiceImpl implements CustomerService {
 //        }
 //
 //        return customerRepository.save(customer);
+//    }
 }
