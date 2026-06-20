@@ -42,7 +42,7 @@
             <input type="hidden"
                    name="id"
                    th:if="${isEdit}"
-                   th:value="${branch.id}">
+                   th:value="${id}">
 
             <div class="row">
 
@@ -56,8 +56,11 @@
                     <input type="text"
                            th:field="*{branchCode}"
                            class="form-control"
-                           required
                            th:readonly="${isEdit}">
+
+                    <p class="text-danger"
+                       th:if="${#fields.hasErrors('branchCode')}"
+                       th:errors="*{branchCode}"></p>
 
                 </div>
 
@@ -70,9 +73,11 @@
 
                     <input type="text"
                            th:field="*{name}"
-                           class="form-control"
-                           required>
+                           class="form-control">
 
+                    <p class="text-danger"
+                       th:if="${#fields.hasErrors('name')}"
+                       th:errors="*{name}"></p>
                 </div>
 
                 <!-- Số điện thoại -->
@@ -86,6 +91,9 @@
                            th:field="*{phone}"
                            class="form-control">
 
+                    <p class="text-danger"
+                       th:if="${#fields.hasErrors('phone')}"
+                       th:errors="*{phone}"></p>
                 </div>
 
                 <!-- Email -->
@@ -99,6 +107,9 @@
                            th:field="*{email}"
                            class="form-control">
 
+                    <p class="text-danger"
+                       th:if="${#fields.hasErrors('email')}"
+                       th:errors="*{email}"></p>
                 </div>
 
                 <!-- Địa chỉ -->
@@ -111,7 +122,11 @@
                     <input type="text"
                            th:field="*{address}"
                            class="form-control"
-                           required>
+                    >
+
+                    <p class="text-danger"
+                       th:if="${#fields.hasErrors('address')}"
+                       th:errors="*{address}"></p>
 
                 </div>
 
@@ -141,6 +156,10 @@
                         Ngừng hoạt động
 
                     </label>
+
+                    <p class="text-danger"
+                       th:if="${#fields.hasErrors('status')}"
+                       th:errors="*{status}"></p>
 
                 </div>
 

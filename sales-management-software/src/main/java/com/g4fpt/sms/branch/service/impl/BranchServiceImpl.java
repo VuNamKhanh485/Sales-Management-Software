@@ -87,94 +87,40 @@ public class BranchServiceImpl implements BranchService {
 
         List<String> errors = new ArrayList<>();
 
-        if (request.getBranchCode() == null ||
-                request.getBranchCode().trim().isEmpty()) {
-
-            errors.add("Mã chi nhánh không được để trống");
-        }
-
-        if (request.getName() == null ||
-                request.getName().trim().isEmpty()) {
-
-            errors.add("Tên chi nhánh không được để trống");
-        }
-
-        if (request.getPhone() == null ||
-                request.getPhone().trim().isEmpty()) {
-
-            errors.add("Số điện thoại không được để trống");
-        }
-
-        if (request.getEmail() == null ||
-                request.getEmail().trim().isEmpty()) {
-
-            errors.add("Email không được để trống");
-        }
-
-        if (request.getBranchCode() != null &&
-                branchRepository.existsByBranchCode(request.getBranchCode())) {
-
+        if (branchRepository.existsByBranchCode(request.getBranchCode())) {
             errors.add("Mã chi nhánh đã tồn tại");
         }
 
-        if (request.getPhone() != null &&
-                branchRepository.existsByPhone(request.getPhone())) {
-
+        if (branchRepository.existsByPhone(request.getPhone())) {
             errors.add("Số điện thoại đã tồn tại");
         }
 
-        if (request.getEmail() != null &&
-                branchRepository.existsByEmail(request.getEmail())) {
-
+        if (branchRepository.existsByEmail(request.getEmail())) {
             errors.add("Email đã tồn tại");
         }
 
         if (!errors.isEmpty()) {
-            throw new RuntimeException(
-                    String.join("|", errors));
+            throw new RuntimeException(String.join("|", errors));
         }
+
     }
 
     private void validateUpdateRequest(Long id, BranchRequest request) {
 
         List<String> errors = new ArrayList<>();
 
-        if (request.getName() == null || request.getName().trim().isEmpty()) {
-
-            errors.add("Tên chi nhánh không được để trống");
-        }
-
-        if (request.getPhone() == null || request.getPhone().trim().isEmpty()) {
-
-            errors.add("Số điện thoại không được để trống");
-        }
-
-        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
-
-            errors.add("Email không được để trống");
-        }
-
-        if (request.getPhone() != null &&
-                !request.getPhone().trim().isEmpty() &&
-                branchRepository.existsByPhoneAndIdNot(
-                        request.getPhone(), id)) {
-
+        if (branchRepository.existsByPhoneAndIdNot(request.getPhone(), id)) {
             errors.add("Số điện thoại đã tồn tại");
         }
 
-        if (request.getEmail() != null &&
-                !request.getEmail().trim().isEmpty() &&
-                branchRepository.existsByEmailAndIdNot(
-                        request.getEmail(), id)) {
-
+        if (branchRepository.existsByEmailAndIdNot(request.getEmail(), id)) {
             errors.add("Email đã tồn tại");
         }
 
         if (!errors.isEmpty()) {
-
-            throw new RuntimeException(
-                    String.join("|", errors));
+            throw new RuntimeException(String.join("|", errors));
         }
+
     }
 
     @Override

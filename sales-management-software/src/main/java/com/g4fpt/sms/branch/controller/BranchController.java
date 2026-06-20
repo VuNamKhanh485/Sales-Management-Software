@@ -3,11 +3,14 @@ package com.g4fpt.sms.branch.controller;
 import com.g4fpt.sms.branch.dto.BranchRequest;
 import com.g4fpt.sms.branch.entity.Branch;
 import com.g4fpt.sms.branch.service.BranchService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Arrays;
 
@@ -63,6 +66,7 @@ public class BranchController {
     public String createForm(Model model) {
 
         model.addAttribute("branch", new BranchRequest());
+        model.addAttribute("id", null);
         model.addAttribute("isEdit", false);
 
         return "branch/form";
@@ -78,6 +82,7 @@ public class BranchController {
 
         model.addAttribute("branch", branch);
         model.addAttribute("isEdit", true);
+        model.addAttribute("id", id);
 
         return "branch/form";
     }
@@ -85,50 +90,43 @@ public class BranchController {
     // SAVE
     @PostMapping("/save")
     public String save(@RequestParam(required = false) Long id,
-                       @ModelAttribute("branch") BranchRequest request,
-                       Model model) {
-        if (id == null) {
-            try {
+                       @Valid @ModelAttribute("branch") BranchRequest request,
+                       BindingResult bindingResult,
+                       Model model, RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("id", id);
+            model.addAttribute("isEdit", id != null);
+            return "branch/form";
+        }
+
+        try {
+            if (id == null) {
                 branchService.create(request);
-
-                return "redirect:/branch";
-            } catch (Exception e) {
-                model.addAttribute("branch", request);
-                model.addAttribute(
-                        "errors",
-                        Arrays.asList(e.getMessage().split("\\|"))
-                );
-                return "branch/form";
-            }
-        } else {
-            try {
-
+                redirectAttributes.addFlashAttribute("successMessage", "Tạo chi nhánh thành công");
+            } else {
                 branchService.update(id, request);
-                return "redirect:/branch";
-
-            } catch (Exception e) {
-
-                model.addAttribute("branch", request);
-                model.addAttribute("id", id);
-                model.addAttribute("viewOnly", false);
-
-                model.addAttribute(
-                        "errors",
-                        Arrays.asList(
-                                e.getMessage().split("\\|"))
-                );
-
-                return "branch/form";
+                redirectAttributes.addFlashAttribute("successMessage", "Cập nhật chi nhánh thành công");
             }
+            return "redirect:/branch";
+        } catch (Exception e) {
+            model.addAttribute("branch", request);
+            model.addAttribute("id", id);
+            model.addAttribute("isEdit", id != null);
+            model.addAttribute(
+                    "errors",
+                    Arrays.asList(e.getMessage().split("\\|"))
+            );
+            return "branch/form";
         }
     }
 
 
     //DELETE
     @GetMapping("/delete/{id}")
-    public String delete(@PathVariable Long id) {
+    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
 
         branchService.delete(id);
+        redirectAttributes.addFlashAttribute("successMessage", "Xóa chi nhánh thành công");
 
         return "redirect:/branch";
     }
