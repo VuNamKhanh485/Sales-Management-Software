@@ -126,3 +126,16 @@
     border-radius: 6px;
     padding: 6px 10px;
 }
+
+/* Voucher Styles */
+.voucher-card:hover {
+    border-color: #0d6efd !important;
+    transform: translateY(-1px);
+}
+.voucher-icon-wrapper {
+    transition: all 0.2s;
+}
+.voucher-card:hover .voucher-icon-wrapper {
+    background-color: #0d6efd !important;
+    color: white !important;
+}

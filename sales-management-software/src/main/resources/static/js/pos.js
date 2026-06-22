@@ -195,12 +195,68 @@ function applyVoucher() {
 }
 
 // =============================================
-// 8. Voucher từ modal khuyến mãi
+// 8. Tải danh sách voucher trong modal
 // =============================================
-function applyVoucherFromModal() {
-    const code = document.getElementById('modalVoucherCode').value.trim();
-    if (!code) return;
-    applyVoucherByCode(code, 'modalVoucherMsg');
+function loadVouchers() {
+    const list = document.getElementById('voucherList');
+    if (!list) return;
+
+    list.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
+
+    fetch('/pos/api/vouchers')
+        .then(r => r.json())
+        .then(vouchers => {
+            if (vouchers.length === 0) {
+                list.innerHTML = '<div class="text-center text-muted py-3">Không có mã khuyến mãi khả dụng</div>';
+                return;
+            }
+            list.innerHTML = vouchers.map(v => {
+                const totalAmt = typeof cartTotalAmount !== 'undefined' ? cartTotalAmount : 0;
+                const isEligible = totalAmt >= v.minOrderAmount;
+                const discountText = v.discountType === 'PERCENT' 
+                    ? `Giảm ${Number(v.discountValue)}%` 
+                    : `Giảm ${Number(v.discountValue).toLocaleString('vi-VN')}đ`;
+                
+                const conditionText = `Đơn tối thiểu ${Number(v.minOrderAmount).toLocaleString('vi-VN')}đ`;
+                const maxDiscountText = v.maxDiscountAmount 
+                    ? ` (Tối đa ${Number(v.maxDiscountAmount).toLocaleString('vi-VN')}đ)` 
+                    : '';
+
+                let actionHtml = '';
+                if (isEligible) {
+                    actionHtml = `<button class="btn btn-primary btn-sm px-3" onclick="applyVoucherByCode('${v.code}', 'modalVoucherMsg')">Áp dụng</button>`;
+                } else {
+                    const missing = Number(v.minOrderAmount) - totalAmt;
+                    actionHtml = `<span class="text-muted small fw-semibold">Thiếu ${missing.toLocaleString('vi-VN')}đ</span>`;
+                }
+
+                return `
+                    <div class="voucher-card p-3 mb-2 border rounded d-flex justify-content-between align-items-center bg-white shadow-sm" style="transition: all 0.2s;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="voucher-icon-wrapper bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center rounded" style="width: 48px; height: 48px; min-width: 48px;">
+                                <i class="bi bi-ticket-perforated fs-4"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20">${v.code}</span>
+                                    <span class="small text-muted font-monospace">${discountText}${maxDiscountText}</span>
+                                </div>
+                                <div class="small fw-semibold text-secondary mt-1">${v.name}</div>
+                                <div class="text-muted mt-1" style="font-size: 11px;">
+                                    <i class="bi bi-info-circle me-1"></i>${conditionText}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end ms-2" style="min-width: 90px;">
+                            ${actionHtml}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        })
+        .catch(() => {
+            list.innerHTML = '<div class="text-center text-danger py-3">Lỗi tải danh sách khuyến mãi</div>';
+        });
 }
 
 function applyVoucherByCode(code, msgElementId) {
@@ -254,6 +310,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('productModal')
         ?.addEventListener('show.bs.modal', () => {
             searchProducts();
+        });
+
+    // Tải khuyến mãi khi mở modal
+    document.getElementById('voucherModal')
+        ?.addEventListener('show.bs.modal', () => {
+            loadVouchers();
         });
 });
 

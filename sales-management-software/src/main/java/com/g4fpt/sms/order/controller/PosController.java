@@ -15,6 +15,7 @@ import com.g4fpt.sms.product.repository.CategoryRepository;
 import com.g4fpt.sms.product.repository.ProductUnitRepository;
 import com.g4fpt.sms.product.repository.InventoryRepository;
 import com.g4fpt.sms.voucher.entity.Voucher;
+import com.g4fpt.sms.voucher.repository.VoucherRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -41,6 +42,7 @@ public class PosController {
     private final OrderTransactionRepository orderTransactionRepository;
     private final BranchRepository branchRepository;
     private final InventoryRepository inventoryRepository;
+    private final VoucherRepository voucherRepository;
 
     @ModelAttribute("posSession")
     public PosSessionData setupSession() {
@@ -357,6 +359,31 @@ public class PosController {
                     .orElse(100);
             map.put("stock", stock);
             
+            return map;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
+    }
+
+    // =============================================
+    // 15b. API lấy danh sách voucher active (cho modal)
+    // =============================================
+    @GetMapping("/api/vouchers")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getActiveVouchers() {
+        List<Voucher> vouchers = voucherRepository.findAll().stream()
+                .filter(v -> v.getStatus() == com.g4fpt.sms.voucher.enums.VoucherStatus.ACTIVE)
+                .collect(Collectors.toList());
+
+        List<Map<String, Object>> result = vouchers.stream().map(v -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", v.getId());
+            map.put("code", v.getCode());
+            map.put("name", v.getName());
+            map.put("discountType", v.getDiscountType().name());
+            map.put("discountValue", v.getDiscountValue());
+            map.put("minOrderAmount", v.getMinOrderAmount());
+            map.put("maxDiscountAmount", v.getMaxDiscountAmount());
             return map;
         }).collect(Collectors.toList());
 
