@@ -19,7 +19,7 @@
         <a th:href="@{/product}" th:class="${page == 'product' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Sản phẩm</span>
         </a>
-        <a href="#" class="nav-link text-dark mb-1">
+        <a th:href="@{/inventory}" th:class="${page == 'inventory' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Kho hàng</span>
         </a>
 

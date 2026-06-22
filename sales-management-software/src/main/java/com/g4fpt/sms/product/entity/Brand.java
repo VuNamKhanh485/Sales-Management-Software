@@ -33,7 +33,7 @@ public class Brand {
     @ToString.Include
     private String name;
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     @CreationTimestamp
     private String createdAt;
 
