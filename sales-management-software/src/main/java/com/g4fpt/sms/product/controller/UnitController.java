@@ -1,6 +1,8 @@
 package com.g4fpt.sms.product.controller;
 
+import com.g4fpt.sms.product.dto.request.BrandRequest;
 import com.g4fpt.sms.product.dto.request.UnitRequest;
+import com.g4fpt.sms.product.dto.response.BrandResponse;
 import com.g4fpt.sms.product.dto.response.UnitResponse;
 import com.g4fpt.sms.common.exception.DuplicateException;
 import com.g4fpt.sms.product.service.UnitService;
@@ -41,49 +43,34 @@ public class UnitController {
         return "unit/list";
     }
 
-    @GetMapping("/create")
-    public String createPage(Model model){
-        model.addAttribute("unit", new UnitRequest());
-        return "unit/create";
+    @GetMapping("/form/{id}")
+    public String updatePage(@PathVariable Long id, Model model) {
+        UnitRequest unitRequest = new UnitRequest();
+        if(id != 0){
+            UnitResponse unitResponse = unitService.findById(id);
+            unitRequest.setName(unitResponse.getName());
+        }
+        model.addAttribute("unitRequest", unitRequest);
+        return "unit/form";
     }
 
-    @PostMapping("/create")
-    public String create(@Valid @ModelAttribute UnitRequest unitRequest,
-                         BindingResult result){
-        if (result.hasErrors()){
-            return "unit/create";
+    @PostMapping("/form/{id}")
+    public String update(@PathVariable Long id,@Valid @ModelAttribute UnitRequest unitRequest,
+                         BindingResult result,
+                         Model model) {
+        if (result.hasErrors()) {
+            return "unit/form";
         }
-        try{
-            unitService.create(unitRequest);
-        }catch(DuplicateException e){
-            result.rejectValue("UnitName", "error.UnitName",e.getMessage());
+        try {
+            if (id == 0){
+                unitService.create(unitRequest);
+            }else{
+                unitService.update(id, unitRequest);
+            }
+        } catch (DuplicateException e) {
+            result.rejectValue("unitName", "error.unitName", e.getMessage());
+            return "unit/form";
         }
-
-        return "redirect:/unit";
-    }
-
-    @GetMapping("/update/{id}")
-    public String updatePage(@PathVariable Long id, Model model){
-        UnitResponse unitResponse = unitService.findById(id);
-
-        model.addAttribute("unitResponse", unitResponse);
-
-        return "unit/update";
-    }
-
-    @PostMapping("/update/{id}")
-    public String update(@PathVariable Long id, @Valid @ModelAttribute UnitRequest unitRequest,
-                         BindingResult result){
-        if (result.hasErrors()){
-            return "unit/update";
-        }
-
-        try{
-            unitService.update(id,unitRequest);
-        }catch(DuplicateException e){
-            result.rejectValue("UnitName", "error.UnitName",e.getMessage());
-        }
-
         return "redirect:/unit";
     }
 }

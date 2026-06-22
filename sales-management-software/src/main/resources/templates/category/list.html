@@ -8,35 +8,80 @@
 
 <h2>Danh sách Danh mục</h2>
 
+<form th:action="@{/category}" method="get">
+    <label>
+        Search:
+        <input type="text" name="keyword" placeholder="Nhập tên..." th:value="${keyword}">
+    </label>
+    <button type="submit">Tìm kiếm</button>
+</form>
+
 <a th:href="@{/category/form/{id}(id=0)}">+ Thêm danh mục</a>
 
-<br/><br/>
-
-<table border="1" cellpadding="8" cellspacing="0">
+<table style="border: 1px solid black; border-collapse: collapse; border-spacing: 5px;">
     <thead>
     <tr>
         <th>#</th>
-        <th>Tên danh mục</th>
+        <th>
+            <a th:href="@{/category(
+                keyword=${keyword},
+                page=${currentPage},
+                size=${size},
+                sortField='name',
+                sortDir=${reverseSortDir})}">
+            Tên danh mục
+            </a>
+        </th>
         <th>Mô tả</th>
-        <th>Trạng thái</th>
+        <th>
+            <a th:href="@{/category(
+                keyword=${keyword},
+                page=${currentPage},
+                size=${size},
+                sortField='status',
+                sortDir=${reverseSortDir})}">
+                Trạng thái
+            </a>
+        </th>
         <th>Thao tác</th>
     </tr>
     </thead>
     <tbody>
-    <tr th:if="${#lists.isEmpty(categoryList)}">
+    <tr th:if="${categoryPage.content.isEmpty()}">
         <td colspan="5">Chưa có danh mục nào.</td>
     </tr>
-    <tr th:each="c, stat : ${categoryList}">
-        <td th:text="${stat.index + 1}"></td>
+    <tr th:each="c, stat : ${categoryPage.content}">
+        <td th:text="${currentPage * size + stat.index +1}"></td>
         <td th:text="${c.name}"></td>
         <td th:text="${c.description}"></td>
         <td th:text="${c.categoryStatus}"></td>
         <td>
-            <a th:href="@{/category/form/{id}(id=${c.id})}">Sửa</a>
+            <a th:href="@{/category/form/{id}(id=${c.id})}">Chi tiết</a>
         </td>
     </tr>
     </tbody>
 </table>
+
+<div th:if="${categoryPage.totalPages > 1}">
+    <span th:each="i : ${#numbers.sequence(0, categoryPage.totalPages - 1)}">
+
+        <a th:if="${i != currentPage}"
+           th:href="@{/brand(
+                keyword=${keyword},
+                page=${i},
+                size=${size},
+                sortField=${sortField},
+                sortDir=${sortDir})}"
+           th:text="${i + 1}">
+        </a>
+
+        <span th:if="${i == currentPage}"
+              th:text="${i + 1}">
+        </span>
+
+        &nbsp;
+    </span>
+</div>
 
 </body>
 </html>
