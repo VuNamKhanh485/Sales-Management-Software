@@ -2,7 +2,7 @@ package com.g4fpt.sms.product.controller;
 
 import com.g4fpt.sms.product.dto.request.BrandRequest;
 import com.g4fpt.sms.product.dto.response.BrandResponse;
-import com.g4fpt.sms.product.exception.DuplicateException;
+import com.g4fpt.sms.common.exception.DuplicateException;
 import com.g4fpt.sms.product.service.BrandService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -73,7 +73,7 @@ public class BrandController {
                 brandService.update(id, brandRequest);
             }
         } catch (DuplicateException e) {
-            result.rejectValue("BrandName", "error.BrandName", e.getMessage());
+            result.rejectValue("brandName", "error.brandName", e.getMessage());
             return "brand/form";
         }
         return "redirect:/brand";

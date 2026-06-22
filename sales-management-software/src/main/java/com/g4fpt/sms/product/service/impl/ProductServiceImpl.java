@@ -2,14 +2,10 @@ package com.g4fpt.sms.product.service.impl;
 
 import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
 import com.g4fpt.sms.product.dto.request.ProductRequest;
-import com.g4fpt.sms.product.dto.request.ProductUnitRequest;
 import com.g4fpt.sms.product.dto.response.ProductResponse;
-import com.g4fpt.sms.product.dto.response.ProductUnitResponse;
 import com.g4fpt.sms.product.entity.Product;
-import com.g4fpt.sms.product.entity.ProductUnit;
-import com.g4fpt.sms.product.entity.Unit;
-import com.g4fpt.sms.product.exception.NotFoundException;
-import com.g4fpt.sms.product.exception.ValidationException;
+import com.g4fpt.sms.common.exception.NotFoundException;
+import com.g4fpt.sms.common.exception.ValidationException;
 import com.g4fpt.sms.product.mapper.ProductMapper;
 import com.g4fpt.sms.product.repository.*;
 import com.g4fpt.sms.product.service.ProductService;
@@ -24,7 +20,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,7 +92,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductResponse> findAll(ProductFilterRequest filter, int page, int size,
+    public Page<ProductResponse> findAll(ProductFilterRequest filter, int size, int page,
                                          String sortField, String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase("asc")
                 ? Sort.by(sortField).ascending()

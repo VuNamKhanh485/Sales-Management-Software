@@ -1,4 +1,4 @@
-package com.g4fpt.sms.product.exception;
+package com.g4fpt.sms.common.exception;
 
 public class NotFoundException extends RuntimeException {
     public NotFoundException(String message) {

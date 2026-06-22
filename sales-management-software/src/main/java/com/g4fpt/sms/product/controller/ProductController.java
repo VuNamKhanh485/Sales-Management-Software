@@ -2,12 +2,9 @@ package com.g4fpt.sms.product.controller;
 
 import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
 import com.g4fpt.sms.product.dto.request.ProductRequest;
-import com.g4fpt.sms.product.dto.request.ProductUnitRequest;
 import com.g4fpt.sms.product.dto.response.ProductResponse;
-import com.g4fpt.sms.product.dto.response.ProductUnitResponse;
-import com.g4fpt.sms.product.entity.Product;
 import com.g4fpt.sms.product.enums.ProductStatus;
-import com.g4fpt.sms.product.exception.ValidationException;
+import com.g4fpt.sms.common.exception.ValidationException;
 import com.g4fpt.sms.product.mapper.ProductMapper;
 import com.g4fpt.sms.product.service.*;
 import jakarta.validation.Valid;
@@ -47,13 +44,12 @@ public class ProductController {
         filter.setCategoryId(categoryId);
         filter.setStatus(status);
 
-        Page<ProductResponse> productPage = productService.findAll(filter, page, size, sortField, sortDir);
+        Page<ProductResponse> productPage = productService.findAll(filter, size, page, sortField, sortDir);
 
         model.addAttribute("productPage", productPage);
         model.addAttribute("filter", filter);
         model.addAttribute("size", size);
         model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", productPage.getTotalPages());
         model.addAttribute("sortField", sortField);
         model.addAttribute("sortDir", sortDir);
         model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");

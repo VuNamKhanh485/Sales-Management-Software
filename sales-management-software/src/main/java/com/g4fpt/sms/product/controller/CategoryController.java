@@ -2,7 +2,7 @@ package com.g4fpt.sms.product.controller;
 
 import com.g4fpt.sms.product.dto.request.CategoryRequest;
 import com.g4fpt.sms.product.dto.response.CategoryResponse;
-import com.g4fpt.sms.product.exception.DuplicateException;
+import com.g4fpt.sms.common.exception.DuplicateException;
 import com.g4fpt.sms.product.service.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;

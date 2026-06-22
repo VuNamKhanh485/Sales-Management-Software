@@ -2,8 +2,7 @@ package com.g4fpt.sms.product.controller;
 
 import com.g4fpt.sms.product.dto.request.UnitRequest;
 import com.g4fpt.sms.product.dto.response.UnitResponse;
-import com.g4fpt.sms.product.entity.Unit;
-import com.g4fpt.sms.product.exception.DuplicateException;
+import com.g4fpt.sms.common.exception.DuplicateException;
 import com.g4fpt.sms.product.service.UnitService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;

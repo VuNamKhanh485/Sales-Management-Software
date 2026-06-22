@@ -78,8 +78,8 @@
                    th:field="*{productUnitsRequest[__${stat.index}__].id}">
 
             <select th:field="*{productUnitsRequest[__${stat.index}__].unitId}">
-                <option th.each="unit : ${unitList}"
-                        th.value="${unit.id}"
+                <option th:each="unit : ${unitList}"
+                        th:value="${unit.id}"
                         th:text="${unit.name}">
                 </option>
             </select>
@@ -115,26 +115,31 @@
 
 </form>
 <script th:inline="javascript">
-    const unit = [];
+    const unit = /*[[${unitList}]]*/ [];
     let rowIndex = document.querySelectorAll('#unitTable tr').length;
     function addUnitRow() {
         const tbody = document.getElementById('unitTable');
         const i = rowIndex++;
 
         let options = '<option value="">-- Chọn --</option>';
-        units.forEach(u => {
+        unit.forEach(u => {
             options += `<option value="${u.id}">${u.name}</option>`;
         });
 
         const tr = document.createElement('tr');
+
         tr.innerHTML =
             `<td>${i + 1}</td>
-            <td><select name="productUnitsRequest[${i}].unitId">${options}</select></td>
-            <td><input type="number" name="productUnitsRequest[${i}].conventionValue" value="1" min="1" style="width:70px"/></td>
-            <td><input type="number" name="productUnitsRequest[${i}].price" step="0.01" style="width:100px"/></td>
-            <td><input type="text" name="productUnitsRequest[${i}].barcodeUnit" style="width:120px"/></td>
-            <td><input type="text" name="productUnitsRequest[${i}].sku" style="width:100px"/></td>
-            <td style="text-align:center"><input type="checkbox" name="productUnitsRequest[${i}].isBaseUnit" value="true"/></td>
+            <td>
+                <select name="productUnitsRequest[${i}].unitId">
+                    ${options}
+                </select>
+            </td>
+            <td><input type="number" name="productUnitsRequest[${i}].conventionValue" value="1"></td>
+            <td><input type="number" name="productUnitsRequest[${i}].price"></td>
+            <td><input type="text" name="productUnitsRequest[${i}].barcodeUnit"></td>
+            <td><input type="text" name="productUnitsRequest[${i}].sku"></td>
+            <td><input type="checkbox" name="productUnitsRequest[${i}].isBaseUnit"></td>
             <td><button type="button" onclick="this.closest('tr').remove()">Xóa</button></td>
             `;
         tbody.appendChild(tr);

@@ -56,7 +56,7 @@
 </table>
 
 <div th:if="${brandPage.totalPages > 1}">
-    <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+    <span th:each="i : ${#numbers.sequence(0, brandPage.totalPages - 1)}">
 
         <a th:if="${i != currentPage}"
            th:href="@{/brand(

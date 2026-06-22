@@ -15,8 +15,9 @@
 <form th:action="@{/brand/form/{id}(id=${id})}" th:object="${brandRequest}" method="post">
 
     <label>Tên thương hiệu:</label><br/>
-    <input type="text" name="brandName" th:field="*{brandName}"/><br/><br/>
-
+    <input type="text" name="brandName" th:field="*{brandName}"/>
+    <div th:errors="*{brandName}" style="color:red"></div>
+    </br>
     <label>Trạng thái:</label><br/>
     <select name="brandStatus" th:field="*{brandStatus}">
         <option value="">-- Chọn trạng thái --</option>
@@ -24,7 +25,9 @@
                 th:value="${status}"
                 th:text="${status}">
         </option>
-    </select><br/><br/>
+    </select>
+    <div th:errors="*{brandStatus}" style="color:red"></div>
+    <br/><br/>
 
     <button type="submit">Lưu thay đổi</button>
     <a th:href="@{/brand}">Hủy</a>
