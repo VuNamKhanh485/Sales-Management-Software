@@ -1,0 +1,47 @@
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<aside class="sidebar" th:fragment="sidebar-component">
+    <div class="logo">
+        <div class="logo-text">
+            <h2>Sales Admin</h2>
+            <p>Management</p>
+        </div>
+    </div>
+
+    <nav class="menu">
+        <a th:href="@{/customers}" th:class="${page == 'customer' ? 'menu-item active' : 'menu-item'}">
+            <span>Khách hàng</span>
+        </a>
+        <a th:href="@{/product}" th:class="${page == 'product' ? 'menu-item active' : 'menu-item'}">
+            <span>Sản phẩm</span>
+        </a>
+        <a href="#" class="menu-item">
+            <span>Kho hàng</span>
+        </a>
+
+        <a sec:authorize="hasAnyRole('OWNER')" th:href="@{/employee}"
+           th:class="${page == 'employee' ? 'menu-item active' : 'menu-item'}">
+            <span>Quản lý nhân viên</span>
+        </a>
+
+        <a sec:authorize="hasAnyRole('OWNER', 'MANAGER')" th:href="@{/branch}"
+           th:class="${page == 'branch' ? 'menu-item active' : 'menu-item'}">
+            <span>Quản lý chi nhánh</span>
+        </a>
+    </nav>
+
+    <div class="user-profile" sec:authorize="isAuthenticated()">
+        <div class="user-details">
+            <h4 class="user-name" th:text="${#authentication.principal.employee.fullName}">Admin</h4>
+            <span class="user-role"
+                  th:text="${#authentication.principal.employee.role != null ? #authentication.principal.employee.role.name : 'Quản trị viên'}">Quản trị viên</span>
+        </div>
+        <form th:action="@{/logout}" method="post" class="logout-form">
+            <button type="submit" class="logout-btn" title="Đăng xuất">
+                Đăng xuất
+            </button>
+        </form>
+    </div>
+</aside>
+
+</html>

@@ -1,13 +1,13 @@
 package com.g4fpt.sms.customer.service;
 
-import com.g4fpt.sms.customer.dto.CustomerRequest;
+import com.g4fpt.sms.customer.dto.CustomerRequestDTO;
 import com.g4fpt.sms.customer.entity.Customer;
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 public interface CustomerService {
-    List<Customer> getAllCustomers();
+    Customer createCustomer(CustomerRequestDTO requestDTO, Long createdById);
+    Customer updateCustomer(Long id, CustomerRequestDTO requestDTO, Long updatedById);
+//    Customer save(CustomerRequestDTO dto, Long currentUserId);
     Customer getCustomerById(Long id);
-    Customer createCustomer(CustomerRequest request);
-    Customer updateCustomer(Long id, CustomerRequest request);
-    void toggleStatus(Long id);
+    Page<Customer> getCustomers(String keyword, int page, int size);
 }
