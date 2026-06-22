@@ -7,6 +7,8 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class ProductUnitRequest {
+    private Long productId;
+    private Long unitId;
     private int conventionValue;
     private BigDecimal unitPrice;
     private String barcodeUnit;

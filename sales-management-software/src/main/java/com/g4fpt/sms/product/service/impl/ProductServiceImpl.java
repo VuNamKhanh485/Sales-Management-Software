@@ -52,7 +52,6 @@ public class ProductServiceImpl implements ProductService {
     public Product update(long id, ProductRequest productRequest) {
         Product product = findById(id);
 
-        if(product != null){
             product.setCategory(productRequest.getCategory());
             product.setBrand(productRequest.getBrand());
             product.setName(productRequest.getName());
@@ -62,13 +61,12 @@ public class ProductServiceImpl implements ProductService {
 
             product.setUpdatedAt(LocalDateTime.now());
             return productRepository.save(product);
-        }
-        return null;
+
     }
 
     @Override
     public Product findById(long id) {
-        return productRepository.findById(id).orElse(null);
+        return productRepository.findById(id).orElseThrow(() -> new RuntimeException("product not found"));
     }
 
     @Override

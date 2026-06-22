@@ -15,7 +15,6 @@ import java.util.List;
 @RequestMapping("/product")
 public class ProductController {
 
-    @Autowired
     private final ProductService productService;
 
     public ProductController(ProductService productService) {
@@ -23,15 +22,15 @@ public class ProductController {
     }
 
     @GetMapping
-    public String product(Model model) {
+    public String productPage(Model model) {
         model.addAttribute("productList", productService.getAll());
         return "product/list";
     }
 
     @GetMapping("/create")
     public String create(Model model) {
-        model.addAttribute("product", new Product());
-        return "create";
+        model.addAttribute("productRequest", new ProductRequest());
+        return "product/create";
     }
 
     @PostMapping("/create")
@@ -75,6 +74,7 @@ public class ProductController {
                                         .toList();
 
         productRequest.setProductUnitsRequest(productUnitRequest);
+
         model.addAttribute("productRequest", productRequest);
         return "product/update";
     }
