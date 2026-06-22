@@ -27,9 +27,6 @@ public class Branch {
     @Enumerated(EnumType.STRING)
     private BranchStatus status;
 
-    @Column(name = "manager_id")
-    private Long managerId;
-
     @Column(name = "created_at")
     private LocalDateTime createAt;
 
