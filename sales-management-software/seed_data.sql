@@ -44,50 +44,50 @@ INSERT IGNORE INTO Customer (id, customer_rank_id, customer_code, full_name, pho
 
 -- 6. Dữ liệu bảng Category (Danh mục sản phẩm)
 INSERT IGNORE INTO Category (id, name, description, status, created_at) VALUES
-(1, 'Điện thoại', 'Thiết bị di động thông minh', 'ACTIVE', NOW()),
-(2, 'Phụ kiện', 'Ốp lưng, cáp sạc, tai nghe', 'ACTIVE', NOW()),
-(3, 'Đồ gia dụng', 'Thiết bị thông minh cho gia đình', 'ACTIVE', NOW());
+(1, 'Gia vị & Nước sốt', 'Nước mắm, nước tương, dầu ăn, hạt nêm, tương ớt', 'ACTIVE', NOW()),
+(2, 'Mì, Cháo, Phở', 'Các loại mì gói, cháo ăn liền, phở khô', 'ACTIVE', NOW()),
+(3, 'Sữa & Sản phẩm sữa', 'Sữa tươi, sữa chua, bơ, phô mai', 'ACTIVE', NOW());
 
 -- 7. Dữ liệu bảng Brand (Thương hiệu)
 INSERT IGNORE INTO Brand (id, name, status, created_at) VALUES
-(1, 'Apple', 'ACTIVE', '2026-06-22 12:00:00'),
-(2, 'Samsung', 'ACTIVE', '2026-06-22 12:00:00'),
-(3, 'Sony', 'ACTIVE', '2026-06-22 12:00:00');
+(1, 'Masan', 'ACTIVE', '2026-06-22 12:00:00'),
+(2, 'Acecook', 'ACTIVE', '2026-06-22 12:00:00'),
+(3, 'Vinamilk', 'ACTIVE', '2026-06-22 12:00:00');
 
 -- 8. Dữ liệu bảng Unit (Đơn vị tính)
 INSERT IGNORE INTO Unit (id, name, created_at) VALUES
-(1, 'Cái', NOW()),
-(2, 'Hộp', NOW()),
-(3, 'Bộ', NOW());
+(1, 'Chai', NOW()),
+(2, 'Gói', NOW()),
+(3, 'Hộp', NOW());
 
 -- 9. Dữ liệu bảng Product (Sản phẩm)
 INSERT IGNORE INTO Product (id, category_id, brand_id, name, image_url, description, status, created_at) VALUES
-(1, 1, 1, 'iPhone 15 Pro Max 256GB', 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=300', 'Điện thoại di động cao cấp của Apple', 'ACTIVE', NOW()),
-(2, 1, 2, 'Samsung Galaxy S24 Ultra', 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=300', 'Điện thoại thông minh tích hợp Galaxy AI', 'ACTIVE', NOW()),
-(3, 2, 3, 'Sony WH-1000XM5', 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300', 'Tai nghe chụp tai chống ồn chủ động cao cấp', 'ACTIVE', NOW());
+(1, 1, 1, 'Nước tương Chinsu tỏi ớt 250ml', 'https://images.unsplash.com/photo-1589135306090-e8508358b77c?w=300', 'Nước tương tỏi ớt đậm đà thơm ngon', 'ACTIVE', NOW()),
+(2, 2, 2, 'Mì Hảo Hảo Tôm chua cay 75g', 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=300', 'Mì ăn liền hương vị tôm chua cay truyền thống', 'ACTIVE', NOW()),
+(3, 3, 3, 'Sữa tươi tiệt trùng Vinamilk ít đường 180ml', 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=300', 'Sữa tươi chất lượng cao cung cấp năng lượng', 'ACTIVE', NOW());
 
 -- 10. Dữ liệu bảng ProductUnit (Đơn vị quy đổi & Giá bán của sản phẩm)
 INSERT IGNORE INTO ProductUnit (id, product_id, unit_id, conversion_value, price, barcode_unit, is_base_unit, sku, created_at) VALUES
--- iPhone 15 Pro Max 256GB
-(1, 1, 1, 1, 29990000.00, '8801234567891', 1, 'IP15PM-256', NOW()),
--- Samsung Galaxy S24 Ultra
-(2, 2, 1, 1, 27990000.00, '8801234567892', 1, 'S24U-256', NOW()),
--- Sony WH-1000XM5
-(3, 3, 1, 1, 8490000.00, '8801234567893', 1, 'SONY-XM5', NOW());
+-- Nước tương Chinsu tỏi ớt 250ml
+(1, 1, 1, 1, 16000.00, '8934588012112', 1, 'CS-TOIOT-250', NOW()),
+-- Mì Hảo Hảo Tôm chua cay 75g
+(2, 2, 2, 1, 4500.00, '8934563138072', 1, 'HH-TOMCHUACAY', NOW()),
+-- Sữa tươi tiệt trùng Vinamilk ít đường 180ml
+(3, 3, 3, 1, 7500.00, '8934673121094', 1, 'VNM-ITDUONG-180', NOW());
 
 -- 11. Dữ liệu bảng Inventory (Tồn kho sản phẩm tại từng chi nhánh)
 INSERT IGNORE INTO Inventory (id, branch_id, product_unit_id, stock, min_stock, max_stock, position_in_shop) VALUES
 -- Chi nhánh Hà Nội
-(1, 1, 1, 50, 5, 200, 'Kệ tủ A1'),
-(2, 1, 2, 40, 5, 200, 'Kệ tủ A2'),
-(3, 1, 3, 100, 10, 500, 'Kệ phụ kiện B1'),
+(1, 1, 1, 150, 10, 500, 'Kệ gia vị A1'),
+(2, 1, 2, 500, 20, 1000, 'Kệ mì gói B2'),
+(3, 1, 3, 200, 15, 800, 'Tủ mát sữa C1'),
 -- Chi nhánh Hồ Chí Minh
-(4, 2, 1, 30, 5, 200, 'Tủ trưng bày Q1'),
-(5, 2, 2, 25, 5, 200, 'Tủ trưng bày Q2'),
-(6, 2, 3, 60, 10, 500, 'Khu tai nghe');
+(4, 2, 1, 120, 10, 500, 'Kệ gia vị 1'),
+(5, 2, 2, 400, 20, 1000, 'Kệ mì gói 2'),
+(6, 2, 3, 150, 15, 800, 'Tủ mát 1');
 
 -- 12. Dữ liệu bảng Voucher (Mã giảm giá/Khuyến mãi)
 INSERT IGNORE INTO Voucher (id, code, name, discount_type, discount_value, min_order_amount, max_discount_amount, start_at, end_at, status, created_at) VALUES
-('1', 'PERCENT10', 'Giảm 10% đơn hàng', 'PERCENT', 10.00, 100000.00, 100000.00, '2026-06-01 00:00:00', '2026-12-31 23:59:59', 'ACTIVE', NOW()),
-('2', 'FLAT30K', 'Giảm trực tiếp 30k', 'AMOUNT', 30000.00, 150000.00, 30000.00, '2026-06-01 00:00:00', '2026-12-31 23:59:59', 'ACTIVE', NOW()),
-('3', 'EXPIRED50', 'Mã giảm giá đã hết hạn', 'PERCENT', 50.00, 500000.00, 200000.00, '2026-01-01 00:00:00', '2026-06-01 00:00:00', 'ACTIVE', NOW());
+('1', 'PERCENT10', 'Giảm 10% đơn hàng thực phẩm', 'PERCENT', 10.00, 50000.00, 30000.00, '2026-06-01 00:00:00', '2026-12-31 23:59:59', 'ACTIVE', NOW()),
+('2', 'FLAT15K', 'Giảm ngay 15k cho hóa đơn', 'AMOUNT', 15000.00, 100000.00, 150000.00, '2026-06-01 00:00:00', '2026-12-31 23:59:59', 'ACTIVE', NOW()),
+('3', 'EXPIRED50', 'Mã giảm giá đã hết hạn', 'PERCENT', 50.00, 200000.00, 50000.00, '2026-01-01 00:00:00', '2026-06-01 00:00:00', 'ACTIVE', NOW());
