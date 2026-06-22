@@ -162,7 +162,7 @@
                     <div class="d-flex gap-2 mb-1">
                         <input type="text" id="customerPhone"
                                class="form-control form-control-sm"
-                               placeholder="SĐT khách hàng...">
+                               placeholder="SĐT hoặc tên khách hàng...">
                         <button class="btn btn-outline-primary btn-sm px-2"
                                 onclick="findCustomer()" title="Tìm">
                             <i class="bi bi-search"></i>
@@ -273,7 +273,7 @@
                         <input type="number" name="givenAmount" id="givenAmount"
                                class="form-control form-control-sm"
                                th:value="${cart.finalAmount}"
-                               min="0" step="1000"
+                               min="0" step="any"
                                oninput="calcChange()">
                         <div class="d-flex flex-wrap gap-1 mt-1"
                              id="amountSuggestions"></div>

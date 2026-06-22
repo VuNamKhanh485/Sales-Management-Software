@@ -212,7 +212,13 @@ public class PosController {
             @RequestParam String phone) {
 
         Map<String, Object> result = new HashMap<>();
-        Customer customer = customerRepository.findByPhone(phone.trim()).orElse(null);
+        String keyword = phone.trim();
+        Customer customer = customerRepository.findByPhone(keyword)
+                .orElseGet(() -> {
+                    org.springframework.data.domain.Page<Customer> page = 
+                        customerRepository.findByPhoneContainingOrFullNameContainingIgnoreCase(keyword, keyword, org.springframework.data.domain.PageRequest.of(0, 1));
+                    return page.isEmpty() ? null : page.getContent().get(0);
+                });
 
         if (customer != null) {
             result.put("found", true);
