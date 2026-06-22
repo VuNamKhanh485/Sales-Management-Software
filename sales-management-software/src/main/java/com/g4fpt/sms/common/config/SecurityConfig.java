@@ -17,10 +17,18 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
-                        .requestMatchers("/owner/**").hasRole("OWNER")
-                        .requestMatchers("/manager/**").hasRole("BRANCH_MANAGER")
-                        .requestMatchers("/sale/**").hasRole("SALE_STAFF")
-                        .requestMatchers("/warehouse/**").hasRole("WAREHOUSE_STAFF")
+                        // 1. Quản lý chi nhánh (Branch) dành riêng cho OWNER
+                        .requestMatchers("/branch/**").hasRole("OWNER")
+                        // 2. Dashboard và Voucher dành cho OWNER và BRANCH_MANAGER
+                        .requestMatchers("/dashboard/**", "/").hasAnyRole("OWNER", "BRANCH_MANAGER")
+                        .requestMatchers("/vouchers/**").hasAnyRole("OWNER", "BRANCH_MANAGER")
+                        // 3. Quản lý sản phẩm dành cho OWNER, BRANCH_MANAGER, và WAREHOUSE_STAFF
+                        .requestMatchers("/product/**", "/category/**", "/brand/**", "/unit/**", "/product-unit/**")
+                            .hasAnyRole("OWNER", "BRANCH_MANAGER", "WAREHOUSE_STAFF")
+                        // 4. Bán hàng POS và Quản lý khách hàng dành cho OWNER, BRANCH_MANAGER, và SALE_STAFF
+                        .requestMatchers("/pos/**").hasAnyRole("OWNER", "BRANCH_MANAGER", "SALE_STAFF")
+                        .requestMatchers("/customers/**").hasAnyRole("OWNER", "BRANCH_MANAGER", "SALE_STAFF")
+                        // Yêu cầu đăng nhập đối với tất cả các request khác
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
