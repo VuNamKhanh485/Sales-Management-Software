@@ -27,4 +27,6 @@ public interface ProductUnitRepository extends JpaRepository<ProductUnit, Long> 
             Long categoryId, ProductStatus status);
 
     List<ProductUnit> findByProduct_Status(ProductStatus status);
+
+    ProductUnit findByIdAndProduct_Id(Long id, Long productId);
 }

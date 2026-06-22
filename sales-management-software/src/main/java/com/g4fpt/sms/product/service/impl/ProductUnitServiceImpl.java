@@ -1,81 +1,142 @@
 package com.g4fpt.sms.product.service.impl;
 
-import com.g4fpt.sms.product.dto.ProductUnitRequest;
+import com.g4fpt.sms.product.dto.request.ProductUnitRequest;
+import com.g4fpt.sms.product.dto.response.ProductUnitResponse;
+import com.g4fpt.sms.product.entity.Product;
 import com.g4fpt.sms.product.entity.ProductUnit;
+import com.g4fpt.sms.common.exception.NotFoundException;
+import com.g4fpt.sms.common.exception.ValidationException;
+import com.g4fpt.sms.product.mapper.ProductUnitMapper;
 import com.g4fpt.sms.product.repository.ProductRepository;
 import com.g4fpt.sms.product.repository.ProductUnitRepository;
 import com.g4fpt.sms.product.repository.UnitRepository;
 import com.g4fpt.sms.product.service.ProductUnitService;
+import com.g4fpt.sms.product.util.ValidationError;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class ProductUnitServiceImpl implements ProductUnitService {
 
     private final ProductUnitRepository productUnitRepository;
     private final ProductRepository productRepository;
     private final UnitRepository unitRepository;
+    private final ProductUnitMapper productUnitMapper;
 
-    public ProductUnitServiceImpl(ProductUnitRepository productUnitRepository, ProductRepository productRepository, UnitRepository unitRepository) {
-        this.productUnitRepository = productUnitRepository;
-        this.productRepository = productRepository;
-        this.unitRepository = unitRepository;
+    @Override
+    public List<ProductUnitResponse> findAll() {
+        return productUnitRepository.findAll()
+                .stream()
+                .map(productUnitMapper::toResponse)
+                .toList();
     }
 
     @Override
-    public List<ProductUnit> findAll() {
-        return productUnitRepository.findAll();
+    public ProductUnit create(ProductUnitRequest productUnitRequest, Product product) {
+            validate(productUnitRequest, null);
+            ProductUnit productUnit = new ProductUnit();
+            requestToEntity(productUnitRequest, productUnit, product);
+        return productUnit;
     }
 
     @Override
-    public ProductUnit create(ProductUnitRequest productUnitRequest) {
-        ProductUnit productUnit = new ProductUnit();
-
-        requestToEntity(productUnitRequest, productUnit);
-
-        productUnit.setCreatedAt(LocalDateTime.now());
-        return productUnitRepository.save(productUnit);
+    public ProductUnit update(ProductUnitRequest productUnitRequest, Product product) {
+        validate(productUnitRequest, productUnitRequest.getId());
+        ProductUnit productUnit = getProductUnitByIdAndProduct(productUnitRequest.getId(), product.getId());
+        requestToEntity(productUnitRequest, productUnit, product);
+        return productUnit;
     }
 
     @Override
-    public ProductUnit update(Long id, ProductUnitRequest productUnitRequest) {
-        ProductUnit productUnit = findById(id);
+    public void deleteById(Long id) {
+        //cần có phần orderTranscation
+    }
 
+    public List<ProductUnit> productUnitSync(List<ProductUnitRequest> productUnitRequests, Product product) {
+        List<ProductUnit> productUnitList = new ArrayList<>();
 
-            requestToEntity(productUnitRequest, productUnit);
+        Set<Long> requestIds = productUnitRequests.stream()
+                .map(ProductUnitRequest::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        for(ProductUnit unit : product.getProductUnits()){
+            if(!requestIds.contains(unit.getId())){
+                deleteById(unit.getId());
+            }
+        }
 
-            productUnit.setUpdatedAt(LocalDateTime.now());
-            return productUnitRepository.save(productUnit);
+        for (ProductUnitRequest productUnitRequest : productUnitRequests) {
+            if(productUnitRequest.getId() == null){
+                productUnitList.add(create(productUnitRequest, product));
+            }else{
+                productUnitList.add(update(productUnitRequest, product));
+            }
+        }
+        return productUnitList;
     }
 
     @Override
-    public void delete(Long id) {
-
+    public ProductUnitResponse findById(Long id) {
+        return  productUnitMapper.toResponse(getProductUnitById(id));
     }
 
     @Override
-    public ProductUnit findById(Long id) {
-        return productUnitRepository.findById(id).orElseThrow(() -> new RuntimeException("product unit not found"));
+    public List<ProductUnitResponse> findByProductId(Long id) {
+        return productUnitRepository.findByProduct_Id(id)
+                .stream()
+                .map(productUnitMapper::toResponse)
+                .toList();
     }
 
-    private void requestToEntity(ProductUnitRequest productUnitRequest, ProductUnit productUnit) {
-        productUnit.setProduct(
-                productRepository.findById(
-                                productUnitRequest.getProductId())
-                        .orElseThrow(() -> new RuntimeException("product not found"))
-        );
+    @Override
+    public void validate(ProductUnitRequest productUnitRequest, Long excludeId) {
+        List<ValidationError> errors = new ArrayList<>();
+        if(excludeId != null) {
+            if(productUnitRepository.existsByBarcodeUnitIgnoreCaseAndIdNot(productUnitRequest.getBarcodeUnit(), excludeId)) {
+                errors.add(new ValidationError("Barcode","Barcode is existed"));
+            }
+            if (productUnitRepository.existsBySkuIgnoreCaseAndIdNot(productUnitRequest.getSku(), excludeId)) {
+                errors.add(new ValidationError("Sku","Sku is existed"));
+            }
+        }else {
+            if (productUnitRepository.existsByBarcodeUnitIgnoreCase(productUnitRequest.getBarcodeUnit())) {
+                errors.add(new ValidationError("Barcode", "Barcode is existed"));
+            }
+            if (productUnitRepository.existsBySkuIgnoreCase(productUnitRequest.getSku())) {
+                errors.add(new ValidationError("Sku", "Sku is existed"));
+            }
+        }
+        throw new ValidationException(errors);
+    }
+
+    private void requestToEntity(ProductUnitRequest productUnitRequest, ProductUnit productUnit, Product product) {
+        productUnit.setProduct(product);
         productUnit.setUnit(
                 unitRepository.findById(
                                 productUnitRequest.getUnitId())
-                        .orElseThrow(() -> new RuntimeException("unit not found"))
+                        .orElseThrow(() -> new NotFoundException("unit not found"))
         );
 
         productUnit.setSku(productUnitRequest.getSku());
         productUnit.setBarcodeUnit(productUnitRequest.getBarcodeUnit());
         productUnit.setConventionValue(productUnitRequest.getConventionValue());
-        productUnit.setPrice(productUnitRequest.getUnitPrice());
-        productUnit.setIsBaseUnit(productUnitRequest.getIsBaseUnit());
+        productUnit.setPrice(productUnitRequest.getPrice());
+        productUnit.setIsBaseUnit(
+                Boolean.TRUE.equals(productUnitRequest.getIsBaseUnit()));
+    }
+
+    private ProductUnit getProductUnitById(Long id){
+        return productUnitRepository.findById(id).orElseThrow(() -> new NotFoundException("Product unit not found"));
+    }
+
+    private ProductUnit getProductUnitByIdAndProduct(Long id, Long productId) {
+        return productUnitRepository.findByIdAndProduct_Id(id, productId);
     }
 }

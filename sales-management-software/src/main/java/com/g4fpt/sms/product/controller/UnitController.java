@@ -1,10 +1,14 @@
 package com.g4fpt.sms.product.controller;
 
-import com.g4fpt.sms.product.dto.UnitRequest;
-import com.g4fpt.sms.product.entity.Unit;
+import com.g4fpt.sms.product.dto.request.UnitRequest;
+import com.g4fpt.sms.product.dto.response.UnitResponse;
+import com.g4fpt.sms.common.exception.DuplicateException;
 import com.g4fpt.sms.product.service.UnitService;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
@@ -18,8 +22,22 @@ public class UnitController {
     }
 
     @GetMapping
-    public String unitPage(Model model){
-        model.addAttribute("unitList", unitService.findAll());
+    public String list(Model model,
+                       @RequestParam(defaultValue = "") String keyword,
+                       @RequestParam(defaultValue = "0") int page,
+                       @RequestParam(defaultValue = "10") int size,
+                       @RequestParam(defaultValue = "name") String sortField,
+                       @RequestParam(defaultValue = "asc") String sortDir){
+        Page<UnitResponse> unitPage = unitService.findAll(keyword, size, page, sortField, sortDir);
+
+        model.addAttribute("unitPage", unitPage);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("size", size);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        // Dùng để render nút toggle asc/desc trên header bảng
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
         return "unit/list";
     }
 
@@ -30,28 +48,42 @@ public class UnitController {
     }
 
     @PostMapping("/create")
-    public String create(@ModelAttribute UnitRequest unitRequest){
-        unitService.create(unitRequest);
-        return "redirect:/productunit";
+    public String create(@Valid @ModelAttribute UnitRequest unitRequest,
+                         BindingResult result){
+        if (result.hasErrors()){
+            return "unit/create";
+        }
+        try{
+            unitService.create(unitRequest);
+        }catch(DuplicateException e){
+            result.rejectValue("UnitName", "error.UnitName",e.getMessage());
+        }
+
+        return "redirect:/unit";
     }
 
     @GetMapping("/update/{id}")
     public String updatePage(@PathVariable Long id, Model model){
-        Unit unit = unitService.findById(id);
+        UnitResponse unitResponse = unitService.findById(id);
 
-        UnitRequest unitRequest = new UnitRequest();
-        unitRequest.setName(unit.getName());
-
-        model.addAttribute("unitRequest", unitRequest);
+        model.addAttribute("unitResponse", unitResponse);
 
         return "unit/update";
     }
 
     @PostMapping("/update/{id}")
-    public String update(@PathVariable Long id, @ModelAttribute UnitRequest unitRequest){
-        Unit unit = unitService.findById(id);
-        unit.setName(unitRequest.getName());
-        unitService.update(id,unitRequest);
-        return "redirect:/productunit";
+    public String update(@PathVariable Long id, @Valid @ModelAttribute UnitRequest unitRequest,
+                         BindingResult result){
+        if (result.hasErrors()){
+            return "unit/update";
+        }
+
+        try{
+            unitService.update(id,unitRequest);
+        }catch(DuplicateException e){
+            result.rejectValue("UnitName", "error.UnitName",e.getMessage());
+        }
+
+        return "redirect:/unit";
     }
 }

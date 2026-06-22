@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Thêm Đơn vị sản phẩm</title>
+</head>
+<body>
+
+<h2>Thêm Đơn vị sản phẩm</h2>
+
+<a th:href="@{/productunit}">← Quay lại</a>
+
+<br/><br/>
+
+<form th:action="@{/productunit/create}" th:object="${productUnitRequest}" method="post">
+
+    <label>Sản phẩm (ID):</label><br/>
+    <input type="number" th:field="*{productId}"/><br/><br/>
+
+    <label>Đơn vị (ID):</label><br/>
+    <input type="number" th:field="*{unitId}"/><br/><br/>
+
+    <label>Giá trị quy đổi:</label><br/>
+    <input type="number" th:field="*{conventionValue}" value="1" min="1"/><br/><br/>
+
+    <label>Giá:</label><br/>
+    <input type="number" th:field="*{price}" step="0.01"/><br/><br/>
+
+    <label>Barcode:</label><br/>
+    <input type="text" th:field="*{barcodeUnit}"/><br/><br/>
+
+    <label>SKU:</label><br/>
+    <input type="text" th:field="*{sku}"/><br/><br/>
+
+    <label>Đơn vị cơ bản:</label>
+    <input type="checkbox" th:field="*{isBaseUnit}" value="true"/><br/><br/>
+
+    <button type="submit">Lưu</button>
+    <a th:href="@{/productunit}">Hủy</a>
+
+</form>
+
+</body>
+</html>
