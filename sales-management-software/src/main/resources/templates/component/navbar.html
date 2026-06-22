@@ -1,43 +1,48 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
-<aside class="sidebar" th:fragment="sidebar-component">
-    <div class="logo">
-        <div class="logo-text">
-            <h2>Sales Admin</h2>
-            <p>Management</p>
-        </div>
+<aside class="d-flex flex-column flex-shrink-0 p-3 bg-light border-end" style="width: 250px; min-width: 250px; min-height: 100vh;" th:fragment="sidebar-component">
+    <div class="mb-4">
+        <h2 class="h4 mb-0 fw-bold text-primary">Sales Admin</h2>
+        <small class="text-muted">Management</small>
     </div>
 
-    <nav class="menu">
-        <a th:href="@{/customers}" th:class="${page == 'customer' ? 'menu-item active' : 'menu-item'}">
+    <nav class="nav nav-pills flex-column mb-auto">
+        <a th:href="@{/dashboard}" th:class="${page == 'dashboard' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
+            <span>Dashboard</span>
+        </a>
+        <a th:href="@{/pos}" th:class="${page == 'pos' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
+            <span>Bán hàng (POS)</span>
+        </a>
+        <a th:href="@{/customers}" th:class="${page == 'customer' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Khách hàng</span>
         </a>
-        <a th:href="@{/product}" th:class="${page == 'product' ? 'menu-item active' : 'menu-item'}">
+        <a th:href="@{/product}" th:class="${page == 'product' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Sản phẩm</span>
         </a>
-        <a href="#" class="menu-item">
+        <a href="#" class="nav-link text-dark mb-1">
             <span>Kho hàng</span>
         </a>
 
         <a sec:authorize="hasAnyRole('OWNER')" th:href="@{/employee}"
-           th:class="${page == 'employee' ? 'menu-item active' : 'menu-item'}">
+           th:class="${page == 'employee' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Quản lý nhân viên</span>
         </a>
 
         <a sec:authorize="hasAnyRole('OWNER', 'MANAGER')" th:href="@{/branch}"
-           th:class="${page == 'branch' ? 'menu-item active' : 'menu-item'}">
+           th:class="${page == 'branch' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Quản lý chi nhánh</span>
         </a>
     </nav>
 
+    <hr>
     <div class="user-profile" sec:authorize="isAuthenticated()">
-        <div class="user-details">
-            <h4 class="user-name" th:text="${#authentication.principal.employee.fullName}">Admin</h4>
-            <span class="user-role"
-                  th:text="${#authentication.principal.employee.role != null ? #authentication.principal.employee.role.name : 'Quản trị viên'}">Quản trị viên</span>
+        <div class="mb-2">
+            <div class="fw-bold text-dark" th:text="${#authentication.principal.employee.fullName}">Admin</div>
+            <small class="text-muted d-block mb-2"
+                   th:text="${#authentication.principal.employee.role != null ? #authentication.principal.employee.role.name : 'Quản trị viên'}">Quản trị viên</small>
         </div>
-        <form th:action="@{/logout}" method="post" class="logout-form">
-            <button type="submit" class="logout-btn" title="Đăng xuất">
+        <form th:action="@{/logout}" method="post" class="logout-form m-0">
+            <button type="submit" class="btn btn-sm btn-outline-danger w-100" title="Đăng xuất">
                 Đăng xuất
             </button>
         </form>

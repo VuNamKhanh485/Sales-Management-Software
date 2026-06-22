@@ -1,18 +1,22 @@
 package com.g4fpt.sms.order.dto;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 
-@Data
+@Getter
+@Setter
 public class PosCartItem {
     private Long productUnitId;
     private String sku;
     private String name;
     private String unitName;
-    private Integer quantity;
     private BigDecimal price;
+    private int quantity;
+    private String imageUrl;
 
-    public BigDecimal getSubTotal() {
+    public BigDecimal getSubtotal() {
         return price.multiply(BigDecimal.valueOf(quantity));
     }
 }

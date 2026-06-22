@@ -1,5 +1,6 @@
 package com.g4fpt.sms.order.controller;
 
+import com.g4fpt.sms.branch.repository.BranchRepository;
 import com.g4fpt.sms.order.entity.OrderTransaction;
 import com.g4fpt.sms.order.repository.OrderTransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class OrderController {
 
     private final OrderTransactionRepository orderTransactionRepository;
+    private final BranchRepository branchRepository;
 
     @GetMapping("/{id}")
     public String showOrderDetail(@PathVariable Long id, Model model) {
@@ -22,6 +24,13 @@ public class OrderController {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
 
         model.addAttribute("order", order);
+
+        if (order.getBranchId() != null) {
+            branchRepository.findById(order.getBranchId()).ifPresent(branch -> {
+                model.addAttribute("branch", branch);
+            });
+        }
+
         return "order/detail";
     }
 }
