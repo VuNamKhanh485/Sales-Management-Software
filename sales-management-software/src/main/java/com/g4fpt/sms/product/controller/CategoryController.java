@@ -1,0 +1,58 @@
+package com.g4fpt.sms.product.controller;
+
+import com.g4fpt.sms.product.dto.CategoryRequest;
+import com.g4fpt.sms.product.entity.Category;
+import com.g4fpt.sms.product.service.CategoryService;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
+@Controller
+@RequestMapping("category")
+public class CategoryController {
+
+    private final CategoryService categoryService;
+
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
+
+    @GetMapping
+    public String category(Model model) {
+        model.addAttribute("categoryList", categoryService.findAll());
+        return "category/list";
+    }
+
+    @GetMapping("/create")
+    public String createPage(Model model) {
+        model.addAttribute("categoryRequest", new CategoryRequest());
+        return "category/create";
+    }
+
+    @PostMapping("/create")
+    public String create(@ModelAttribute CategoryRequest categoryRequest) {
+        categoryService.save(categoryRequest);
+        return "redirect:/category";
+    }
+
+    @GetMapping("/update/{id}")
+    public String updatePage(@PathVariable Long id, Model model) {
+        CategoryRequest categoryRequest = new CategoryRequest();
+        Category category = categoryService.findById(id);
+
+        categoryRequest.setCategoryName(category.getName());
+        categoryRequest.setDescription(category.getDescription());
+        categoryRequest.setCategoryStatus(category.getStatus());
+
+        model.addAttribute("categoryRequest", categoryRequest);
+        return "category/update";
+    }
+
+    @PostMapping("/update/{id}")
+    public String update(@PathVariable Long id, @ModelAttribute CategoryRequest categoryRequest) {
+        categoryService.save(categoryRequest);
+        return "redirect:/category";
+    }
+
+
+}

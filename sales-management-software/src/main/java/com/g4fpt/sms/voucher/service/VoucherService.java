@@ -1,6 +1,6 @@
 package com.g4fpt.sms.voucher.service;
 
-import com.g4fpt.sms.common.dto.PageResponse;
+import org.springframework.data.domain.Page;
 import com.g4fpt.sms.voucher.dto.request.VoucherCreateRequest;
 import com.g4fpt.sms.voucher.dto.request.VoucherUpdateRequest;
 import com.g4fpt.sms.voucher.dto.response.VoucherResponse;
@@ -16,9 +16,9 @@ public interface VoucherService {
 
     VoucherResponse getByCode(String code);
 
-    PageResponse<VoucherResponse> search(String keyword, VoucherStatus status, int page, int size);
+    Page<VoucherResponse> search(String keyword, VoucherStatus status, int page, int size);
 
-    PageResponse<VoucherResponse> getActiveVouchers(int page, int size);
+    Page<VoucherResponse> getActiveVouchers(int page, int size);
 
     void delete(Long id);
 

@@ -1,6 +1,5 @@
 package com.g4fpt.sms.voucher.service.impl;
 
-import com.g4fpt.sms.common.dto.PageResponse;
 import com.g4fpt.sms.common.exception.AppException;
 import com.g4fpt.sms.common.exception.ErrorCode;
 import com.g4fpt.sms.voucher.dto.request.VoucherCreateRequest;
@@ -93,18 +92,18 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<VoucherResponse> search(String keyword, VoucherStatus status, int page, int size) {
+    public Page<VoucherResponse> search(String keyword, VoucherStatus status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Voucher> result = voucherRepository.search(keyword, status, pageable);
-        return toPageResponse(result);
+        return result.map(voucherMapper::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<VoucherResponse> getActiveVouchers(int page, int size) {
+    public Page<VoucherResponse> getActiveVouchers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("endAt").ascending());
         Page<Voucher> result = voucherRepository.findAllActive(LocalDateTime.now(), pageable);
-        return toPageResponse(result);
+        return result.map(voucherMapper::toResponse);
     }
 
     @Override
@@ -142,15 +141,5 @@ public class VoucherServiceImpl implements VoucherService {
         if (type == DiscountType.PERCENT && value.compareTo(BigDecimal.valueOf(100)) > 0) {
             throw new AppException(ErrorCode.VOUCHER_INVALID_PERCENT);
         }
-    }
-
-    private PageResponse<VoucherResponse> toPageResponse(Page<Voucher> page) {
-        return PageResponse.<VoucherResponse>builder()
-                .content(page.getContent().stream().map(voucherMapper::toResponse).toList())
-                .page(page.getNumber())
-                .size(page.getSize())
-                .totalElements(page.getTotalElements())
-                .totalPages(page.getTotalPages())
-                .build();
     }
 }

@@ -2,9 +2,10 @@ package com.g4fpt.sms.product.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.Instant;
-import java.time.LocalDate;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -31,16 +32,13 @@ public class Brand {
     private String name;
 
     @Column(nullable = false)
+    @CreationTimestamp
     private String createdAt;
 
     @Column(name = "updated_at")
-    private Instant updatedAt;
+    private LocalDateTime updatedAt;
 
     @OneToMany (fetch = FetchType.LAZY, mappedBy = "brand")
     private List<Product> products;
 
-    @PrePersist
-    public void prePersist() {
-        createdAt = LocalDate.now().toString();
-    }
 }

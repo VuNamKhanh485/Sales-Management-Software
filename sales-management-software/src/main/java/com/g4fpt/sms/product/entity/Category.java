@@ -3,6 +3,7 @@ package com.g4fpt.sms.product.entity;
 import com.g4fpt.sms.product.enums.CategoryStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,6 +38,7 @@ public class Category {
     private CategoryStatus status;
 
     @Column(name = "created_at", nullable = false)
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
@@ -45,8 +47,4 @@ public class Category {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "category")
     private List<Product> products;
 
-    @PrePersist
-    public void prePersist() {
-        this.createdAt = LocalDateTime.now();
-    }
 }
