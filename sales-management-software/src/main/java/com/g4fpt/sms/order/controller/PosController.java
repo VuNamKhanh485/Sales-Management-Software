@@ -9,9 +9,11 @@ import com.g4fpt.sms.order.repository.OrderTransactionRepository;
 import com.g4fpt.sms.order.service.OrderTransactionService;
 import com.g4fpt.sms.product.entity.Category;
 import com.g4fpt.sms.product.entity.ProductUnit;
+import com.g4fpt.sms.product.entity.Inventory;
 import com.g4fpt.sms.product.enums.ProductStatus;
 import com.g4fpt.sms.product.repository.CategoryRepository;
 import com.g4fpt.sms.product.repository.ProductUnitRepository;
+import com.g4fpt.sms.product.repository.InventoryRepository;
 import com.g4fpt.sms.voucher.entity.Voucher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +40,7 @@ public class PosController {
     private final CustomerRepository customerRepository;
     private final OrderTransactionRepository orderTransactionRepository;
     private final BranchRepository branchRepository;
+    private final InventoryRepository inventoryRepository;
 
     @ModelAttribute("posSession")
     public PosSessionData setupSession() {
@@ -347,6 +350,13 @@ public class PosController {
             map.put("unitName", pu.getUnit() != null ? pu.getUnit().getName() : "");
             map.put("category", pu.getProduct().getCategory() != null
                     ? pu.getProduct().getCategory().getName() : "");
+            
+            // Lấy tồn kho (mặc định 100 để test nếu chưa có bản ghi)
+            Integer stock = inventoryRepository.findByBranchIdAndProductUnitId(1L, pu.getId())
+                    .map(Inventory::getStock)
+                    .orElse(100);
+            map.put("stock", stock);
+            
             return map;
         }).collect(Collectors.toList());
 

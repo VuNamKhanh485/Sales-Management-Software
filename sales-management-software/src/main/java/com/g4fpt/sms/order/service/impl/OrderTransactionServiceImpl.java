@@ -10,6 +10,10 @@ import com.g4fpt.sms.order.repository.OrderTransactionRepository;
 import com.g4fpt.sms.order.service.OrderTransactionService;
 import com.g4fpt.sms.product.entity.ProductUnit;
 import com.g4fpt.sms.product.repository.ProductUnitRepository;
+import com.g4fpt.sms.product.entity.Inventory;
+import com.g4fpt.sms.product.repository.InventoryRepository;
+import com.g4fpt.sms.branch.entity.Branch;
+import com.g4fpt.sms.branch.repository.BranchRepository;
 import com.g4fpt.sms.voucher.entity.Voucher;
 import com.g4fpt.sms.voucher.repository.VoucherRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +32,8 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
     private final ProductUnitRepository productUnitRepository;
     private final CustomerRepository customerRepository;
     private final VoucherRepository voucherRepository;
+    private final InventoryRepository inventoryRepository;
+    private final BranchRepository branchRepository;
 
     @Override
     @Transactional
@@ -103,10 +109,32 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             order.setVoucher(voucher);
         }
 
-        // 9. Tạo OrderTransactionDetail
+        // 9. Tạo OrderTransactionDetail và trừ số lượng trong kho
         for (POSCartItemRequest item : request.getItems()) {
             ProductUnit pu = productUnitRepository.findById(item.getProductUnitId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+
+            // Tìm và trừ kho cho chi nhánh hiện tại
+            Long branchId = request.getBranchId() != null ? request.getBranchId() : 1L;
+            Inventory inventory = inventoryRepository.findByBranchIdAndProductUnitId(branchId, pu.getId())
+                    .orElseGet(() -> {
+                        Branch branch = branchRepository.findById(branchId).orElse(null);
+                        return Inventory.builder()
+                                .branch(branch)
+                                .productUnit(pu)
+                                .stock(100) // Khởi tạo 100 sản phẩm mặc định để test nếu chưa có
+                                .minStock(5)
+                                .maxStock(1000)
+                                .positionInShop("Khu A")
+                                .build();
+                    });
+
+            if (inventory.getStock() < item.getQuantity()) {
+                throw new RuntimeException("Sản phẩm " + pu.getProduct().getName() + " (" + pu.getSku() + ") không đủ số lượng trong kho! Hiện còn: " + inventory.getStock());
+            }
+
+            inventory.setStock(inventory.getStock() - item.getQuantity());
+            inventoryRepository.save(inventory);
 
             OrderTransactionDetail detail = OrderTransactionDetail.builder()
                     .orderTransaction(order)

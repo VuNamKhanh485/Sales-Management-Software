@@ -166,7 +166,7 @@ function searchProducts() {
                              alt="${p.name}">
                         <div class="p-2">
                             <div class="small fw-semibold text-truncate">${p.name}</div>
-                            <div class="text-muted" style="font-size:10px">${p.sku}</div>
+                            <div class="text-muted" style="font-size:10px">Tồn: ${p.stock != null ? p.stock : 0} | ${p.sku}</div>
                             <div class="text-primary fw-bold small">
                                 ${Number(p.price).toLocaleString('vi-VN')}đ
                             </div>

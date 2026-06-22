@@ -1,7 +1,6 @@
 package com.g4fpt.sms.supplier.entity;
 
 import com.g4fpt.sms.supplier.enums.SupplierStatus;
-import com.g4fpt.sms.order.entity.OrderTransaction;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -57,7 +56,4 @@ public class Supplier {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "supplier")
-    List<OrderTransaction> orderTransactionList;
 }

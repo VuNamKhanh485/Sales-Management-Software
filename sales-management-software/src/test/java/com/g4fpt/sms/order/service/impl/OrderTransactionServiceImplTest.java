@@ -13,6 +13,8 @@ import com.g4fpt.sms.voucher.entity.Voucher;
 import com.g4fpt.sms.voucher.enums.DiscountType;
 import com.g4fpt.sms.voucher.enums.VoucherStatus;
 import com.g4fpt.sms.voucher.repository.VoucherRepository;
+import com.g4fpt.sms.product.repository.InventoryRepository;
+import com.g4fpt.sms.branch.repository.BranchRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +46,12 @@ class OrderTransactionServiceImplTest {
 
     @Mock
     private VoucherRepository voucherRepository;
+
+    @Mock
+    private InventoryRepository inventoryRepository;
+
+    @Mock
+    private BranchRepository branchRepository;
 
     @InjectMocks
     private OrderTransactionServiceImpl orderService;
