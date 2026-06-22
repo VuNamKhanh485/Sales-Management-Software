@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách khách hàng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="d-flex">
+
+
+    <div th:replace="~{component/navbar :: sidebar-component}" th:with="page='customer'"></div>
+
+    <div class="flex-grow-1 p-4">
+        
+        <h2 class="mb-3">Quản lý khách hàng</h2>
+                                                                                                                                                                                                                                                                                                                                                                                                                <!-- Flash message -->
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <!-- Toolbar -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <form th:action="@{/customers}" method="GET" class="d-flex gap-2">
+                <input type="text" name="keyword" th:value="${keyword}"
+                       class="form-control" placeholder="Số điện thoại...">
+                <button type="submit" class="btn btn-secondary">Tìm kiếm</button>
+                <a th:if="${keyword != null and !#strings.isEmpty(keyword)}"
+                   th:href="@{/customers}" class="btn btn-outline-secondary">Xóa bộ lọc</a>
+            </form>
+            <a th:href="@{/customers/create}" class="btn btn-primary">+ Thêm khách hàng</a>
+        </div>
+
+        <!-- Bảng danh sách -->
+        <div class="card shadow-sm">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Khách hàng</th>
+                    <th>Số điện thoại</th>
+                    <th>Hạng thẻ</th>
+                    <th>Tổng chi tiêu</th>
+                    <th>Trạng thái</th>  <!-- THÊM MỚI -->
+                    <th>Tác vụ</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="cus : ${customerPage.content}">
+                    <td>
+                        <div class="fw-bold" th:text="${cus.fullName}"></div>
+                        <small class="text-muted" th:text="${cus.email}"></small>
+                    </td>
+                    <td th:text="${cus.phone}"></td>
+                    <td>
+                        <span class="badge bg-info"
+                              th:if="${cus.customerRank != null}"
+                              th:text="${cus.customerRank.name}"></span>
+                        <span class="text-muted" th:unless="${cus.customerRank != null}">—</span>
+                    </td>
+                    <td th:text="${#numbers.formatDecimal(cus.totalRevenue, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                    <!-- THÊM MỚI -->
+                    <td>
+                        <span class="badge"
+                              th:classappend="${cus.status.name() == 'ACTIVE'} ? 'bg-success' : 'bg-secondary'"
+                              th:text="${cus.status.name() == 'ACTIVE'} ? 'Hoạt động' : 'Ngừng'">
+                        </span>
+                    </td>
+                    <td>
+                        <a th:href="@{/customers/detail/{id}(id=${cus.id})}"
+                           class="btn btn-sm btn-outline-primary">Xem</a>
+                        <a th:href="@{/customers/edit/{id}(id=${cus.id})}"
+                           class="btn btn-sm btn-outline-warning">Sửa</a>
+                    </td>
+                </tr>
+                <tr th:if="${customerPage.totalElements == 0}">
+                    <td colspan="6" class="text-center text-muted py-4">
+                        Không tìm thấy khách hàng nào.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between align-items-center p-3">
+                <small class="text-muted">
+                    Hiển thị <span th:text="${customerPage.numberOfElements}"></span> /
+                    <span th:text="${customerPage.totalElements}"></span> khách hàng
+                </small>
+                <nav th:if="${customerPage.totalPages > 1}">
+                    <ul class="pagination mb-0">
+                        <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/customers(page=${currentPage - 1}, keyword=${keyword})}">&laquo;</a>
+                        </li>
+                        <li class="page-item"
+                            th:each="i : ${#numbers.sequence(1, totalPages)}"
+                            th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link"
+                               th:href="@{/customers(page=${i}, keyword=${keyword})}"
+                               th:text="${i}"></a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/customers(page=${currentPage + 1}, keyword=${keyword})}">&raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

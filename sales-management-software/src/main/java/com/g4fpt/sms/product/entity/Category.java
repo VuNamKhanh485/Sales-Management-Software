@@ -4,6 +4,7 @@ import com.g4fpt.sms.product.enums.CategoryStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.List;
  */
 
 @Entity
-@Table(name = "category")
+@Table(name = "Category")
 @Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
@@ -42,6 +43,7 @@ public class Category {
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
+    @UpdateTimestamp
     private LocalDateTime updateAt;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "category")

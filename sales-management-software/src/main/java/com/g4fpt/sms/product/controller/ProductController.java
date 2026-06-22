@@ -1,89 +1,121 @@
 package com.g4fpt.sms.product.controller;
 
-import com.g4fpt.sms.product.dto.ProductRequest;
-import com.g4fpt.sms.product.dto.ProductUnitRequest;
-import com.g4fpt.sms.product.entity.Product;
-import com.g4fpt.sms.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
+import com.g4fpt.sms.product.dto.request.ProductRequest;
+import com.g4fpt.sms.product.dto.response.ProductResponse;
+import com.g4fpt.sms.product.enums.ProductStatus;
+import com.g4fpt.sms.common.exception.ValidationException;
+import com.g4fpt.sms.product.mapper.ProductMapper;
+import com.g4fpt.sms.product.service.*;
+import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @Controller
 @RequestMapping("/product")
+@AllArgsConstructor
 public class ProductController {
 
     private final ProductService productService;
-
-    public ProductController(ProductService productService) {
-        this.productService = productService;
-    }
+    private final CategoryService categoryService;
+    private final BrandService brandService;
+    private final UnitService unitService;
+    private final ProductMapper productMapper;
 
     @GetMapping
-    public String productPage(Model model) {
-        model.addAttribute("productList", productService.getAll());
+    public String list(Model model,
+                       @RequestParam(defaultValue = "") String keyword,
+                       @RequestParam(required = false) Long brandId,
+                       @RequestParam(required = false) Long categoryId,
+                       @RequestParam(required = false) ProductStatus status,
+                       @RequestParam(defaultValue = "0") int page,
+                       @RequestParam(defaultValue = "10") int size,
+                       @RequestParam(defaultValue = "name") String sortField,
+                       @RequestParam(defaultValue = "asc") String sortDir) {
+
+        ProductFilterRequest filter = new ProductFilterRequest();
+        filter.setKeyword(keyword);
+        filter.setBrandId(brandId);
+        filter.setCategoryId(categoryId);
+        filter.setStatus(status);
+
+        Page<ProductResponse> productPage = productService.findAll(filter, size, page, sortField, sortDir);
+
+        model.addAttribute("productPage", productPage);
+        model.addAttribute("filter", filter);
+        model.addAttribute("size", size);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", productPage.getTotalPages());
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+
+        // Cho dropdown filter
+        model.addAttribute("brandList", brandService.findAll());
+        model.addAttribute("categoryList", categoryService.findAll());
+        model.addAttribute("statuses", ProductStatus.values());
+
         return "product/list";
     }
 
-    @GetMapping("/create")
-    public String create(Model model) {
-        model.addAttribute("productRequest", new ProductRequest());
-        return "product/create";
-    }
-
-    @PostMapping("/create")
-    public String create(@ModelAttribute ProductRequest productRequest) {
-        productService.create(productRequest);
-        return "redirect:/product";
-    }
-
-    /**
-     * Update all attribute
-     * @param id
-     * @param model
-     * @return
-     */
-    @GetMapping("/update/{id}")
-    public String update(@PathVariable Long id, Model model) {
-        Product product = productService.findById(id);
-
+    @GetMapping({"/form", "/form/{id}"})
+    public String form(Model model,
+                       @PathVariable(required = false) Long id) {
         ProductRequest productRequest = new ProductRequest();
+        if(id != null) {
+            ProductResponse productResponse = productService.findById(id);
+            productRequest = productMapper.toRequest(productResponse);
+        }
 
-        productRequest.setCategory(product.getCategory());
-        productRequest.setBrand(product.getBrand());
-        productRequest.setName(product.getName());
-        productRequest.setDescription(product.getDescription());
-        productRequest.setStatus(product.getStatus());
-        productRequest.setNote(product.getNote());
-
-        List<ProductUnitRequest> productUnitRequest = product.getProductunits()
-                        .stream()
-                                .map(productUnit -> {
-                                    ProductUnitRequest pRequest = new ProductUnitRequest();
-
-                                    pRequest.setBarcodeUnit(productUnit.getBarcodeUnit());
-                                    pRequest.setSku(productUnit.getSku());
-                                    pRequest.setUnitPrice(productUnit.getPrice());
-                                    pRequest.setIsBaseUnit(productUnit.getIsBaseUnit());
-                                    pRequest.setConventionValue(productUnit.getConventionValue());
-
-                                    return pRequest;
-                                })
-                                        .toList();
-
-        productRequest.setProductUnitsRequest(productUnitRequest);
-
-        model.addAttribute("productRequest", productRequest);
-        return "product/update";
+        addAttributeToForm(model, id);
+        model.addAttribute("productRequest",  productRequest);
+        return "product/form";
     }
 
-    @PostMapping("/update/{id}")
-    public String update(@PathVariable Long id, @ModelAttribute ProductRequest productRequest) {
-        productService.update(id, productRequest);
+    @PostMapping({"/form", "/form/{id}"})
+    public String form(@Valid @ModelAttribute ProductRequest productRequest,
+                         BindingResult result, Model model,
+                         @PathVariable(required = false) Long id) {
+        if (result.hasErrors()) {
+            addAttributeToForm(model, id);
+            return "product/form";
+        }
+
+        try{
+            if(id == null){
+                productService.create(productRequest);
+            }else{
+                productService.update(id, productRequest);
+            }
+
+        }catch(ValidationException e){
+            addAttributeToForm(model, id);
+            e.getErrors().forEach(err ->
+                    result.rejectValue(err.getField(), "error", err.getMessage())
+            );
+            return "product/form";
+        }
+
         return "redirect:/product";
     }
 
-
+    @PostMapping("/delete/{id}")
+    public String delete(@PathVariable Long id) {
+        productService.deleteById(id);
+        return "redirect:/product";
+    }
+    
+    private void addAttributeToForm(Model model, Long id){
+        if(id != null) {
+            model.addAttribute("id", id);
+        }
+        model.addAttribute("categoryList", categoryService.findAll());
+        model.addAttribute("brandList", brandService.findAll());
+        model.addAttribute("unitList", unitService.findAll());
+    }
 }

@@ -5,8 +5,10 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,7 +18,7 @@ import java.util.List;
  */
 
 @Entity
-@Table(name = "product")
+@Table(name = "Product")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -54,6 +56,7 @@ public class Product {
     private String note;
 
     @Column(name = "updated_at")
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 
     @Column(name = "created_at", nullable = false)
@@ -62,5 +65,5 @@ public class Product {
 
     @OneToMany(mappedBy = "product",
                 cascade = CascadeType.ALL)
-    private List<ProductUnit> productunits;
+    private List<ProductUnit> productUnits = new ArrayList<>();
 }
