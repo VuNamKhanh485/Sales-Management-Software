@@ -5,5 +5,5 @@ import java.util.List;
 
 public interface CustomerRankService {
     List<CustomerRank> getAllRanks();
-    CustomerRank getRankById(Long id);
+    CustomerRank createRank(CustomerRank customerRank);
 }

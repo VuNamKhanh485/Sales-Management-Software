@@ -49,7 +49,6 @@ public class Employee {
     @Column(name = "employee_code", nullable = false, unique = true, length = 100)
     private String employeeCode;
 
-
     @Column(name = "full_name", nullable = false, length = 255)
     private String fullName;
 
@@ -96,7 +95,6 @@ public class Employee {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;

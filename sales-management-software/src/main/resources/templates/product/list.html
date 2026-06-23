@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
-    <meta charset="UTF-8"/>
-    <title>Danh sách Sản phẩm</title>
+    <meta charset="UTF-8">
+    <title>Product List</title>
 </head>
 <body>
 
@@ -24,15 +24,13 @@
     </tr>
     </thead>
     <tbody>
-    <tr th:if="${#lists.isEmpty(productList)}">
-        <td colspan="6">Chưa có sản phẩm nào.</td>
-    </tr>
-    <tr th:each="p, stat : ${productList}">
-        <td th:text="${stat.index + 1}"></td>
-        <td th:text="${p.name}"></td>
-        <td th:text="${p.category != null ? p.category.name : ''}"></td>
-        <td th:text="${p.brand != null ? p.brand.name : ''}"></td>
-        <td th:text="${p.status}"></td>
+    <tr th:each="product : ${productList}">
+        <td th:text="${product.id}"></td>
+        <td th:text="${product.name}"></td>
+        <td th:text="${product.category.name}"></td>
+        <td th:text="${product.brand.name}"></td>
+        <td th:text="${product.status}"></td>
+        <td th:text="${product.createdAt}"></td>
         <td>
             <a th:href="@{/product/save/{id}(id=${p.id})}">Sửa</a>
         </td>
