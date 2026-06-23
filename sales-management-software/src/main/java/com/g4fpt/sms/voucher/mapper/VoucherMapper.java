@@ -1,6 +1,6 @@
 package com.g4fpt.sms.voucher.mapper;
 
-import com.g4fpt.sms.voucher.dto.request.VoucherCreateRequest;
+import com.g4fpt.sms.voucher.dto.request.VoucherRequest;
 import com.g4fpt.sms.voucher.dto.response.VoucherResponse;
 import com.g4fpt.sms.voucher.entity.Voucher;
 import com.g4fpt.sms.voucher.enums.VoucherStatus;
@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Component
 public class VoucherMapper {
 
-    public Voucher toEntity(VoucherCreateRequest request) {
+    public Voucher toEntity(VoucherRequest request) {
         if (request == null) {
             return null;
         }
