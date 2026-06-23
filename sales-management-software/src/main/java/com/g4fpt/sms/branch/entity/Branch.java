@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,20 +40,14 @@ public class Branch {
     @Column(nullable = false)
     private BranchStatus status;
 
-    @Column(name = "opened_at")
-    private LocalDate openedAt;
-
-    @Column(name = "closed_at")
-    private LocalDate closedAt;
-
     @Column(columnDefinition = "TEXT")
     private String note;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private LocalDate createdAt;
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private LocalDate updatedAt;
 
     @OneToMany(
             mappedBy = "branch",
@@ -64,11 +57,11 @@ public class Branch {
 
     @PrePersist
     public void prePersist() {
-        createdAt = LocalDateTime.now();
+        createdAt = LocalDate.now();
     }
 
     @PreUpdate
     public void preUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = LocalDate.now();
     }
 }

@@ -1,13 +1,9 @@
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-}
-
+/* Minimal borderless CSS to keep the login card centered while using native HTML style */
 body {
-    min-height: 100vh;
-    background-color: #f5f5f5;
+    margin: 0;
+    font-family: sans-serif;
+    background-color: #ffffff;
+    color: #000000;
 }
 
 .login-wrapper {
@@ -18,85 +14,65 @@ body {
 }
 
 .login-card {
-    width: 360px;
-    padding: 32px;
+    width: 320px;
+    padding: 20px;
+    border: 1px solid #000000;
     background-color: #ffffff;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .login-card h2 {
     text-align: center;
-    margin-bottom: 8px;
-    font-size: 26px;
-    color: #111;
+    margin-bottom: 5px;
 }
 
 .subtitle {
     text-align: center;
-    margin-bottom: 28px;
-    color: #666;
-    font-size: 14px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    color: #555555;
 }
 
 .form-group {
-    margin-bottom: 18px;
+    margin-bottom: 15px;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 6px;
-    font-size: 14px;
-    color: #222;
+    margin-bottom: 5px;
 }
 
 .form-group input {
     width: 100%;
-    padding: 11px 12px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    outline: none;
-    font-size: 14px;
-    background-color: #fff;
-}
-
-.form-group input:focus {
-    border-color: #111;
+    padding: 5px;
+    box-sizing: border-box;
+    border: 1px solid #cccccc;
 }
 
 button {
     width: 100%;
-    padding: 12px;
-    margin-top: 8px;
+    padding: 8px;
+    background-color: #f0f0f0;
     border: none;
-    border-radius: 8px;
-    background-color: #111;
-    color: #fff;
-    font-size: 15px;
     cursor: pointer;
+    font-size: 14px;
+    text-decoration: underline;
 }
 
 button:hover {
-    background-color: #333;
+    background-color: #e0e0e0;
 }
 
 .message {
-    padding: 10px;
-    margin-bottom: 14px;
-    border-radius: 6px;
-    font-size: 14px;
+    padding: 8px;
+    margin-bottom: 15px;
     text-align: center;
+    font-size: 12px;
 }
 
 .error {
-    background-color: #f8d7da;
-    color: #842029;
-    border: 1px solid #f5c2c7;
+    color: #721c24;
 }
 
 .success {
-    background-color: #d1e7dd;
-    color: #0f5132;
-    border: 1px solid #badbcc;
+    color: #155724;
 }
