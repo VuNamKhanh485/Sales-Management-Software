@@ -60,12 +60,12 @@ public class ProductUnit {
     @Column(name = "sku", nullable = false)
     private String sku;
 
-    @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", nullable = false)
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 }
 
