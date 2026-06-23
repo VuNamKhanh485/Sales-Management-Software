@@ -103,14 +103,12 @@ public class CustomerServiceImpl implements CustomerService {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("id").descending());
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-      
-            return customerRepository.findByPhoneContaining(keyword.trim(), pageable);
+            String cleanKeyword = keyword.trim();
+            return customerRepository.findByPhoneContainingOrFullNameContainingIgnoreCase(cleanKeyword, cleanKeyword, pageable);
         }
 
         return customerRepository.findAll(pageable);
     }
-
-    
 
 
 
