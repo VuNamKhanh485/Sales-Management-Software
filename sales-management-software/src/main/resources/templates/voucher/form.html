@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${isEdit} ? 'Sửa Voucher — SMS' : 'Thêm Voucher — SMS'">Voucher — SMS</title>
+    <title th:text="${voucherId != null} ? 'Sửa Voucher — SMS' : 'Thêm Voucher — SMS'">Voucher — SMS</title>
     <meta name="description"
-        th:content="${isEdit} ? 'Chỉnh sửa thông tin voucher trong hệ thống.' : 'Tạo voucher giảm giá mới trong hệ thống bán hàng.'">
+        th:content="${voucherId != null} ? 'Chỉnh sửa thông tin voucher trong hệ thống.' : 'Tạo voucher giảm giá mới trong hệ thống bán hàng.'">
     <style>
         /* ─────────────────────────────────────────
            DESIGN TOKENS  (DESIGN-apple.md)
@@ -432,7 +432,7 @@
         <nav class="sub-nav__breadcrumb">
             <a href="/vouchers">Voucher</a>
             <span class="sep">›</span>
-            <span class="current" th:text="${isEdit} ? 'Sửa voucher' : 'Thêm voucher mới'">Thêm voucher mới</span>
+            <span class="current" th:text="${voucherId != null} ? 'Sửa voucher' : 'Thêm voucher mới'">Thêm voucher mới</span>
         </nav>
     </div>
 
@@ -442,8 +442,8 @@
 
             <!-- Card header -->
             <div class="form-card__header">
-                <div class="form-card__eyebrow" th:text="${isEdit} ? 'Chỉnh sửa' : 'Tạo mới'">Tạo mới</div>
-                <h1 class="form-card__title" th:text="${isEdit} ? 'Sửa Voucher' : 'Thêm Voucher mới'">Thêm Voucher mới
+                <div class="form-card__eyebrow" th:text="${voucherId != null} ? 'Chỉnh sửa' : 'Tạo mới'">Tạo mới</div>
+                <h1 class="form-card__title" th:text="${voucherId != null} ? 'Sửa Voucher' : 'Thêm Voucher mới'">Thêm Voucher mới
                 </h1>
             </div>
 
@@ -451,7 +451,7 @@
             <div th:if="${errorMessage}" th:text="${errorMessage}" class="alert" role="alert"></div>
 
             <!-- Form -->
-            <form th:action="${isEdit} ? @{/vouchers/edit/{id}(id=${voucherId})} : @{/vouchers/create}"
+            <form th:action="${voucherId != null} ? @{/vouchers/edit/{id}(id=${voucherId})} : @{/vouchers/create}"
                 th:object="${request}" method="post" id="voucher-form" novalidate>
 
                 <div class="form-grid">
@@ -555,7 +555,7 @@
                 <div class="action-bar">
                     <a href="/vouchers" class="btn-cancel" id="btn-form-cancel">Hủy</a>
                     <button type="submit" class="btn-submit" id="btn-form-submit"
-                        th:text="${isEdit} ? 'Cập nhật voucher' : 'Tạo voucher'">
+                        th:text="${voucherId != null} ? 'Cập nhật voucher' : 'Tạo voucher'">
                         Tạo voucher
                     </button>
                 </div>
@@ -594,7 +594,7 @@
             const startAt = document.getElementById("startAt");
             const endAt = document.getElementById("endAt");
 
-            const isEdit = [[${isEdit}]];
+            const isEdit = [[${voucherId != null}]];
             if (!isEdit) {
                 const now = new Date();
                 const tzoffset = now.getTimezoneOffset() * 60000;
