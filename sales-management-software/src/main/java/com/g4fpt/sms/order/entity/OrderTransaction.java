@@ -1,6 +1,7 @@
 package com.g4fpt.sms.order.entity;
 
 import com.g4fpt.sms.customer.entity.Customer;
+import com.g4fpt.sms.supplier.entity.Supplier;
 import com.g4fpt.sms.voucher.entity.Voucher;
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "OrderTransaction")
+@Table(name = "ordertransaction")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -34,8 +35,9 @@ public class OrderTransaction {
     @JoinColumn(name = "voucher_id")
     private Voucher voucher;
 
-    @Column(name = "supplier_id")
-    private Long supplierId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplier_id")
+    private Supplier supplier;
 
     @Column(name = "payment_method_id")
     private Long paymentMethodId;

@@ -58,6 +58,7 @@ public class Supplier {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "supplier")
-    List<OrderTransaction> orderTransactionList;
+    @OneToMany
+    @JoinColumn(name = "supplier_id", referencedColumnName = "id", insertable = false, updatable = false)
+    private List<OrderTransaction> orderTransactionList;
 }
