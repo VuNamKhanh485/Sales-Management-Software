@@ -90,24 +90,13 @@ public class VoucherController {
 
         try {
             if (id != null) {
-                VoucherRequest updateRequest = VoucherRequest.builder()
-                        .code(request.getCode())
-                        .name(request.getName())
-                        .discountType(request.getDiscountType())
-                        .discountValue(request.getDiscountValue())
-                        .minOrderAmount(request.getMinOrderAmount())
-                        .maxDiscountAmount(request.getMaxDiscountAmount())
-                        .startAt(request.getStartAt())
-                        .endAt(request.getEndAt())
-                        .status(request.getStatus())
-                        .build();
-                voucherService.update(id, updateRequest);
+                voucherService.update(id, request);
                 redirectAttributes.addFlashAttribute("successMessage", "Cập nhật voucher thành công!");
             } else {
                 voucherService.create(request);
                 redirectAttributes.addFlashAttribute("successMessage", "Tạo voucher thành công!");
             }
-        } catch (AppException e) {
+        } catch (com.g4fpt.sms.common.exception.AppException e) {
             model.addAttribute("errorMessage", e.getMessage());
             if (id != null) {
                 model.addAttribute("voucherId", id);
