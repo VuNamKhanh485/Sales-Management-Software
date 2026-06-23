@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class VoucherCreateRequest {
+public class VoucherRequest {
 
     @NotBlank(message = "Code không được để trống")
     @Size(max = 100, message = "Code không được vượt quá 100 ký tự")
@@ -44,6 +44,7 @@ public class VoucherCreateRequest {
     @NotNull(message = "Thời gian kết thúc không được để trống")
     private LocalDateTime endAt;
 
+    @NotNull(message = "Trạng thái không được để trống")
     @Builder.Default
     private VoucherStatus status = VoucherStatus.ACTIVE;
 }

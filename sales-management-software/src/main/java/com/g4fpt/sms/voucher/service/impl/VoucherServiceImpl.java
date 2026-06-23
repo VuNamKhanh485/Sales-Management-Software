@@ -2,8 +2,7 @@ package com.g4fpt.sms.voucher.service.impl;
 
 import com.g4fpt.sms.common.exception.AppException;
 import com.g4fpt.sms.common.exception.ErrorCode;
-import com.g4fpt.sms.voucher.dto.request.VoucherCreateRequest;
-import com.g4fpt.sms.voucher.dto.request.VoucherUpdateRequest;
+import com.g4fpt.sms.voucher.dto.request.VoucherRequest;
 import com.g4fpt.sms.voucher.dto.response.VoucherResponse;
 import com.g4fpt.sms.voucher.entity.Voucher;
 import com.g4fpt.sms.voucher.enums.DiscountType;
@@ -31,7 +30,7 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     @Transactional
-    public VoucherResponse create(VoucherCreateRequest request) {
+    public VoucherResponse create(VoucherRequest request) {
         if (voucherRepository.existsByCode(request.getCode().trim().toUpperCase())) {
             throw new AppException(ErrorCode.VOUCHER_CODE_EXISTED);
         }
@@ -49,7 +48,7 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     @Transactional
-    public VoucherResponse update(Long id, VoucherUpdateRequest request) {
+    public VoucherResponse update(Long id, VoucherRequest request) {
         Voucher voucher = findById(id);
 
         validateTimeRange(request.getStartAt(), request.getEndAt());
