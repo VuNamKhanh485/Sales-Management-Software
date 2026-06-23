@@ -19,11 +19,6 @@ public class CustomerRankServiceImpl implements CustomerRankService {
     }
 
     @Override
-    public CustomerRank getRankById(Long id) {
-        return customerRankRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hạng khách hàng!"));
-    }
-    @Override
     public CustomerRank createRank(CustomerRank customerRank) {
         return customerRankRepository.save(customerRank);
     }
