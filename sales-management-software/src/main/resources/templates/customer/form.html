@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${customerDTO.id == null ? 'Thêm khách hàng' : 'Chỉnh sửa khách hàng'}"></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="d-flex">
+
+    <!-- SIDEBAR -->
+    <div th:replace="~{component/navbar :: sidebar-component}" th:with="page='customer'"></div>
+
+    <!-- NỘI DUNG CHÍNH -->
+    <div class="flex-grow-1 p-4">
+        <p class="text-muted mb-1">Admin Panel</p>
+        <h2 class="mb-3"
+            th:text="${customerDTO.id == null ? 'Thêm khách hàng mới' : 'Chỉnh sửa khách hàng'}"></h2>
+
+        <div class="card shadow" style="max-width: 800px;">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"
+                    th:text="${customerDTO.id == null ? 'Thông tin khách hàng' : 'Chỉnh sửa thông tin'}"></h5>
+            </div>
+            <div class="card-body">
+
+                <!-- Thông báo -->
+                <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+                <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+                <form th:action="@{/customers/save}" th:object="${customerDTO}" method="POST">
+                    <input type="hidden" th:field="*{id}"/>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Họ và tên *</label>
+                            <input type="text" th:field="*{fullName}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Số điện thoại *</label>
+                            <input type="text" th:field="*{phone}" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" th:field="*{email}" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nhóm khách hàng</label>
+                            <select th:field="*{customerRankId}" class="form-select">
+                                <option value="">-- Chọn hạng thẻ --</option>
+                                <option th:each="rank : ${ranks}"
+                                        th:value="${rank.id}"
+                                        th:text="${rank.name}"></option>
+                            </select>
+                        </div>
+
+                    
+                        <div class="col-md-6 mb-3" th:if="${customerDTO.id != null}">
+                            <label class="form-label">Trạng thái</label>
+                            <select th:field="*{status}" class="form-select">
+                                <option value="ACTIVE">Đang hoạt động</option>
+                                <option value="INACTIVE">Ngừng hoạt động</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Địa chỉ</label>
+                        <input type="text" th:field="*{address}" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea th:field="*{note}" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2">
+                        <a th:href="@{/customers}" class="btn btn-secondary">Hủy</a>
+                        <button type="submit" class="btn btn-primary">Lưu khách hàng</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
