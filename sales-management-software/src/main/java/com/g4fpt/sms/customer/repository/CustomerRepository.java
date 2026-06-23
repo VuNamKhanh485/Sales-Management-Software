@@ -13,8 +13,12 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     boolean existsByPhone(String phone);
 
+
     Optional<Customer> findByPhone(String phone);
+    Optional<Customer> findByFullName(String fullName);
 
     Page<Customer> findByPhoneContaining(String phone, Pageable pageable);
+
+    Page<Customer> findByPhoneContainingOrFullNameContainingIgnoreCase(String phone, String fullName, Pageable pageable);
 
 }
