@@ -310,7 +310,8 @@ CREATE TABLE ProductUnit (
 	price DECIMAL(12,2) NOT NULL DEFAULT 0,
 
     is_base_unit BOOLEAN NOT NULL DEFAULT FALSE,
-
+	status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+    
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL,
 
@@ -460,7 +461,6 @@ CREATE TABLE OrderTransaction (
             total_amount >= 0
             AND discount_amount >= 0
             AND final_amount >= 0
-            AND final_amount <= total_amount
         ),
 
     CONSTRAINT chk_order_paid
