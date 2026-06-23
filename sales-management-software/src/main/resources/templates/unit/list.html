@@ -8,31 +8,67 @@
 
 <h2>Danh sách Đơn vị tính</h2>
 
-<a th:href="@{/unit/create}">+ Thêm đơn vị tính</a>
+<form th:action="@{/unit}" method="get">
+    <label>
+        Search:
+        <input type="text" name="keyword" placeholder="Nhập tên ..." th:value="${keyword}">
+    </label>
+    <button type="submit">Tìm kiếm</button>
+</form>
 
-<br/><br/>
+<a th:href="@{/unit/form/{id}(id=0)}">+ Thêm đơn vị tính</a>
 
-<table border="1" cellpadding="8" cellspacing="0">
+<table style="border: 1px solid black; border-collapse: collapse; border-spacing: 5px;">
     <thead>
     <tr>
         <th>#</th>
-        <th>Tên đơn vị</th>
+        <th>
+            <a th:href="@{/category(
+                keyword=${keyword},
+                page=${currentPage},
+                size=${size},
+                sortField='name',
+                sortDir=${reverseSortDir})}">
+            Tên đơn vị
+            </a>
+        </th>
         <th>Thao tác</th>
     </tr>
     </thead>
     <tbody>
-    <tr th:if="${#lists.isEmpty(unitList)}">
+    <tr th:if="${unitPage.content.isEmpty()}">
         <td colspan="3">Chưa có đơn vị tính nào.</td>
     </tr>
-    <tr th:each="u, stat : ${unitList}">
+    <tr th:each="u, stat : ${unitPage.content}">
         <td th:text="${stat.index + 1}"></td>
         <td th:text="${u.name}"></td>
         <td>
-            <a th:href="@{/unit/update/{id}(id=${u.id})}">Sửa</a>
+            <a th:href="@{/unit/form/{id}(id=${u.id})}">Sửa</a>
         </td>
     </tr>
     </tbody>
 </table>
+
+<div th:if="${unitPage.totalPages > 1}">
+    <span th:each="i : ${#numbers.sequence(0, unitPage.totalPages - 1)}">
+
+        <a th:if="${i != currentPage}"
+           th:href="@{/brand(
+                keyword=${keyword},
+                page=${i},
+                size=${size},
+                sortField=${sortField},
+                sortDir=${sortDir})}"
+           th:text="${i + 1}">
+        </a>
+
+        <span th:if="${i == currentPage}"
+              th:text="${i + 1}">
+        </span>
+
+        &nbsp;
+    </span>
+</div>
 
 </body>
 </html>

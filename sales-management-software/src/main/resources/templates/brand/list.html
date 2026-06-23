@@ -8,33 +8,73 @@
 
 <h2>Danh sách Thương hiệu</h2>
 
-<a th:href="@{/brand/save/{id}(id=0)}">+ Thêm thương hiệu</a>
+<form th:action="@{/brand}" method="get">
+    <input type="text" name="keyword" placeholder="Nhập tên thương hiệu..." th:value="${keyword}">
 
-<br/><br/>
+    <button type="submit">Tìm kiếm</button>
+</form>
 
-<table border="1" cellpadding="8" cellspacing="0">
+<a th:href="@{/brand/form/{id}(id=0)}">+ Thêm thương hiệu</a>
+
+<table style="border: 1px solid black; border-collapse: collapse; border-spacing: 5px;">
     <thead>
     <tr>
         <th>#</th>
-        <th>Tên thương hiệu</th>
-        <th>Trạng thái</th>
+
+        <th>
+            <a th:href="@{/brand(
+                keyword=${keyword},
+                page=${currentPage},
+                size=${size},
+                sortField='name',
+                sortDir=${reverseSortDir})}">Tên thương hiệu</a>
+        </th>
+        <th>
+            <a th:href="@{/brand(
+                keyword=${keyword},
+                page=${currentPage},
+                size=${size},
+                sortField='status',
+                sortDir=${reverseSortDir})}">Trạng thái</a>
+        </th>
         <th>Thao tác</th>
     </tr>
     </thead>
     <tbody>
-    <tr th:if="${#lists.isEmpty(brand)}">
+    <tr th:if="${brandPage.content.isEmpty()}">
         <td colspan="4">Chưa có thương hiệu nào.</td>
     </tr>
-    <tr th:each="b, stat : ${brand}">
-        <td th:text="${stat.index + 1}"></td>
+    <tr th:each="b, stat : ${brandPage.content}">
+        <td th:text="${currentPage * size + stat.index + 1}"></td>
         <td th:text="${b.name}"></td>
         <td th:text="${b.status}"></td>
         <td>
-            <a th:href="@{/brand/save/{id}(id=${b.id})}">Sửa</a>
+            <a th:href="@{/brand/form/{id}(id=${b.id})}">Chi tiết</a>
         </td>
     </tr>
     </tbody>
 </table>
+
+<div th:if="${brandPage.totalPages > 1}">
+    <span th:each="i : ${#numbers.sequence(0, brandPage.totalPages - 1)}">
+
+        <a th:if="${i != currentPage}"
+           th:href="@{/brand(
+                keyword=${keyword},
+                page=${i},
+                size=${size},
+                sortField=${sortField},
+                sortDir=${sortDir})}"
+           th:text="${i + 1}">
+        </a>
+
+        <span th:if="${i == currentPage}"
+              th:text="${i + 1}">
+        </span>
+
+        &nbsp;
+    </span>
+</div>
 
 </body>
 </html>
