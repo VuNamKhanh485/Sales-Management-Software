@@ -22,4 +22,9 @@ public class CustomerRankServiceImpl implements CustomerRankService {
     public CustomerRank createRank(CustomerRank customerRank) {
         return customerRankRepository.save(customerRank);
     }
+
+    @Override
+    public CustomerRank getRankById(Long id) {
+        return customerRankRepository.findById(id).orElseThrow(() -> new RuntimeException("Customer Rank not found"));
+    }
 }

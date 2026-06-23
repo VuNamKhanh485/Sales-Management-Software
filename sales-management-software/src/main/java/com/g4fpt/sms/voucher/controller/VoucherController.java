@@ -1,8 +1,7 @@
 package com.g4fpt.sms.voucher.controller;
 
 import com.g4fpt.sms.common.exception.AppException;
-import com.g4fpt.sms.voucher.dto.request.VoucherCreateRequest;
-import com.g4fpt.sms.voucher.dto.request.VoucherUpdateRequest;
+import com.g4fpt.sms.voucher.dto.request.VoucherRequest;
 import com.g4fpt.sms.voucher.dto.response.VoucherResponse;
 import com.g4fpt.sms.voucher.enums.VoucherStatus;
 import com.g4fpt.sms.voucher.service.VoucherService;
@@ -53,7 +52,7 @@ public class VoucherController {
     public String form(@PathVariable(required = false) Long id, Model model) {
         if (id != null) {
             VoucherResponse response = voucherService.getById(id);
-            VoucherCreateRequest request = VoucherCreateRequest.builder()
+            VoucherRequest request = VoucherRequest.builder()
                     .code(response.getCode())
                     .name(response.getName())
                     .discountType(response.getDiscountType())
@@ -67,7 +66,7 @@ public class VoucherController {
             model.addAttribute("request", request);
             model.addAttribute("voucherId", id);
         } else {
-            model.addAttribute("request", new VoucherCreateRequest());
+            model.addAttribute("request", new VoucherRequest());
         }
 
         return "voucher/form";
@@ -77,7 +76,7 @@ public class VoucherController {
     @PostMapping({"/vouchers/create", "/vouchers/edit/{id}"})
     public String save(
             @PathVariable(required = false) Long id,
-            @Valid @ModelAttribute("request") VoucherCreateRequest request,
+            @Valid @ModelAttribute("request") VoucherRequest request,
             BindingResult bindingResult,
             Model model,
             RedirectAttributes redirectAttributes) {
@@ -91,7 +90,7 @@ public class VoucherController {
 
         try {
             if (id != null) {
-                VoucherUpdateRequest updateRequest = VoucherUpdateRequest.builder()
+                VoucherRequest updateRequest = VoucherRequest.builder()
                         .code(request.getCode())
                         .name(request.getName())
                         .discountType(request.getDiscountType())
