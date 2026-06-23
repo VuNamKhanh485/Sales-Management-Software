@@ -1,25 +1,28 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
     <title>Product List</title>
 </head>
 <body>
-<h1>Product List</h1>
-<a th:href="@{/product/create}">Create Product</a>
-<table>
+
+<h2>Danh sách Sản phẩm</h2>
+
+<a th:href="@{/product/save}">+ Thêm sản phẩm</a>
+
+<br/><br/>
+
+<table border="1" cellpadding="8" cellspacing="0">
     <thead>
     <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Category</th>
-        <th>Brand</th>
-        <th>Status</th>
-        <th>Create at</th>
-        <th>Action</th>
+        <th>#</th>
+        <th>Tên sản phẩm</th>
+        <th>Danh mục</th>
+        <th>Thương hiệu</th>
+        <th>Trạng thái</th>
+        <th>Thao tác</th>
     </tr>
     </thead>
-
     <tbody>
     <tr th:each="product : ${productList}">
         <td th:text="${product.id}"></td>
@@ -29,16 +32,11 @@
         <td th:text="${product.status}"></td>
         <td th:text="${product.createdAt}"></td>
         <td>
-            <a th:href="@{/product/update/{id}(id=${product.id})}">
-                Update
-            </a>
-
-            <a th:href="@{/product/delete/{id}(id=${product.id})}">
-                Delete
-            </a>
+            <a th:href="@{/product/save/{id}(id=${p.id})}">Sửa</a>
         </td>
     </tr>
     </tbody>
 </table>
+
 </body>
 </html>

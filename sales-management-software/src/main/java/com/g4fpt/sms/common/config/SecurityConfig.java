@@ -1,5 +1,6 @@
 package com.g4fpt.sms.common.config;
 
+import com.g4fpt.sms.auth.security.CustomSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,16 +12,20 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private CustomSuccessHandler customSuccessHandler;
+
+    public SecurityConfig(CustomSuccessHandler customSuccessHandler) {
+        this.customSuccessHandler = customSuccessHandler;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http.authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
-                        .requestMatchers("/owner/**").hasRole("OWNER")
-                        .requestMatchers("/manager/**").hasRole("BRANCH_MANAGER")
-                        .requestMatchers("/sale/**").hasRole("SALE_STAFF")
-                        .requestMatchers("/warehouse/**").hasRole("WAREHOUSE_STAFF")
+                        .requestMatchers("/branch", "/branch/detail/**").hasAnyRole("OWNER", "MANAGER")
+                        .requestMatchers("/branch/**").hasAnyRole("OWNER")
+                        .requestMatchers("/employee/**").hasAnyRole("OWNER", "MANAGER")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -28,7 +33,7 @@ public class SecurityConfig {
                         .loginProcessingUrl("/login")
                         .usernameParameter("email")
                         .passwordParameter("password")
-                        .defaultSuccessUrl("/home", true)
+                        .successHandler(customSuccessHandler)
                         .failureUrl("/login?error=true")
                         .permitAll()
 

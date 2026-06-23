@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Danh sách Đơn vị tính</title>
+</head>
+<body>
+
+<h2>Danh sách Đơn vị tính</h2>
+
+<a th:href="@{/unit/create}">+ Thêm đơn vị tính</a>
+
+<br/><br/>
+
+<table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Tên đơn vị</th>
+        <th>Thao tác</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:if="${#lists.isEmpty(unitList)}">
+        <td colspan="3">Chưa có đơn vị tính nào.</td>
+    </tr>
+    <tr th:each="u, stat : ${unitList}">
+        <td th:text="${stat.index + 1}"></td>
+        <td th:text="${u.name}"></td>
+        <td>
+            <a th:href="@{/unit/update/{id}(id=${u.id})}">Sửa</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
