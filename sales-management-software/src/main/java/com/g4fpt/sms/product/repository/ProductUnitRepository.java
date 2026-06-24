@@ -3,6 +3,8 @@ package com.g4fpt.sms.product.repository;
 import com.g4fpt.sms.product.entity.ProductUnit;
 import com.g4fpt.sms.product.enums.ProductStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -25,4 +27,10 @@ public interface ProductUnitRepository extends JpaRepository<ProductUnit, Long> 
     List<ProductUnit> findByProduct_CategoryIdAndProduct_Status(
         Long categoryId, ProductStatus status);
     List<ProductUnit> findByProduct_Status(ProductStatus status);
+    @Query("""
+            SELECT CASE WHEN COUNT(otd) > 0 THEN true ELSE false END
+            FROM OrderTransactionDetail otd
+            WHERE otd.productUnit.id =: productUnitId
+    """)
+    boolean existInOrderTransaction(@Param("productUnitId") Long productUnitId);
 }

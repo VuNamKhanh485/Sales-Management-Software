@@ -11,4 +11,6 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
 
     Page<OrderTransaction> findByCustomerIdOrderByCreatedAtDesc(
             Long customerId, Pageable pageable);
+
+
 }
