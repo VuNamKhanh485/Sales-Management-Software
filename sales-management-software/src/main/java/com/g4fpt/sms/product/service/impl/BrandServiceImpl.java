@@ -73,7 +73,7 @@ public class BrandServiceImpl implements BrandService {
         Brand brand = getBrandById(id);
 
         if(brandRepository.existInOrderTransaction(id)){
-            throw new ResourceInUseException("Brand đã tồn tại trong giao dịch");
+            throw new ResourceInUseException("Nhãn hàng đã tồn tại trong giao dịch");
         }
 
         brandRepository.delete(brand);

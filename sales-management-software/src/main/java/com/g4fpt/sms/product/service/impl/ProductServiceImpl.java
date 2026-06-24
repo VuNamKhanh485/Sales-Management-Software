@@ -1,5 +1,6 @@
 package com.g4fpt.sms.product.service.impl;
 
+import com.g4fpt.sms.common.exception.ResourceInUseException;
 import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
 import com.g4fpt.sms.product.dto.request.ProductRequest;
 import com.g4fpt.sms.product.dto.response.ProductResponse;
@@ -86,9 +87,13 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void deleteById(long id) {
-        getProductById(id); // kiểm tra tồn tại
-        // TODO: kiểm tra ràng buộc orderTransaction trước khi xóa
-        productRepository.deleteById(id);
+        Product product = getProductById(id); // kiểm tra tồn tại
+
+        if(productRepository.existInOrderTransaction(id)){
+            throw new ResourceInUseException("Sản phẩm đã nằm trong giao dịch");
+        }
+
+        productRepository.delete(product);
     }
 
     @Override
