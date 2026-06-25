@@ -53,15 +53,14 @@ public class BrandController {
         if(id != 0) {
             try {
                 BrandResponse brandResponse = brandService.findById(id);
-
                 brandRequest.setBrandName(brandResponse.getName());
                 brandRequest.setBrandStatus(brandResponse.getStatus());
-                model.addAttribute("brandRequest", brandRequest);
             }catch (NotFoundException e){
                 redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
                 return "redirect:/brand";
             }
         }
+        model.addAttribute("brandRequest", brandRequest);
         return "brand/form";
     }
 

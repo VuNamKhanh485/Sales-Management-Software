@@ -41,4 +41,21 @@ public class SupplierMapper {
 
         return supplierResponse;
     }
+
+    public SupplierRequest toRequest(SupplierResponse supplierResponse) {
+        if (supplierResponse == null) {
+            return null;
+        }
+        SupplierRequest supplierRequest = new SupplierRequest();
+
+        supplierRequest.setCode(supplierResponse.getCode());
+        supplierRequest.setName(supplierResponse.getName());
+        supplierRequest.setPhone(supplierResponse.getPhone());
+        supplierRequest.setEmail(supplierResponse.getEmail());
+        supplierRequest.setAddress(supplierResponse.getAddress());
+        supplierRequest.setStatus(supplierResponse.getStatus());
+        supplierRequest.setNote(supplierResponse.getNote());
+
+        return supplierRequest;
+    }
 }
