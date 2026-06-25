@@ -3,6 +3,7 @@ package com.g4fpt.sms.order.controller;
 import com.g4fpt.sms.branch.repository.BranchRepository;
 import com.g4fpt.sms.customer.entity.Customer;
 import com.g4fpt.sms.customer.repository.CustomerRepository;
+import com.g4fpt.sms.customer.enums.CustomerStatus;
 import com.g4fpt.sms.order.dto.*;
 import com.g4fpt.sms.order.entity.OrderTransaction;
 import com.g4fpt.sms.order.repository.OrderTransactionRepository;
@@ -249,7 +250,9 @@ public class PosController {
 
         String keyword = phone.trim();
         org.springframework.data.domain.Page<Customer> page = customerRepository
-                .findActiveByPhoneOrName(keyword,
+                .findByStatusAndPhoneContainingOrStatusAndFullNameContainingIgnoreCase(
+                        CustomerStatus.ACTIVE, keyword,
+                        CustomerStatus.ACTIVE, keyword,
                         org.springframework.data.domain.PageRequest.of(0, 5));
 
         List<Map<String, Object>> result = page.getContent().stream().map(customer -> {
