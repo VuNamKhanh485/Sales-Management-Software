@@ -1,5 +1,7 @@
 package com.g4fpt.sms.product.controller;
 
+import com.g4fpt.sms.common.exception.NotFoundException;
+import com.g4fpt.sms.common.exception.ResourceInUseException;
 import com.g4fpt.sms.product.dto.request.CategoryRequest;
 import com.g4fpt.sms.product.dto.response.CategoryResponse;
 import com.g4fpt.sms.common.exception.DuplicateException;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("category")
@@ -41,38 +44,62 @@ public class CategoryController {
     }
 
     @GetMapping("/form/{id}")
-    public String updatePage(@PathVariable Long id, Model model) {
-        if(id == 0){
-            model.addAttribute("categoryRequest", new CategoryRequest());
-        }else {
-            CategoryResponse categoryResponse = categoryService.findById(id);
+    public String updatePage(@PathVariable Long id, Model model,
+                             RedirectAttributes redirectAttributes) {
+        CategoryRequest categoryRequest = new CategoryRequest();
+        if(id != 0){
+            try {
+                CategoryResponse categoryResponse = categoryService.findById(id);
 
-            CategoryRequest categoryRequest = new CategoryRequest();
-            categoryRequest.setCategoryName(categoryResponse.getName());
-            categoryRequest.setCategoryStatus(categoryResponse.getCategoryStatus());
-            categoryRequest.setDescription(categoryResponse.getDescription());
-
-            model.addAttribute("categoryRequest", categoryRequest);
+                categoryRequest.setCategoryName(categoryResponse.getName());
+                categoryRequest.setCategoryStatus(categoryResponse.getCategoryStatus());
+                categoryRequest.setDescription(categoryResponse.getDescription());
+            }catch (NotFoundException e){
+                redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                return "redirect:/category";
+            }
         }
+        model.addAttribute("categoryRequest", categoryRequest);
+
         return "category/form";
     }
 
     @PostMapping("/form/{id}")
     public String update(@PathVariable Long id, @Valid @ModelAttribute CategoryRequest categoryRequest,
-                         BindingResult result) {
+                         BindingResult result, RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             return "category/form";
         }
+        String action;
         try {
             if(id == 0){
+                action = "Tạo";
                 categoryService.create(categoryRequest);
             }else {
+                action = "Sửa";
                 categoryService.update(id, categoryRequest);
             }
-        }catch(DuplicateException e) {
+        }catch(DuplicateException | NotFoundException e) {
             result.rejectValue("CategoryName", "error.CategoryName",e.getMessage());
             return "category/form";
         }
+
+        redirectAttributes.addFlashAttribute(
+                "successMessage",
+                action + " danh mục thành công!");
+        return "redirect:/category";
+    }
+
+    @PostMapping("/delete")
+    public String delete(@RequestParam("id") Long id,
+                         RedirectAttributes redirectAttributes) {
+        try {
+            categoryService.deleteById(id);
+        }catch (NotFoundException | ResourceInUseException e){
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/category";
+        }
+        redirectAttributes.addFlashAttribute("successMessage", "Xóa thành công");
         return "redirect:/category";
     }
 

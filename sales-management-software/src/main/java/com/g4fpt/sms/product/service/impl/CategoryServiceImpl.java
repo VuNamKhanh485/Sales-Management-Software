@@ -1,5 +1,6 @@
 package com.g4fpt.sms.product.service.impl;
 
+import com.g4fpt.sms.common.exception.ResourceInUseException;
 import com.g4fpt.sms.product.dto.request.CategoryRequest;
 import com.g4fpt.sms.product.dto.response.CategoryResponse;
 import com.g4fpt.sms.product.entity.Category;
@@ -69,8 +70,12 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteById(long id) {
-        //cần có phần orderTranscation
-        categoryRepository.deleteById(id);
+        Category category = getCategoryById(id);
+
+        if(categoryRepository.existInOrderTransaction(id)){
+            throw new ResourceInUseException("Danh sách đã tồn tại trong giao dịch");
+        }
+        categoryRepository.delete(category);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.g4fpt.sms.product.service.impl;
 
+import com.g4fpt.sms.common.exception.ResourceInUseException;
 import com.g4fpt.sms.product.dto.request.BrandRequest;
 import com.g4fpt.sms.product.dto.response.BrandResponse;
 import com.g4fpt.sms.product.entity.Brand;
@@ -70,8 +71,13 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public void deleteById(long id) {
-        //cần có phần orderTranscation
-        brandRepository.deleteById(id);
+        Brand brand = getBrandById(id);
+
+        if(brandRepository.existInOrderTransaction(id)){
+            throw new ResourceInUseException("Nhãn hàng đã tồn tại trong giao dịch");
+        }
+
+        brandRepository.delete(brand);
     }
 
     @Override

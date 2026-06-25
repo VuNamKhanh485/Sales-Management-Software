@@ -362,10 +362,10 @@ function loadSalesHistory() {
         .then(data => {
             const tbody = document.getElementById('salesHistoryTableBody');
             tbody.innerHTML = '';
-            
+
             const isOwner = data.isOwner;
             const orders = data.orders || [];
-            
+
             const thBranch = document.getElementById('historyBranchCol');
             const totalCols = isOwner ? 7 : 6;
             if (isOwner) {
@@ -373,12 +373,12 @@ function loadSalesHistory() {
             } else {
                 if (thBranch) thBranch.style.display = 'none';
             }
-            
+
             if (orders.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="${totalCols}" class="text-center text-muted py-4">Không có hóa đơn nào được bán trong ngày này.</td></tr>`;
                 return;
             }
-            
+
             orders.forEach(order => {
                 let dateStr = "";
                 if (order.createdAt) {
@@ -389,9 +389,9 @@ function loadSalesHistory() {
                     const month = String(dt.getMonth() + 1).padStart(2, '0');
                     dateStr = `${hours}:${minutes} ${day}/${month}`;
                 }
-                
+
                 const amountFormatted = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.finalAmount);
-                
+
                 let statusBadge = '';
                 if (order.status === 'COMPLETED') {
                     statusBadge = '<span class="badge bg-success">Hoàn thành</span>';
@@ -402,7 +402,7 @@ function loadSalesHistory() {
                 }
 
                 const tr = document.createElement('tr');
-                
+
                 let branchCell = '';
                 if (isOwner) {
                     branchCell = `<td><span class="badge bg-light text-dark border">${order.branchName || 'SMS STORE'}</span></td>`;
@@ -427,7 +427,7 @@ function loadSalesHistory() {
         .catch(err => {
             console.error('Error fetching sales history:', err);
             const totalCols = (document.getElementById('historyBranchCol') && document.getElementById('historyBranchCol').style.display !== 'none') ? 7 : 6;
-            document.getElementById('salesHistoryTableBody').innerHTML = 
+            document.getElementById('salesHistoryTableBody').innerHTML =
                 `<tr><td colspan="${totalCols}" class="text-center text-danger py-4">Có lỗi xảy ra khi tải dữ liệu!</td></tr>`;
         });
 }
@@ -497,11 +497,11 @@ function showOrderDetail(orderId) {
 
             const totalAmountFormatted = new Intl.NumberFormat('vi-VN').format(order.totalAmount) + 'đ';
             const discountFormatted = '-' + new Intl.NumberFormat('vi-VN').format(order.discountAmount) + 'đ';
-            
+
             // Calculate VAT: finalAmount + discountAmount - totalAmount
             const vatAmount = Number(order.finalAmount) + Number(order.discountAmount) - Number(order.totalAmount);
             const vatFormatted = new Intl.NumberFormat('vi-VN').format(vatAmount) + 'đ';
-            
+
             const finalAmountFormatted = new Intl.NumberFormat('vi-VN').format(order.finalAmount) + 'đ';
             const paidFormatted = new Intl.NumberFormat('vi-VN').format(order.paidAmount) + 'đ';
             const changeFormatted = new Intl.NumberFormat('vi-VN').format(order.changeAmount) + 'đ';
@@ -529,7 +529,7 @@ function showOrderDetail(orderId) {
                         <span>${totalAmountFormatted}</span>
                     </div>
             `;
-            
+
             if (Number(order.discountAmount) > 0) {
                 html += `
                     <div class="d-flex justify-content-between mb-1 text-danger">
@@ -538,7 +538,7 @@ function showOrderDetail(orderId) {
                     </div>
                 `;
             }
-            
+
             html += `
                     <div class="d-flex justify-content-between mb-1">
                         <span>Thuế VAT (2%):</span>
@@ -588,7 +588,7 @@ function backToSalesHistory() {
     if (detailModal) {
         detailModal.hide();
     }
-    
+
     const historyModalEl = document.getElementById('salesHistoryModal');
     let historyModal = bootstrap.Modal.getInstance(historyModalEl);
     if (!historyModal) {

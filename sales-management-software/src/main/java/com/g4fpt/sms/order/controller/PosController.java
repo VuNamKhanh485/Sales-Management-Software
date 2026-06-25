@@ -3,6 +3,7 @@ package com.g4fpt.sms.order.controller;
 import com.g4fpt.sms.branch.repository.BranchRepository;
 import com.g4fpt.sms.customer.entity.Customer;
 import com.g4fpt.sms.customer.repository.CustomerRepository;
+import com.g4fpt.sms.customer.enums.CustomerStatus;
 import com.g4fpt.sms.order.dto.*;
 import com.g4fpt.sms.order.entity.OrderTransaction;
 import com.g4fpt.sms.order.repository.OrderTransactionRepository;
@@ -249,7 +250,9 @@ public class PosController {
 
         String keyword = phone.trim();
         org.springframework.data.domain.Page<Customer> page = customerRepository
-                .findByPhoneContainingOrFullNameContainingIgnoreCase(keyword, keyword,
+                .findByStatusAndPhoneContainingOrStatusAndFullNameContainingIgnoreCase(
+                        CustomerStatus.ACTIVE, keyword,
+                        CustomerStatus.ACTIVE, keyword,
                         org.springframework.data.domain.PageRequest.of(0, 5));
 
         List<Map<String, Object>> result = page.getContent().stream().map(customer -> {
@@ -287,9 +290,9 @@ public class PosController {
 
         List<OrderTransaction> orders;
         if (isOwner) {
-            orders = orderTransactionRepository.findByDateRange(startOfDay, endOfDay);
+            orders = orderTransactionRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(startOfDay, endOfDay);
         } else {
-            orders = orderTransactionRepository.findByCreatedByAndDateRange(
+            orders = orderTransactionRepository.findByCreatedByAndCreatedAtBetweenOrderByCreatedAtDesc(
                     userDetails.getEmployee().getId(), startOfDay, endOfDay);
         }
 
@@ -306,9 +309,8 @@ public class PosController {
 
             String branchName = "SMS STORE";
             if (order.getBranchId() != null) {
-                branchName = branchNames.computeIfAbsent(order.getBranchId(), id ->
-                    branchRepository.findById(id).map(b -> b.getName()).orElse("SMS STORE")
-                );
+                branchName = branchNames.computeIfAbsent(order.getBranchId(),
+                        id -> branchRepository.findById(id).map(b -> b.getName()).orElse("SMS STORE"));
             }
             map.put("branchName", branchName);
 
@@ -373,7 +375,14 @@ public class PosController {
             @RequestParam Long customerId,
             @RequestParam String customerName,
             @RequestParam String customerPhone,
-            @ModelAttribute("posSession") PosSessionData session) {
+            @ModelAttribute("posSession") PosSessionData session,
+            RedirectAttributes ra) {
+
+        Customer customer = customerRepository.findById(customerId).orElse(null);
+        if (customer == null || customer.getStatus() != com.g4fpt.sms.customer.enums.CustomerStatus.ACTIVE) {
+            ra.addFlashAttribute("error", "Khách hàng này hiện đang ngừng hoạt động hoặc không tồn tại!");
+            return "redirect:/pos";
+        }
 
         PosCart cart = session.getActiveCart();
         cart.setCustomerId(customerId);
