@@ -8,5 +8,5 @@ import java.math.BigDecimal;
 
 public interface OrderTransactionService {
     OrderTransaction processCheckout(POSCheckoutRequest request);
-    Voucher validateVoucher(String code, BigDecimal totalAmount);
+    Voucher validateVoucher(String code, BigDecimal totalAmount, Long customerId);
 }

@@ -50,6 +50,7 @@ public class ProductController {
         model.addAttribute("filter", filter);
         model.addAttribute("size", size);
         model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", productPage.getTotalPages());
         model.addAttribute("sortField", sortField);
         model.addAttribute("sortDir", sortDir);
         model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");

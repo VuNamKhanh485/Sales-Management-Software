@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <head>
     <meta charset="UTF-8">
     <title>Quản lý bán hàng - POS</title>
@@ -8,502 +8,602 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link th:href="@{/css/pos.css}" rel="stylesheet">
 </head>
+
 <body>
-<div class="d-flex h-100">
+    <div class="d-flex h-100">
 
-    <!-- SIDEBAR -->
-    <div th:replace="~{component/navbar :: sidebar-component}" th:with="page='pos'"></div>
+        <!-- SIDEBAR -->
+        <div th:replace="~{component/navbar :: sidebar-component}" th:with="page='pos'"></div>
 
-    <!-- POS WRAPPER -->
-    <div class="pos-wrapper flex-grow-1">
+        <!-- POS WRAPPER -->
+        <div class="pos-wrapper flex-grow-1">
 
-        <!-- ===== LEFT ===== -->
-        <div class="pos-left">
+            <!-- ===== LEFT ===== -->
+            <div class="pos-left">
 
-            <!-- Flash messages -->
-            <div th:if="${error}"
-                 class="alert alert-danger alert-dismissible mx-2 mt-2 py-2 mb-0">
-                <span th:text="${error}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <div th:if="${success}"
-                 class="alert alert-success alert-dismissible mx-2 mt-2 py-2 mb-0">
-                <span th:text="${success}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-
-            <!-- Tabs + SKU cùng hàng -->
-            <div class="order-tabs-row">
-
-                <!-- SKU input -->
-                <form th:action="@{/pos/add}" method="GET"
-                      class="d-flex gap-2 me-2" style="min-width:220px">
-                    <input type="text" name="keyword"
-                           class="form-control form-control-sm"
-                           placeholder="Quét SKU / barcode..." autofocus>
-                    <button type="submit" class="btn btn-primary btn-sm px-2">
-                        <i class="bi bi-upc-scan"></i>
-                    </button>
-                </form>
-
-                <div class="vr mx-1"></div>
-
-                <!-- Order tabs -->
-                <div th:each="entry : ${posData.carts}" class="d-flex">
-                    <a th:href="@{/pos/switch/{i}(i=${entry.key})}"
-                       th:classappend="${entry.key == session.activeIndex} ? 'active'"
-                       class="order-tab">
-                        <i class="bi bi-receipt" style="font-size:12px"></i>
-                        <span th:text="'Đơn ' + ${entry.key}"></span>
-                        <span th:if="${!entry.value.items.isEmpty()}"
-                              class="badge bg-danger rounded-pill"
-                              style="font-size:10px"
-                              th:text="${entry.value.items.size()}"></span>
-                        <span class="close-btn"
-                              th:onclick="'confirmCloseOrder(' + ${entry.key} + ', event)'">✕</span>
-                    </a>
+                <!-- Flash messages -->
+                <div th:if="${error}" class="alert alert-danger alert-dismissible mx-2 mt-2 py-2 mb-0">
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <div th:if="${success}" class="alert alert-success alert-dismissible mx-2 mt-2 py-2 mb-0">
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
 
-                <!-- Nút thêm đơn -->
-                <a th:if="${posData.canAddOrder()}"
-                   th:href="@{/pos/new-order}"
-                   class="btn-new-order" title="Thêm đơn mới">+</a>
-                <span th:unless="${posData.canAddOrder()}"
-                      class="text-muted small">Tối đa 5 đơn</span>
-            </div>
+                <!-- Tabs + SKU cùng hàng -->
+                <div class="order-tabs-row">
 
-            <!-- Cart table -->
-            <div class="cart-table-wrapper">
-                <table class="table cart-table mb-0">
-                    <thead>
-                    <tr>
-                        <th style="width:36px">STT</th>
-                        <th>Tên sản phẩm</th>
-                        <th style="width:60px">ĐVT</th>
-                        <th style="width:110px">Số lượng</th>
-                        <th style="width:90px">Đơn giá</th>
-                        <th style="width:100px">Thành tiền</th>
-                        <th style="width:36px"></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="item, stat : ${cart.items}">
-                        <td class="text-muted" th:text="${stat.count}"></td>
-                        <td>
-                            <div class="fw-semibold" th:text="${item.name}"></div>
-                            <div class="text-muted" style="font-size:11px"
-                                 th:text="${item.sku}"></div>
-                        </td>
-                        <td th:text="${item.unitName}"></td>
-                        <td>
-                            <div class="qty-control">
-                                <a th:href="@{/pos/update-qty(index=${stat.index},quantity=${item.quantity - 1})}"
-                                   class="btn btn-outline-secondary btn-sm qty-btn">−</a>
-                                <span class="fw-bold"
-                                      style="min-width:28px;text-align:center"
-                                      th:text="${item.quantity}"></span>
-                                <a th:href="@{/pos/update-qty(index=${stat.index},quantity=${item.quantity + 1})}"
-                                   class="btn btn-outline-primary btn-sm qty-btn">+</a>
-                            </div>
-                        </td>
-                        <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
-                        <td class="fw-semibold text-primary"
-                            th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
-                        <td>
-                            <a th:href="@{/pos/remove(index=${stat.index})}"
-                               class="btn btn-sm btn-outline-danger qty-btn">
-                                <i class="bi bi-trash" style="font-size:11px"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(cart.items)}">
-                        <td colspan="7" class="text-center text-muted py-5">
-                            <i class="bi bi-cart fs-1 d-block mb-2"></i>
-                            Chưa có sản phẩm — quét mã hoặc chọn từ danh sách bên dưới
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Bottom toolbar -->
-            <div class="pos-toolbar">
-                <button class="btn btn-outline-primary btn-sm"
-                        data-bs-toggle="modal" data-bs-target="#productModal">
-                    <i class="bi bi-grid me-1"></i>Danh sách sản phẩm
-                </button>
-                <a th:href="@{/orders}" class="btn btn-outline-warning btn-sm">
-                    <i class="bi bi-arrow-return-left me-1"></i>Đổi trả hàng
-                </a>
-                <button class="btn btn-outline-success btn-sm"
-                        data-bs-toggle="modal" data-bs-target="#voucherModal">
-                    <i class="bi bi-tag me-1"></i>Khuyến mãi
-                </button>
-                <form th:action="@{/pos/clear}" method="get" onsubmit="return confirm('Xóa toàn bộ đơn hàng hiện tại?')" class="ms-auto">
-                    <button type="submit" class="btn btn-outline-danger btn-sm">
-                        <i class="bi bi-trash me-1"></i>Xóa đơn
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- ===== RIGHT: Thanh toán ===== -->
-        <div class="pos-right">
-
-            <div class="panel-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-receipt me-1"></i>Hóa đơn</span>
-                <span class="badge bg-white text-primary"
-                      th:text="'Đơn ' + ${posData.activeIndex}"></span>
-            </div>
-
-            <!-- Khách hàng -->
-            <div class="panel-customer">
-                <div th:if="${cart.customerId == null}">
-                    <div class="d-flex gap-2 mb-1">
-                        <input type="text" id="customerPhone"
-                               class="form-control form-control-sm"
-                               placeholder="SĐT hoặc tên khách hàng...">
-                        <button class="btn btn-outline-primary btn-sm px-2"
-                                onclick="findCustomer()" title="Tìm">
-                            <i class="bi bi-search"></i>
+                    <!-- SKU input -->
+                    <form th:action="@{/pos/add}" method="GET" class="d-flex gap-2 me-2" style="min-width:220px">
+                        <input type="text" name="keyword" class="form-control form-control-sm"
+                            placeholder="Quét SKU / barcode..." autofocus>
+                        <button type="submit" class="btn btn-primary btn-sm px-2">
+                            <i class="bi bi-upc-scan"></i>
                         </button>
-                        <button class="btn btn-outline-success btn-sm px-2"
-                                data-bs-toggle="modal"
-                                data-bs-target="#newCustomerModal"
-                                title="Thêm khách mới">
-                            <i class="bi bi-person-plus"></i>
-                        </button>
+                    </form>
+
+                    <div class="vr mx-1"></div>
+
+                    <!-- Order tabs -->
+                    <div th:each="entry : ${posData.carts}" class="d-flex">
+                        <a th:href="@{/pos/switch/{i}(i=${entry.key})}"
+                            th:classappend="${entry.key == session.activeIndex} ? 'active'" class="order-tab">
+                            <i class="bi bi-receipt" style="font-size:12px"></i>
+                            <span th:text="'Đơn ' + ${entry.key}"></span>
+                            <span th:if="${!entry.value.items.isEmpty()}" class="badge bg-danger rounded-pill"
+                                style="font-size:10px" th:text="${entry.value.items.size()}"></span>
+                            <span class="close-btn"
+                                th:onclick="'confirmCloseOrder(' + ${entry.key} + ', event)'">✕</span>
+                        </a>
                     </div>
-                    <div id="customerResult"></div>
+
+                    <!-- Nút thêm đơn -->
+                    <a th:if="${posData.canAddOrder()}" th:href="@{/pos/new-order}" class="btn-new-order"
+                        title="Thêm đơn mới">+</a>
+                    <span th:unless="${posData.canAddOrder()}" class="text-muted small">Tối đa 5 đơn</span>
                 </div>
-                <div th:unless="${cart.customerId == null}"
-                     class="customer-info d-flex justify-content-between align-items-center">
-                    <div>
-                        <i class="bi bi-person-fill text-primary me-1"></i>
-                        <span class="fw-semibold small"
-                              th:text="${cart.customerName}"></span>
-                        <div class="text-muted" style="font-size:11px"
-                             th:text="${cart.customerPhone}"></div>
-                    </div>
-                    <a th:href="@{/pos/remove-customer}"
-                       class="btn btn-sm btn-outline-danger py-0">
-                        <i class="bi bi-x"></i>
+
+                <!-- Cart table -->
+                <div class="cart-table-wrapper">
+                    <table class="table cart-table mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width:36px">STT</th>
+                                <th>Tên sản phẩm</th>
+                                <th style="width:60px">ĐVT</th>
+                                <th style="width:110px">Số lượng</th>
+                                <th style="width:90px">Đơn giá</th>
+                                <th style="width:100px">Thành tiền</th>
+                                <th style="width:36px"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item, stat : ${cart.items}">
+                                <td class="text-muted" th:text="${stat.count}"></td>
+                                <td>
+                                    <div class="fw-semibold" th:text="${item.name}"></div>
+                                    <div class="text-muted" style="font-size:11px" th:text="${item.sku}"></div>
+                                </td>
+                                <td th:text="${item.unitName}"></td>
+                                <td>
+                                    <div class="qty-control">
+                                        <a th:href="@{/pos/update-qty(index=${stat.index},quantity=${item.quantity - 1})}"
+                                            class="btn btn-outline-secondary btn-sm qty-btn">−</a>
+                                        <span class="fw-bold" style="min-width:28px;text-align:center"
+                                            th:text="${item.quantity}"></span>
+                                        <a th:href="@{/pos/update-qty(index=${stat.index},quantity=${item.quantity + 1})}"
+                                            class="btn btn-outline-primary btn-sm qty-btn">+</a>
+                                    </div>
+                                </td>
+                                <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                                <td class="fw-semibold text-primary"
+                                    th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')} + 'đ'">
+                                </td>
+                                <td>
+                                    <a th:href="@{/pos/remove(index=${stat.index})}"
+                                        class="btn btn-sm btn-outline-danger qty-btn">
+                                        <i class="bi bi-trash" style="font-size:11px"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(cart.items)}">
+                                <td colspan="7" class="text-center text-muted py-5">
+                                    <i class="bi bi-cart fs-1 d-block mb-2"></i>
+                                    Chưa có sản phẩm — quét mã hoặc chọn từ danh sách bên dưới
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Bottom toolbar -->
+                <div class="pos-toolbar">
+                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#productModal">
+                        <i class="bi bi-grid me-1"></i>Danh sách sản phẩm
+                    </button>
+                    <a th:href="@{/orders}" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-arrow-return-left me-1"></i>Đổi trả hàng
                     </a>
-                </div>
-            </div>
-
-            <!-- Footer thanh toán -->
-            <div class="panel-footer">
-
-                <!-- Voucher -->
-                <div class="mb-3" th:if="${cart.voucherCode == null}">
-                    <div class="d-flex gap-2">
-                        <input type="text" id="voucherCode"
-                               class="form-control form-control-sm"
-                               placeholder="Mã giảm giá...">
-                        <button class="btn btn-outline-primary btn-sm"
-                                onclick="applyVoucher()">Áp dụng</button>
+                    <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#voucherModal">
+                        <i class="bi bi-tag me-1"></i>Khuyến mãi
+                    </button>
+                    <button class="btn btn-outline-info btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#salesHistoryModal" onclick="loadSalesHistory()">
+                        <i class="bi bi-clock-history me-1"></i>Lịch sử bán hàng
+                    </button>
+                    <!-- Chi nhánh Selector (Chỉ dành cho Owner) -->
+                    <div th:if="${isOwner}" class="dropdown ms-2">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-shop me-1"></i>
+                            <span th:text="${activeBranch != null ? activeBranch.name : 'SMS STORE'}">SMS STORE</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li th:each="br : ${branches}">
+                                <a class="dropdown-item" th:href="@{/pos/change-branch(branchId=${br.id})}" th:text="${br.name}"></a>
+                            </li>
+                        </ul>
                     </div>
-                    <div id="voucherMsg" class="small mt-1"></div>
-                </div>
-                <div class="mb-3" th:unless="${cart.voucherCode == null}">
-                    <div class="d-flex justify-content-between align-items-center
-                                bg-success bg-opacity-10 rounded p-2">
-                        <span class="small text-success">
-                            <i class="bi bi-tag-fill me-1"></i>
-                            <span th:text="${cart.voucherCode}"></span>
+
+                    <!-- Chi nhánh hiện tại (Cho Cashier thường) -->
+                    <div th:unless="${isOwner}" class="ms-2 d-inline-flex align-items-center">
+                        <span class="badge bg-secondary py-2 px-3">
+                            <i class="bi bi-shop me-1"></i>
+                            <span th:text="${activeBranch != null ? activeBranch.name : 'SMS STORE'}">SMS STORE</span>
                         </span>
-                        <a th:href="@{/pos/remove-voucher}"
-                           class="btn btn-sm btn-outline-danger py-0">
+                    </div>
+
+                    <form th:action="@{/pos/clear}" method="get"
+                        onsubmit="return confirm('Xóa toàn bộ đơn hàng hiện tại?')" class="ms-auto">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-trash me-1"></i>Xóa đơn
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ===== RIGHT: Thanh toán ===== -->
+            <div class="pos-right">
+
+                <div class="panel-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-receipt me-1"></i>Hóa đơn</span>
+                    <span class="badge bg-white text-primary" th:text="'Đơn ' + ${posData.activeIndex}"></span>
+                </div>
+
+                <!-- Khách hàng -->
+                <div class="panel-customer">
+                    <div th:if="${cart.customerId == null}">
+                        <div class="d-flex gap-2 mb-1">
+                            <input type="text" id="customerPhone" class="form-control form-control-sm"
+                                placeholder="SĐT hoặc tên khách hàng...">
+                            <button class="btn btn-outline-primary btn-sm px-2" onclick="findCustomer()" title="Tìm">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            <button class="btn btn-outline-success btn-sm px-2" data-bs-toggle="modal"
+                                data-bs-target="#newCustomerModal" title="Thêm khách mới">
+                                <i class="bi bi-person-plus"></i>
+                            </button>
+                        </div>
+                        <div id="customerResult"></div>
+                    </div>
+                    <div th:unless="${cart.customerId == null}"
+                        class="customer-info d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-person-fill text-primary me-1"></i>
+                            <span class="fw-semibold small" th:text="${cart.customerName}"></span>
+                            <div class="text-muted" style="font-size:11px" th:text="${cart.customerPhone}"></div>
+                        </div>
+                        <a th:href="@{/pos/remove-customer}" class="btn btn-sm btn-outline-danger py-0">
                             <i class="bi bi-x"></i>
                         </a>
                     </div>
                 </div>
 
-                <!-- Tổng tiền -->
-                <div class="mb-3">
-                    <div class="summary-row">
-                        <span>Tổng tiền hàng</span>
-                        <span th:text="${#numbers.formatDecimal(cart.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                    </div>
-                    <div class="summary-row text-danger">
-                        <span>Giảm giá</span>
-                        <span th:text="'- ' + ${#numbers.formatDecimal(cart.voucherDiscount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                    </div>
-                    <div class="summary-row">
-                        <span>Thuế VAT (8%)</span>
-                        <span th:text="${#numbers.formatDecimal(cart.vatAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                    </div>
-                    <div class="summary-row total">
-                        <span>Khách phải trả</span>
-                        <span th:text="${#numbers.formatDecimal(cart.finalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                    </div>
-                </div>
+                <!-- Footer thanh toán -->
+                <div class="panel-footer">
 
-                <!-- Form thanh toán -->
-                <form th:action="@{/pos/checkout}" method="POST">
-                    <div class="mb-2">
-                        <label class="form-label small fw-semibold mb-1">
-                            Phương thức thanh toán
-                        </label>
-                        <div class="d-flex gap-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio"
-                                       name="paymentMethodId" value="1"
-                                       id="pmCash" checked>
-                                <label class="form-check-label small" for="pmCash">
-                                    <i class="bi bi-cash"></i> Tiền mặt
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio"
-                                       name="paymentMethodId" value="2"
-                                       id="pmTransfer">
-                                <label class="form-check-label small" for="pmTransfer">
-                                    <i class="bi bi-qr-code"></i> Chuyển khoản
-                                </label>
-                            </div>
+                    <!-- Voucher -->
+                    <div class="mb-3" th:if="${cart.voucherCode == null}">
+                        <div class="d-flex gap-2">
+                            <input type="text" id="voucherCode" class="form-control form-control-sm"
+                                placeholder="Mã giảm giá...">
+                            <button class="btn btn-outline-primary btn-sm" onclick="applyVoucher()">Áp dụng</button>
+                        </div>
+                        <div id="voucherMsg" class="small mt-1"></div>
+                    </div>
+                    <div class="mb-3" th:unless="${cart.voucherCode == null}">
+                        <div class="d-flex justify-content-between align-items-center
+                                bg-success bg-opacity-10 rounded p-2">
+                            <span class="small text-success">
+                                <i class="bi bi-tag-fill me-1"></i>
+                                <span th:text="${cart.voucherCode}"></span>
+                            </span>
+                            <a th:href="@{/pos/remove-voucher}" class="btn btn-sm btn-outline-danger py-0">
+                                <i class="bi bi-x"></i>
+                            </a>
                         </div>
                     </div>
 
-                    <div class="mb-2">
-                        <label class="form-label small fw-semibold mb-1">
-                            Tiền khách đưa
-                        </label>
-                        <input type="number" name="givenAmount" id="givenAmount"
-                               class="form-control form-control-sm"
-                               th:value="${cart.finalAmount}"
-                               min="0" step="any"
-                               oninput="calcChange()">
-                        <div class="d-flex flex-wrap gap-1 mt-1"
-                             id="amountSuggestions"></div>
+                    <!-- Tổng tiền -->
+                    <div class="mb-3">
+                        <div class="summary-row">
+                            <span>Tổng tiền hàng</span>
+                            <span
+                                th:text="${#numbers.formatDecimal(cart.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        </div>
+                        <div class="summary-row text-danger">
+                            <span>Giảm giá</span>
+                            <span
+                                th:text="'- ' + ${#numbers.formatDecimal(cart.voucherDiscount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Thuế VAT (2%)</span>
+                            <span
+                                th:text="${#numbers.formatDecimal(cart.vatAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Khách phải trả</span>
+                            <span
+                                th:text="${#numbers.formatDecimal(cart.finalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        </div>
                     </div>
 
-                    <div class="summary-row mb-2">
-                        <span class="small">Tiền thừa trả khách</span>
-                        <span class="fw-bold text-success" id="changeDisplay">0đ</span>
-                    </div>
+                    <!-- Form thanh toán -->
+                    <form th:action="@{/pos/checkout}" method="POST">
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold mb-1">
+                                Phương thức thanh toán
+                            </label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="paymentMethodId" value="1"
+                                        id="pmCash" checked>
+                                    <label class="form-check-label small" for="pmCash">
+                                        <i class="bi bi-cash"></i> Tiền mặt
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="paymentMethodId" value="2"
+                                        id="pmTransfer">
+                                    <label class="form-check-label small" for="pmTransfer">
+                                        <i class="bi bi-qr-code"></i> Chuyển khoản
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
 
-                    <div class="mb-2">
-                        <input type="text" name="note"
-                               class="form-control form-control-sm"
-                               placeholder="Ghi chú...">
-                    </div>
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold mb-1">
+                                Tiền khách đưa
+                            </label>
+                            <input type="number" name="givenAmount" id="givenAmount"
+                                class="form-control form-control-sm" th:value="${cart.finalAmount}" min="0" step="any"
+                                oninput="calcChange()">
+                            <div class="d-flex flex-wrap gap-1 mt-1" id="amountSuggestions"></div>
+                        </div>
 
-                    <button type="submit" class="btn btn-primary w-100 fw-bold">
-                        <i class="bi bi-check-circle me-1"></i>
-                        XÁC NHẬN THANH TOÁN
-                    </button>
-                </form>
+                        <div class="summary-row mb-2">
+                            <span class="small">Tiền thừa trả khách</span>
+                            <span class="fw-bold text-success" id="changeDisplay">0đ</span>
+                        </div>
+
+                        <div class="mb-2">
+                            <input type="text" name="note" class="form-control form-control-sm"
+                                placeholder="Ghi chú...">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 fw-bold">
+                            <i class="bi bi-check-circle me-1"></i>
+                            XÁC NHẬN THANH TOÁN
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Modal: Danh sách sản phẩm -->
-<div class="modal fade" id="productModal" tabindex="-1">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header py-2">
-                <h6 class="modal-title fw-bold">
-                    <i class="bi bi-grid me-1"></i>Danh sách sản phẩm
-                </h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="d-flex gap-2 mb-3 flex-wrap">
-                    <input type="text" id="modalKeyword"
-                           class="form-control form-control-sm"
-                           placeholder="Tìm theo tên, SKU..."
-                           style="max-width:250px"
-                           oninput="searchProducts()">
-                    <select id="modalCategory"
-                            class="form-select form-select-sm"
-                            style="max-width:180px"
+    <!-- Modal: Danh sách sản phẩm -->
+    <div class="modal fade" id="productModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        <i class="bi bi-grid me-1"></i>Danh sách sản phẩm
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex gap-2 mb-3 flex-wrap">
+                        <input type="text" id="modalKeyword" class="form-control form-control-sm"
+                            placeholder="Tìm theo tên, SKU..." style="max-width:250px" oninput="searchProducts()">
+                        <select id="modalCategory" class="form-select form-select-sm" style="max-width:180px"
                             onchange="searchProducts()">
-                        <option value="">Tất cả danh mục</option>
-                        <option th:each="cat : ${categories}"
-                                th:value="${cat.id}"
-                                th:text="${cat.name}"></option>
-                    </select>
+                            <option value="">Tất cả danh mục</option>
+                            <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                        </select>
+                    </div>
+                    <div id="productGrid" class="row g-2"></div>
                 </div>
-                <div id="productGrid" class="row g-2"></div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Modal: Thêm khách hàng mới -->
-<div class="modal fade" id="newCustomerModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header py-2">
-                <h6 class="modal-title fw-bold">
-                    <i class="bi bi-person-plus me-1"></i>Thêm khách hàng mới
-                </h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div id="newCustomerMsg"></div>
-                <div class="mb-2">
-                    <label class="form-label small fw-semibold">Họ tên *</label>
-                    <input type="text" id="nc_name"
-                           class="form-control form-control-sm"
-                           placeholder="Nguyễn Văn A">
+    <!-- Modal: Thêm khách hàng mới -->
+    <div class="modal fade" id="newCustomerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold">
+                        <i class="bi bi-person-plus me-1"></i>Thêm khách hàng mới
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="mb-2">
-                    <label class="form-label small fw-semibold">Số điện thoại *</label>
-                    <input type="text" id="nc_phone"
-                           class="form-control form-control-sm"
-                           placeholder="0901234567">
+                <div class="modal-body">
+                    <div id="newCustomerMsg"></div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold">Họ tên *</label>
+                        <input type="text" id="nc_name" class="form-control form-control-sm" placeholder="Nguyễn Văn A">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold">Số điện thoại *</label>
+                        <input type="text" id="nc_phone" class="form-control form-control-sm" placeholder="0901234567">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold">Email</label>
+                        <input type="email" id="nc_email" class="form-control form-control-sm">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold">Địa chỉ</label>
+                        <input type="text" id="nc_address" class="form-control form-control-sm">
+                    </div>
                 </div>
-                <div class="mb-2">
-                    <label class="form-label small fw-semibold">Email</label>
-                    <input type="email" id="nc_email"
-                           class="form-control form-control-sm">
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="saveNewCustomer()">
+                        <i class="bi bi-check me-1"></i>Lưu khách hàng
+                    </button>
                 </div>
-                <div class="mb-2">
-                    <label class="form-label small fw-semibold">Địa chỉ</label>
-                    <input type="text" id="nc_address"
-                           class="form-control form-control-sm">
-                </div>
-            </div>
-            <div class="modal-footer py-2">
-                <button type="button" class="btn btn-secondary btn-sm"
-                        data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-primary btn-sm"
-                        onclick="saveNewCustomer()">
-                    <i class="bi bi-check me-1"></i>Lưu khách hàng
-                </button>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Modal: Khuyến mãi -->
-<div class="modal fade" id="voucherModal" tabindex="-1">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header py-2">
-                <h6 class="modal-title fw-bold">
-                    <i class="bi bi-tag me-1"></i>Nhập mã khuyến mãi
-                </h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <input type="text" id="modalVoucherCode"
-                       class="form-control form-control-sm mb-2"
-                       placeholder="Nhập mã voucher...">
-                <div id="modalVoucherMsg" class="small"></div>
-            </div>
-            <div class="modal-footer py-2">
-                <button type="button" class="btn btn-primary btn-sm w-100"
-                        onclick="applyVoucherFromModal()">
-                    Áp dụng
-                </button>
+    <!-- Modal: Khuyến mãi -->
+    <div class="modal fade" id="voucherModal" tabindex="-1">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header py-2 bg-primary text-white">
+                    <h6 class="modal-title fw-bold text-white">
+                        <i class="bi bi-gift-fill me-1"></i>Chương trình Khuyến mãi
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Nhập mã thủ công -->
+                    <label class="form-label small fw-bold text-muted">Nhập mã khuyến mãi thủ công:</label>
+                    <div class="d-flex gap-2 mb-3">
+                        <input type="text" id="modalVoucherCode" class="form-control form-control-sm"
+                            placeholder="Nhập mã voucher...">
+                        <button type="button" class="btn btn-primary btn-sm px-3 fw-bold"
+                            onclick="applyVoucherFromModal()">
+                            Áp dụng
+                        </button>
+                    </div>
+                    <div id="modalVoucherMsg" class="small mb-3"></div>
+
+                    <!-- Danh sách voucher khả dụng -->
+                    <div class="border-top pt-3">
+                        <h6 class="fw-bold text-dark d-flex align-items-center mb-2" style="font-size: 13px;">
+                            <i class="bi bi-ticket-perforated-fill text-danger me-2"></i>Khuyến mãi dành riêng cho bạn:
+                        </h6>
+                        <div id="availableVouchersList" class="list-group" style="max-height: 280px; overflow-y: auto;">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer py-1">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Modal Receipt Hóa đơn thành công -->
-<div class="modal fade" id="successReceiptModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
-        <div class="modal-content">
-            <div class="modal-header py-2 bg-success text-white">
-                <h6 class="modal-title fw-bold">
-                    <i class="bi bi-check-circle-fill me-1"></i>Thanh toán thành công!
-                </h6>
+    <!-- Modal Receipt Hóa đơn thành công -->
+    <div class="modal fade" id="successReceiptModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
+            <div class="modal-content">
+                <div class="modal-header py-2 bg-success text-white">
+                    <h6 class="modal-title fw-bold">
+                        <i class="bi bi-check-circle-fill me-1"></i>Thanh toán thành công!
+                    </h6>
+                </div>
+                <div class="modal-body bg-light">
+                    <!-- Thiết kế biên lai hóa đơn bán hàng -->
+                    <div id="receiptPrintArea" class="bg-white p-4 shadow-sm rounded border receipt-container text-dark"
+                        style="font-family: 'Courier New', Courier, monospace; font-size: 13px; line-height: 1.4;">
+                        <div class="text-center mb-3">
+                            <h5 class="fw-bold mb-1" style="font-family: inherit;"
+                                th:text="${successBranch != null ? successBranch.name : 'SMS STORE'}">SMS STORE</h5>
+                            <p class="mb-0 text-muted" style="font-size: 11px;"
+                                th:text="${successBranch != null ? successBranch.address : '123 Đường Láng, Đống Đa, Hà Nội'}">
+                                123 Đường Láng, Đống Đa, Hà Nội</p>
+                            <p class="mb-0 text-muted" style="font-size: 11px;"
+                                th:text="${successBranch != null && successBranch.phone != null} ? 'SĐT: ' + ${successBranch.phone} : 'SĐT: 0987 654 321'">SĐT: 0987 654 321</p>
+                            <div class="my-2" style="border-top: 1px dashed #ccc;"></div>
+                            <h6 class="fw-bold my-2" style="font-family: inherit;">HÓA ĐƠN BÁN HÀNG</h6>
+                        </div>
+
+                        <div th:if="${successOrder != null}">
+                            <p class="mb-1"><strong>Mã hóa đơn:</strong> <span th:text="${successOrder.code}"></span>
+                            </p>
+                            <p class="mb-1"><strong>Ngày tạo:</strong> <span
+                                    th:text="${#temporals.format(successOrder.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                            </p>
+                            <p class="mb-1"><strong>Khách hàng:</strong> <span
+                                    th:text="${successOrder.customer != null ? successOrder.customer.fullName : 'Khách lẻ'}"></span>
+                            </p>
+                            <p class="mb-1" th:if="${successOrder.customer != null}"><strong>SĐT:</strong> <span
+                                    th:text="${successOrder.customer.phone}"></span></p>
+                            <div class="my-2" style="border-top: 1px dashed #ccc;"></div>
+
+                            <table class="w-100 mb-2" style="font-size: 12px; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid #ddd;">
+                                        <th class="text-start pb-1">Tên SP</th>
+                                        <th class="text-center pb-1" style="width: 40px;">SL</th>
+                                        <th class="text-end pb-1" style="width: 80px;">Đơn giá</th>
+                                        <th class="text-end pb-1" style="width: 80px;">T.Tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="detail : ${successOrder.details}">
+                                        <td class="py-1 text-start" th:text="${detail.productUnit.product.name}"></td>
+                                        <td class="py-1 text-center" th:text="${detail.quantity}"></td>
+                                        <td class="py-1 text-end"
+                                            th:text="${#numbers.formatDecimal(detail.salePrice, 0, 'COMMA', 0, 'POINT')} + 'đ'">
+                                        </td>
+                                        <td class="py-1 text-end"
+                                            th:text="${#numbers.formatDecimal(detail.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div class="my-2" style="border-top: 1px dashed #ccc;"></div>
+
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Tổng tiền hàng:</span>
+                                <span
+                                    th:text="${#numbers.formatDecimal(successOrder.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1 text-danger"
+                                th:if="${successOrder.discountAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                                <span>Giảm giá:</span>
+                                <span
+                                    th:text="'-' + ${#numbers.formatDecimal(successOrder.discountAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Thuế VAT (2%):</span>
+                                <span
+                                    th:text="${#numbers.formatDecimal(successOrder.finalAmount.add(successOrder.discountAmount).subtract(successOrder.totalAmount), 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1 fw-bold text-primary"
+                                style="font-size: 14px;">
+                                <span>KHÁCH PHẢI TRẢ:</span>
+                                <span
+                                    th:text="${#numbers.formatDecimal(successOrder.finalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Tiền khách đưa:</span>
+                                <span
+                                    th:text="${#numbers.formatDecimal(successOrder.paidAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1 text-success fw-bold">
+                                <span>Tiền thừa:</span>
+                                <span
+                                    th:text="${#numbers.formatDecimal(successOrder.changeAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                            </div>
+
+                            <div class="my-2" style="border-top: 1px dashed #ccc;"></div>
+                            <div class="text-center mt-3 small text-muted">
+                                <p class="mb-0">Cảm ơn quý khách. Hẹn gặp lại!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer py-2 d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-success btn-sm" onclick="downloadReceiptPdf()">
+                        <i class="bi bi-file-pdf me-1"></i>Xuất PDF
+                    </button>
+                </div>
             </div>
-            <div class="modal-body bg-light">
-                <!-- Thiết kế biên lai hóa đơn bán hàng -->
-                <div id="receiptPrintArea" class="bg-white p-4 shadow-sm rounded border receipt-container text-dark" style="font-family: 'Courier New', Courier, monospace; font-size: 13px; line-height: 1.4;">
-                    <div class="text-center mb-3">
-                        <h5 class="fw-bold mb-1" style="font-family: inherit;" th:text="${successBranch != null ? successBranch.name : 'SMS STORE'}">SMS STORE</h5>
-                        <p class="mb-0 text-muted" style="font-size: 11px;" th:text="${successBranch != null ? successBranch.address : '123 Đường Láng, Đống Đa, Hà Nội'}">123 Đường Láng, Đống Đa, Hà Nội</p>
-                        <p class="mb-0 text-muted" style="font-size: 11px;">SĐT: 0987 654 321</p>
-                        <div class="my-2" style="border-top: 1px dashed #ccc;"></div>
-                        <h6 class="fw-bold my-2" style="font-family: inherit;">HÓA ĐƠN BÁN HÀNG</h6>
+        </div>
+    </div>
+
+    <!-- Modal: Lịch sử bán hàng -->
+    <div class="modal fade" id="salesHistoryModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header py-2 bg-info text-white">
+                    <h6 class="modal-title fw-bold text-white">
+                        <i class="bi bi-clock-history me-1"></i>Lịch sử bán hàng cá nhân
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Bộ lọc theo ngày -->
+                    <div class="d-flex gap-2 align-items-center mb-3">
+                        <label class="small fw-semibold text-muted mb-0">Chọn ngày:</label>
+                        <input type="date" id="historyFilterDate" class="form-control form-control-sm" style="max-width: 180px;" onchange="loadSalesHistory()">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="resetHistoryDate()">Hôm nay</button>
                     </div>
                     
-                    <div th:if="${successOrder != null}">
-                        <p class="mb-1"><strong>Mã hóa đơn:</strong> <span th:text="${successOrder.code}"></span></p>
-                        <p class="mb-1"><strong>Ngày tạo:</strong> <span th:text="${#temporals.format(successOrder.createdAt, 'dd/MM/yyyy HH:mm')}"></span></p>
-                        <p class="mb-1"><strong>Khách hàng:</strong> <span th:text="${successOrder.customer != null ? successOrder.customer.fullName : 'Khách lẻ'}"></span></p>
-                        <p class="mb-1" th:if="${successOrder.customer != null}"><strong>SĐT:</strong> <span th:text="${successOrder.customer.phone}"></span></p>
-                        <div class="my-2" style="border-top: 1px dashed #ccc;"></div>
-                        
-                        <table class="w-100 mb-2" style="font-size: 12px; border-collapse: collapse;">
-                            <thead>
-                                <tr style="border-bottom: 1px solid #ddd;">
-                                    <th class="text-start pb-1">Tên SP</th>
-                                    <th class="text-center pb-1" style="width: 40px;">SL</th>
-                                    <th class="text-end pb-1" style="width: 80px;">Đơn giá</th>
-                                    <th class="text-end pb-1" style="width: 80px;">T.Tiền</th>
+                    <!-- Bảng danh sách đơn hàng đã bán -->
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm align-middle mb-0" style="font-size: 13px;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Mã hóa đơn</th>
+                                    <th id="historyBranchCol" style="display: none;">Chi nhánh</th>
+                                    <th>Thời gian</th>
+                                    <th>Khách hàng</th>
+                                    <th class="text-end">Tổng thanh toán</th>
+                                    <th class="text-center">Trạng thái</th>
+                                    <th class="text-center">Thao tác</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr th:each="detail : ${successOrder.details}">
-                                    <td class="py-1 text-start" th:text="${detail.productUnit.product.name}"></td>
-                                    <td class="py-1 text-center" th:text="${detail.quantity}"></td>
-                                    <td class="py-1 text-end" th:text="${#numbers.formatDecimal(detail.salePrice, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
-                                    <td class="py-1 text-end" th:text="${#numbers.formatDecimal(detail.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
-                                </tr>
+                            <tbody id="salesHistoryTableBody">
+                                <!-- Rendered via JS -->
                             </tbody>
                         </table>
-                        
-                        <div class="my-2" style="border-top: 1px dashed #ccc;"></div>
-                        
-                        <div class="d-flex justify-content-between mb-1">
-                            <span>Tổng tiền hàng:</span>
-                            <span th:text="${#numbers.formatDecimal(successOrder.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1 text-danger" th:if="${successOrder.discountAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
-                            <span>Giảm giá:</span>
-                            <span th:text="'-' + ${#numbers.formatDecimal(successOrder.discountAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1">
-                            <span>Thuế VAT (8%):</span>
-                            <span th:text="${#numbers.formatDecimal(successOrder.finalAmount.add(successOrder.discountAmount).subtract(successOrder.totalAmount), 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1 fw-bold text-primary" style="font-size: 14px;">
-                            <span>KHÁCH PHẢI TRẢ:</span>
-                            <span th:text="${#numbers.formatDecimal(successOrder.finalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1">
-                            <span>Tiền khách đưa:</span>
-                            <span th:text="${#numbers.formatDecimal(successOrder.paidAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1 text-success fw-bold">
-                            <span>Tiền thừa:</span>
-                            <span th:text="${#numbers.formatDecimal(successOrder.changeAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                        </div>
-                        
-                        <div class="my-2" style="border-top: 1px dashed #ccc;"></div>
-                        <div class="text-center mt-3 small text-muted">
-                            <p class="mb-0">Cảm ơn quý khách. Hẹn gặp lại!</p>
-                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer py-2 d-flex justify-content-between">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-success btn-sm" onclick="downloadReceiptPdf()">
-                    <i class="bi bi-file-pdf me-1"></i>Xuất PDF
-                </button>
+                <div class="modal-footer py-1">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Configuration variables from Thymeleaf to JS -->
-<script th:inline="javascript">
-    const finalAmount = /*[[${cart.finalAmount}]]*/ 0;
-    const showSuccessModal = /*[[${successOrder != null}]]*/ false;
-    const successOrderCode = /*[[${successOrder != null ? successOrder.code : ''}]]*/ '';
-</script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script th:src="@{/js/pos.js(v=3)}"></script>
+    <!-- Modal: Chi tiết đơn hàng lịch sử -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
+            <div class="modal-content">
+                <div class="modal-header py-2 bg-secondary text-white">
+                    <h6 class="modal-title fw-bold text-white">
+                        <i class="bi bi-receipt me-1"></i>Chi tiết hóa đơn
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body bg-light">
+                    <!-- Thiết kế biên lai hóa đơn bán hàng giống hệt hóa đơn thanh toán thành công -->
+                    <div id="detailOrderContent" class="bg-white p-4 shadow-sm rounded border receipt-container text-dark"
+                        style="font-family: 'Courier New', Courier, monospace; font-size: 13px; line-height: 1.4;">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+                <div class="modal-footer py-2 d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="backToSalesHistory()">
+                        <i class="bi bi-arrow-left me-1"></i>Quay lại
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration variables from Thymeleaf to JS -->
+    <script th:inline="javascript">
+        const finalAmount = /*[[${cart.finalAmount}]]*/ 0;
+        const customerId = /*[[${cart.customerId}]]*/ null;
+        const showSuccessModal = /*[[${successOrder != null}]]*/ false;
+        const successOrderCode = /*[[${successOrder != null ? successOrder.code : ''}]]*/ '';
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script th:src="@{/js/pos.js(v=3)}"></script>
 </body>
+
 </html>
