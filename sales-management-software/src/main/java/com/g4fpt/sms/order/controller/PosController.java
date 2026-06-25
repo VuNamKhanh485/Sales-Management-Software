@@ -249,7 +249,7 @@ public class PosController {
 
         String keyword = phone.trim();
         org.springframework.data.domain.Page<Customer> page = customerRepository
-                .findByPhoneContainingOrFullNameContainingIgnoreCase(keyword, keyword,
+                .findActiveByPhoneOrName(keyword,
                         org.springframework.data.domain.PageRequest.of(0, 5));
 
         List<Map<String, Object>> result = page.getContent().stream().map(customer -> {
@@ -373,7 +373,14 @@ public class PosController {
             @RequestParam Long customerId,
             @RequestParam String customerName,
             @RequestParam String customerPhone,
-            @ModelAttribute("posSession") PosSessionData session) {
+            @ModelAttribute("posSession") PosSessionData session,
+            RedirectAttributes ra) {
+
+        Customer customer = customerRepository.findById(customerId).orElse(null);
+        if (customer == null || customer.getStatus() != com.g4fpt.sms.customer.enums.CustomerStatus.ACTIVE) {
+            ra.addFlashAttribute("error", "Khách hàng này hiện đang ngừng hoạt động hoặc không tồn tại!");
+            return "redirect:/pos";
+        }
 
         PosCart cart = session.getActiveCart();
         cart.setCustomerId(customerId);
