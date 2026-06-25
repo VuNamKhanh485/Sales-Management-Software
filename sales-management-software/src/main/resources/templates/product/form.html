@@ -462,7 +462,7 @@
             description: ''
         };
         try {
-            const res = await fetch('/category/api/create', {
+            const res = await fetch('/category/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -485,7 +485,7 @@
             brandStatus: document.getElementById('brandStatusInput').value
         };
         try {
-            const res = await fetch('/brand/api/create', {
+            const res = await fetch('/brand/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -505,7 +505,7 @@
         e.preventDefault();
         const data = { name: document.getElementById('unitNameInput').value };
         try {
-            const res = await fetch('/unit/api/create', {
+            const res = await fetch('/unit/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)

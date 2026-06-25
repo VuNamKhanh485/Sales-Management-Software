@@ -103,9 +103,9 @@ public class CategoryController {
         return "redirect:/category";
     }
 
-    @PostMapping("/api/create")
+    @PostMapping("/create")
     @ResponseBody
-    public org.springframework.http.ResponseEntity<?> createApi(@Valid @RequestBody CategoryRequest categoryRequest, BindingResult result) {
+    public org.springframework.http.ResponseEntity<?> createAjax(@Valid @RequestBody CategoryRequest categoryRequest, BindingResult result) {
         if (result.hasErrors()) {
             return org.springframework.http.ResponseEntity.badRequest().body(result.getAllErrors());
         }

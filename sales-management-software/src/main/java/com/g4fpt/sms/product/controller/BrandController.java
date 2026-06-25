@@ -105,9 +105,9 @@ public class BrandController {
         return "redirect:/brand";
     }
 
-    @PostMapping("/api/create")
+    @PostMapping("/create")
     @ResponseBody
-    public org.springframework.http.ResponseEntity<?> createApi(@Valid @RequestBody BrandRequest brandRequest, BindingResult result) {
+    public org.springframework.http.ResponseEntity<?> createAjax(@Valid @RequestBody BrandRequest brandRequest, BindingResult result) {
         if (result.hasErrors()) {
             return org.springframework.http.ResponseEntity.badRequest().body(result.getAllErrors());
         }

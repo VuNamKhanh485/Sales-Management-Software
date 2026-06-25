@@ -116,7 +116,7 @@ function saveNewCustomer() {
     }
 
     const params = new URLSearchParams({ fullName: name, phone, email, address });
-    fetch('/customers/api/quick-create?' + params.toString())
+    fetch('/customers/quick-create?' + params.toString())
         .then(r => r.json())
         .then(data => {
             if (data.success) {
@@ -205,7 +205,7 @@ function applyVoucherFromModal() {
 
 function applyVoucherByCode(code, msgElementId) {
     const msg = document.getElementById(msgElementId);
-    fetch('/pos/api/voucher?code=' + encodeURIComponent(code))
+    fetch('/pos/check-voucher?code=' + encodeURIComponent(code))
         .then(r => r.json())
         .then(data => {
             if (data.success) {

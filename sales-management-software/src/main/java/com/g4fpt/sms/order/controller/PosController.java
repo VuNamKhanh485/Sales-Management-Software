@@ -406,7 +406,7 @@ public class PosController {
     // =============================================
     // 13. API kiểm tra voucher
     // =============================================
-    @GetMapping("/api/voucher")
+    @GetMapping("/check-voucher")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> checkVoucher(
             @RequestParam String code,
