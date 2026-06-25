@@ -15,11 +15,11 @@
 <form th:action="@{/unit/form/{id}(id=${id})}" th:object="${unitRequest}" method="post">
 
     <label>Tên đơn vị:
-        <input type="text" name="name" th:value="${unitResponse.name}"/>
+        <input type="text" name="name" th:value="${name}"/>
     </label>
     <button type="submit">Lưu thay đổi</button>
     <a th:href="@{/unit}">Hủy</a>
-
+    
 </form>
 
 </body>
