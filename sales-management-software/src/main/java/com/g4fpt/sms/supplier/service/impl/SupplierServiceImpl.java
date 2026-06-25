@@ -43,7 +43,7 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
-    public void delete(Long id) {
+    public void deleteById(Long id) {
         Supplier supplier = getSupplierById(id);
 
         if(supplierRepository.existInOrderTransaction(id)){

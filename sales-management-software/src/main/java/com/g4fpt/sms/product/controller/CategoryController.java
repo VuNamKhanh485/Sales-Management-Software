@@ -47,22 +47,20 @@ public class CategoryController {
     public String updatePage(@PathVariable Long id, Model model,
                              RedirectAttributes redirectAttributes) {
         CategoryRequest categoryRequest = new CategoryRequest();
-        if(id == 0){
-            model.addAttribute("categoryRequest", categoryRequest);
-        }else {
+        if(id != 0){
             try {
                 CategoryResponse categoryResponse = categoryService.findById(id);
 
                 categoryRequest.setCategoryName(categoryResponse.getName());
                 categoryRequest.setCategoryStatus(categoryResponse.getCategoryStatus());
                 categoryRequest.setDescription(categoryResponse.getDescription());
-
-                model.addAttribute("categoryRequest", categoryRequest);
             }catch (NotFoundException e){
                 redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
                 return "redirect:/category";
             }
         }
+        model.addAttribute("categoryRequest", categoryRequest);
+
         return "category/form";
     }
 

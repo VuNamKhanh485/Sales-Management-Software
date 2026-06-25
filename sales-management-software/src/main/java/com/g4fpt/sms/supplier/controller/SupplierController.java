@@ -1,8 +1,11 @@
 package com.g4fpt.sms.supplier.controller;
 
 import com.g4fpt.sms.common.exception.DuplicateException;
+import com.g4fpt.sms.common.exception.NotFoundException;
+import com.g4fpt.sms.common.exception.ResourceInUseException;
 import com.g4fpt.sms.supplier.dto.request.SupplierRequest;
 import com.g4fpt.sms.supplier.dto.response.SupplierResponse;
+import com.g4fpt.sms.supplier.mapper.SupplierMapper;
 import com.g4fpt.sms.supplier.service.SupplierService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -11,12 +14,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/supplier")
 @AllArgsConstructor
 public class SupplierController {
     private SupplierService supplierService;
+    private SupplierMapper supplierMapper;
 
     @GetMapping
     public String list(Model model,
@@ -42,19 +47,17 @@ public class SupplierController {
     }
 
     @GetMapping("form{id}")
-    public String formPage(@PathVariable Long id, Model model) {
+    public String form(@PathVariable Long id, Model model,
+                       RedirectAttributes redirectAttributes) {
         SupplierRequest supplierRequest = new SupplierRequest();
         if(id!=0){
-            SupplierResponse supplierResponse = supplierService.findById(id);
-
-            supplierRequest.setCode(supplierResponse.getCode());
-            supplierRequest.setName(supplierResponse.getName());
-            supplierRequest.setPhone(supplierResponse.getPhone());
-            supplierRequest.setEmail(supplierResponse.getEmail());
-            supplierRequest.setAddress(supplierResponse.getAddress());
-            supplierRequest.setStatus(supplierResponse.getStatus());
-            supplierRequest.setNote(supplierResponse.getNote());
-
+            try {
+                SupplierResponse supplierResponse = supplierService.findById(id);
+                supplierRequest = supplierMapper.toRequest(supplierResponse);
+            }catch(NotFoundException e){
+                redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                return "redirect:/supplier";
+            }
         }
         model.addAttribute("supplierRequest",supplierRequest);
         return "supplier/form";
@@ -63,20 +66,39 @@ public class SupplierController {
     @PostMapping("form{id}")
     public String form(@PathVariable Long id, Model model,
                        @Valid @ModelAttribute SupplierRequest supplierRequest,
-                       BindingResult result) {
+                       BindingResult result, RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             return "supplier/form";
         }
+        String action;
         try{
             if(id==0){
+                action = "Tạo";
                 supplierService.create(supplierRequest);
             }else{
+                action = "Sửa";
                 supplierService.update(supplierRequest, id);
             }
         }catch (DuplicateException e){
             result.rejectValue("supplierCode", "error.supplierCode", e.getMessage());
             return "supplier/form";
         }
+        redirectAttributes.addFlashAttribute(
+                "successMessage",
+                action + " nhà cung cấp thành công!");
+        return "redirect:/supplier";
+    }
+
+    @PostMapping("/delete")
+    public String delete(@RequestParam("id") Long id,
+                         RedirectAttributes redirectAttributes) {
+        try {
+            supplierService.deleteById(id);
+        }catch (NotFoundException | ResourceInUseException e){
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/supplier";
+        }
+        redirectAttributes.addFlashAttribute("successMessage", "Xóa thành công");
         return "redirect:/supplier";
     }
 }
