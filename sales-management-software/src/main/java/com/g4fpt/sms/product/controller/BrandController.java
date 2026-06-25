@@ -47,17 +47,20 @@ public class BrandController {
     }
 
     @GetMapping("/form/{id}")
-    public String updatePage(@PathVariable Long id, Model model) {
-        if(id == 0){
-            model.addAttribute("brandRequest", new BrandRequest());
-        } else {
-            BrandResponse brandResponse = brandService.findById(id);
-            BrandRequest brandRequest = new BrandRequest();
+    public String updatePage(@PathVariable Long id, Model model,
+                             RedirectAttributes redirectAttributes) {
+        BrandRequest brandRequest = new BrandRequest();
+        if(id != 0) {
+            try {
+                BrandResponse brandResponse = brandService.findById(id);
 
-            brandRequest.setBrandName(brandResponse.getName());
-            brandRequest.setBrandStatus(brandResponse.getStatus());
-
-            model.addAttribute("brandRequest", brandRequest);
+                brandRequest.setBrandName(brandResponse.getName());
+                brandRequest.setBrandStatus(brandResponse.getStatus());
+                model.addAttribute("brandRequest", brandRequest);
+            }catch (NotFoundException e){
+                redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                return "redirect:/brand";
+            }
         }
         return "brand/form";
     }

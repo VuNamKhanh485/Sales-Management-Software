@@ -45,11 +45,17 @@ public class UnitController {
     }
 
     @GetMapping("/form/{id}")
-    public String updatePage(@PathVariable Long id, Model model) {
+    public String updatePage(@PathVariable Long id, Model model,
+                             RedirectAttributes redirectAttributes) {
         UnitRequest unitRequest = new UnitRequest();
         if(id != 0){
-            UnitResponse unitResponse = unitService.findById(id);
-            unitRequest.setName(unitResponse.getName());
+            try {
+                UnitResponse unitResponse = unitService.findById(id);
+                unitRequest.setName(unitResponse.getName());
+            }catch (NotFoundException e){
+                redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                return "redirect:/unit";
+            }
         }
         model.addAttribute("unitRequest", unitRequest);
         return "unit/form";
