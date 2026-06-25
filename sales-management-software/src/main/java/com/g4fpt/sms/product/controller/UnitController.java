@@ -31,7 +31,7 @@ public class UnitController {
                        @RequestParam(defaultValue = "10") int size,
                        @RequestParam(defaultValue = "name") String sortField,
                        @RequestParam(defaultValue = "asc") String sortDir){
-        Page<UnitResponse> unitPage = unitService.findAll(keyword, size, page, sortField, sortDir);
+        Page<UnitResponse> unitPage = unitService.findAll(keyword, page, size, sortField, sortDir);
 
         model.addAttribute("unitPage", unitPage);
         model.addAttribute("keyword", keyword);
