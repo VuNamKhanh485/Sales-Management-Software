@@ -47,7 +47,7 @@ public class ProductController {
         filter.setCategoryId(categoryId);
         filter.setStatus(status);
 
-        Page<ProductResponse> productPage = productService.findAll(filter, size, page, sortField, sortDir);
+        Page<ProductResponse> productPage = productService.findAll(filter,page, size, sortField, sortDir);
 
         model.addAttribute("productPage", productPage);
         model.addAttribute("filter", filter);
