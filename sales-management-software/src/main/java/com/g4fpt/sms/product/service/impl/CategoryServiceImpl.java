@@ -27,12 +27,13 @@ public class CategoryServiceImpl implements CategoryService {
 
 
     @Override
-    public void create(CategoryRequest categoryRequest) {
+    public CategoryResponse create(CategoryRequest categoryRequest) {
         if(categoryRepository.existsByNameIgnoreCase(categoryRequest.getCategoryName())){
             throw new DuplicateException("This name is already in use");
         }
         Category category = categoryMapper.toEntity(categoryRequest);
-        categoryRepository.save(category);
+        Category savedCategory = categoryRepository.save(category);
+        return categoryMapper.toResponse(savedCategory);
     }
 
     @Override

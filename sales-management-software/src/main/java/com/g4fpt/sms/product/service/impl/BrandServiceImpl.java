@@ -28,12 +28,13 @@ public class BrandServiceImpl implements BrandService {
 
 
     @Override
-    public void create(BrandRequest brandRequest) {
+    public BrandResponse create(BrandRequest brandRequest) {
         if(brandRepository.existsByNameIgnoreCase(brandRequest.getBrandName())){
             throw new DuplicateException("This name is already in use");
         }
         Brand brand = brandMapper.toEntity(brandRequest);
-        brandRepository.save(brand);
+        Brand savedBrand = brandRepository.save(brand);
+        return brandMapper.toResponse(savedBrand);
     }
 
     @Override

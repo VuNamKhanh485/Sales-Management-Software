@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 public interface CategoryService {
-    void create(CategoryRequest categoryRequest);
+    CategoryResponse create(CategoryRequest categoryRequest);
     void deleteById(long id);
     void update(long id, CategoryRequest categoryRequest);
     Page<CategoryResponse> findAll(String keyword, int page, int size, String sortField, String sortDirection);
