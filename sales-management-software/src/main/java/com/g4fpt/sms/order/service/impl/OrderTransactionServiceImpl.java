@@ -91,6 +91,9 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             Customer customer = customerRepository.findById(request.getCustomerId())
                     .orElse(null);
             if (customer != null) {
+                if (customer.getStatus() != com.g4fpt.sms.customer.enums.CustomerStatus.ACTIVE) {
+                    throw new RuntimeException("Khách hàng này hiện đang ngừng hoạt động hoặc không tồn tại!");
+                }
                 order.setCustomer(customer);
                 // Cộng điểm: 10,000đ = 1 điểm
                 int pointEarned = finalAmount.divide(
@@ -160,6 +163,9 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             }
             Customer customer = customerRepository.findById(customerId)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin khách hàng!"));
+            if (customer.getStatus() != com.g4fpt.sms.customer.enums.CustomerStatus.ACTIVE) {
+                throw new RuntimeException("Khách hàng này hiện đang ngừng hoạt động!");
+            }
             
             if (customer.getCustomerRank() == null) {
                 if (voucher.getCustomerRank().getConditionTotalRevenue().compareTo(BigDecimal.ZERO) > 0) {
