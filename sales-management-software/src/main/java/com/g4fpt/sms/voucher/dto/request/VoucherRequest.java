@@ -39,6 +39,7 @@ public class VoucherRequest {
     private BigDecimal maxDiscountAmount;
 
     @NotNull(message = "Thời gian bắt đầu không được để trống")
+    @FutureOrPresent(message = "Thời gian bắt đầu không được trước hiện tại")
     private LocalDateTime startAt;
 
     @NotNull(message = "Thời gian kết thúc không được để trống")
