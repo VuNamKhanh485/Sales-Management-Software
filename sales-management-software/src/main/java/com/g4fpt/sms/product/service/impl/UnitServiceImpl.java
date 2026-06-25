@@ -54,12 +54,13 @@ public class UnitServiceImpl implements UnitService {
     }
 
     @Override
-    public void create(UnitRequest unitRequest) {
+    public UnitResponse create(UnitRequest unitRequest) {
         if(unitRepository.existsByNameIgnoreCase(unitRequest.getName())){
             throw new DuplicateException("This name is already in use");
         }
         Unit unit = unitMapper.toEntity(unitRequest);
-        unitRepository.save(unit);
+        Unit savedUnit = unitRepository.save(unit);
+        return unitMapper.toResponse(savedUnit);
     }
 
     @Override

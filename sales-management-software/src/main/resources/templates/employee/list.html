@@ -3,64 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý nhân viên</title>
-    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <title>Quản lý nhân viên — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
 </head>
 <body>
-<div class="admin-shell">
-    <div th:replace="~{component/navbar :: sidebar-component}"></div>
-    <main class="admin-main">
-        <header class="admin-topbar">
-            <div>
-                <p class="admin-kicker">Admin Panel</p>
-                <h1>Quản lý nhân viên</h1>
-            </div>
-        </header>
-        <section class="admin-content">
-    <div class="table-toolbar">
-        <div>
-            <h2>Danh sách nhân viên</h2>
-            <p th:text="'Tổng cộng ' + ${employees != null ? #lists.size(employees) : 0} + ' nhân viên'">Tổng cộng 0 nhân viên</p>
+
+    <div th:replace="~{component/navbar :: global-nav('employee')}"></div>
+
+    <div class="sub-nav">
+        <h1 class="sub-nav__title">Quản lý Nhân viên</h1>
+        <div class="sub-nav__actions">
+            <a th:href="@{/employee/create}" class="btn-primary btn-primary--sm">+ Thêm nhân viên</a>
         </div>
-        <a th:href="@{/employee/create}" class="primary-action">Thêm nhân viên</a>
     </div>
 
-    <div class="data-panel">
-        <table class="admin-table">
-            <thead>
-            <tr>
-                <th>Mã NV</th>
-                <th>Họ tên</th>
-                <th>Email</th>
-                <th>SĐT</th>
-                <th>Chi nhánh</th>
-                <th>Vai trò</th>
-                <th>Trạng thái</th>
-                <th>Thao tác</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="employee : ${employees}">
-                <td th:text="${employee.employeeCode}"></td>
-                <td th:text="${employee.fullName}"></td>
-                <td th:text="${employee.email}"></td>
-                <td th:text="${employee.phone}"></td>
-                <td th:text="${employee.branch != null ? employee.branch.name : 'Chưa phân chi nhánh'}"></td>
-                <td th:text="${employee.role != null ? employee.role.name : 'Chưa có vai trò'}"></td>
-                <td th:text="${employee.workStatus != null ? employee.workStatus : 'N/A'}"></td>
-                <td class="action-cell">
-                    <a th:href="@{/employee/edit/{id}(id=${employee.id})}">Sửa</a>
-                    <a th:href="@{/employee/delete/{id}(id=${employee.id})}" class="danger-link">Xóa</a>
-                </td>
-            </tr>
-            <tr th:if="${#lists.isEmpty(employees)}">
-                <td colspan="8" class="empty-row">Chưa có nhân viên nào.</td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-        </section>
+    <main class="page-wrap">
+
+        <div class="card-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 17px; border-bottom:1px solid var(--hairline);">
+                <span class="usage">
+                    Tổng cộng <b th:text="${employees != null ? #lists.size(employees) : 0}"></b> nhân viên
+                </span>
+            </div>
+
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mã NV</th>
+                            <th>Họ tên</th>
+                            <th>Email</th>
+                            <th>SĐT</th>
+                            <th>Chi nhánh</th>
+                            <th>Vai trò</th>
+                            <th>Trạng thái</th>
+                            <th style="text-align:right;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(employees)}">
+                            <td colspan="8">
+                                <div class="empty-state">
+                                    <div class="empty-state__icon">👤</div>
+                                    <h3 class="empty-state__title">Chưa có nhân viên nào</h3>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:each="employee : ${employees}">
+                            <td><span class="code-chip" th:text="${employee.employeeCode}"></span></td>
+                            <td style="font-weight:600; color:var(--ink);" th:text="${employee.fullName}"></td>
+                            <td th:text="${employee.email}"></td>
+                            <td th:text="${employee.phone}"></td>
+                            <td th:text="${employee.branch != null ? employee.branch.name : 'Chưa phân'}"></td>
+                            <td>
+                                <span class="badge" th:text="${employee.role != null ? employee.role.name : 'Chưa có'}"></span>
+                            </td>
+                            <td>
+                                <span class="badge" th:classappend="${employee.workStatus != null and employee.workStatus.name() == 'ACTIVE'} ? 'badge-active' : 'badge-inactive'" th:text="${employee.workStatus != null ? employee.workStatus : 'N/A'}"></span>
+                            </td>
+                            <td>
+                                <div class="actions" style="justify-content:flex-end;">
+                                    <a th:href="@{/employee/edit/{id}(id=${employee.id})}" class="action-edit">Sửa</a>
+                                    <a th:href="@{/employee/delete/{id}(id=${employee.id})}" class="action-delete" onclick="return confirm('Bạn có chắc chắn xóa nhân viên này?')">Xóa</a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </main>
-</div>
 </body>
 </html>

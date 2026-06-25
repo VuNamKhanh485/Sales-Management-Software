@@ -104,4 +104,18 @@ public class CategoryController {
         redirectAttributes.addFlashAttribute("successMessage", "Xóa thành công");
         return "redirect:/category";
     }
+
+    @PostMapping("/api/create")
+    @ResponseBody
+    public org.springframework.http.ResponseEntity<?> createApi(@Valid @RequestBody CategoryRequest categoryRequest, BindingResult result) {
+        if (result.hasErrors()) {
+            return org.springframework.http.ResponseEntity.badRequest().body(result.getAllErrors());
+        }
+        try {
+            CategoryResponse response = categoryService.create(categoryRequest);
+            return org.springframework.http.ResponseEntity.ok(response);
+        } catch (DuplicateException e) {
+            return org.springframework.http.ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", e.getMessage()));
+        }
+    }
 }

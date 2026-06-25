@@ -133,8 +133,17 @@ public class ProductController {
         if(id != null) {
             model.addAttribute("id", id);
         }
-        model.addAttribute("categoryList", categoryService.findAll());
-        model.addAttribute("brandList", brandService.findAll());
+        
+        java.util.List<com.g4fpt.sms.product.dto.response.CategoryResponse> activeCategories = categoryService.findAll().stream()
+                .filter(c -> "ACTIVE".equals(c.getCategoryStatus().name()))
+                .toList();
+                
+        java.util.List<com.g4fpt.sms.product.dto.response.BrandResponse> activeBrands = brandService.findAll().stream()
+                .filter(b -> "ACTIVE".equals(b.getStatus().name()))
+                .toList();
+                
+        model.addAttribute("categoryList", activeCategories);
+        model.addAttribute("brandList", activeBrands);
         model.addAttribute("unitList", unitService.findAll());
     }
 

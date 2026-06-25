@@ -1,5 +1,5 @@
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-text, "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
     background-color: #f4f6f9;
     color: #333;
 }
@@ -19,7 +19,7 @@ body {
 .store-logo {
     font-size: 26px;
     font-weight: 800;
-    color: #0d6efd;
+    color: #0066cc; /* Apple Action Blue */
     letter-spacing: -0.5px;
     display: inline-flex;
     align-items: center;
@@ -66,7 +66,7 @@ body {
 .summary-table .total-row td {
     font-size: 16px;
     font-weight: 700;
-    color: #0d6efd;
+    color: #0066cc; /* Apple Action Blue */
     border-top: 1px double #dee2e6;
     padding-top: 12px;
     margin-top: 6px;
