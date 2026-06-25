@@ -67,11 +67,17 @@ public class ProductController {
 
     @GetMapping({"/form", "/form/{id}"})
     public String form(Model model,
-                       @PathVariable(required = false) Long id) {
+                       @PathVariable(required = false) Long id,
+                       RedirectAttributes redirectAttributes) {
         ProductRequest productRequest = new ProductRequest();
         if(id != null) {
-            ProductResponse productResponse = productService.findById(id);
-            productRequest = productMapper.toRequest(productResponse);
+            try {
+                ProductResponse productResponse = productService.findById(id);
+                productRequest = productMapper.toRequest(productResponse);
+            }catch (NotFoundException e) {
+                redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                return "redirect:/product";
+            }
         }
 
         addAttributeToForm(model, id);
