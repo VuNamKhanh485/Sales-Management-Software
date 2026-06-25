@@ -136,13 +136,15 @@
                     </button>
                     <!-- Chi nhánh Selector (Chỉ dành cho Owner) -->
                     <div th:if="${isOwner}" class="dropdown ms-2">
-                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-shop me-1"></i>
                             <span th:text="${activeBranch != null ? activeBranch.name : 'SMS STORE'}">SMS STORE</span>
                         </button>
                         <ul class="dropdown-menu">
                             <li th:each="br : ${branches}">
-                                <a class="dropdown-item" th:href="@{/pos/change-branch(branchId=${br.id})}" th:text="${br.name}"></a>
+                                <a class="dropdown-item" th:href="@{/pos/change-branch(branchId=${br.id})}"
+                                    th:text="${br.name}"></a>
                             </li>
                         </ul>
                     </div>
@@ -429,7 +431,8 @@
                                 th:text="${successBranch != null ? successBranch.address : '123 Đường Láng, Đống Đa, Hà Nội'}">
                                 123 Đường Láng, Đống Đa, Hà Nội</p>
                             <p class="mb-0 text-muted" style="font-size: 11px;"
-                                th:text="${successBranch != null && successBranch.phone != null} ? 'SĐT: ' + ${successBranch.phone} : 'SĐT: 0987 654 321'">SĐT: 0987 654 321</p>
+                                th:text="${successBranch != null && successBranch.phone != null} ? 'SĐT: ' + ${successBranch.phone} : 'SĐT: 0987 654 321'">
+                                SĐT: 0987 654 321</p>
                             <div class="my-2" style="border-top: 1px dashed #ccc;"></div>
                             <h6 class="fw-bold my-2" style="font-family: inherit;">HÓA ĐƠN BÁN HÀNG</h6>
                         </div>
@@ -536,10 +539,12 @@
                     <!-- Bộ lọc theo ngày -->
                     <div class="d-flex gap-2 align-items-center mb-3">
                         <label class="small fw-semibold text-muted mb-0">Chọn ngày:</label>
-                        <input type="date" id="historyFilterDate" class="form-control form-control-sm" style="max-width: 180px;" onchange="loadSalesHistory()">
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="resetHistoryDate()">Hôm nay</button>
+                        <input type="date" id="historyFilterDate" class="form-control form-control-sm"
+                            style="max-width: 180px;" onchange="loadSalesHistory()">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="resetHistoryDate()">Hôm
+                            nay</button>
                     </div>
-                    
+
                     <!-- Bảng danh sách đơn hàng đã bán -->
                     <div class="table-responsive">
                         <table class="table table-hover table-sm align-middle mb-0" style="font-size: 13px;">
@@ -579,7 +584,8 @@
                 </div>
                 <div class="modal-body bg-light">
                     <!-- Thiết kế biên lai hóa đơn bán hàng giống hệt hóa đơn thanh toán thành công -->
-                    <div id="detailOrderContent" class="bg-white p-4 shadow-sm rounded border receipt-container text-dark"
+                    <div id="detailOrderContent"
+                        class="bg-white p-4 shadow-sm rounded border receipt-container text-dark"
                         style="font-family: 'Courier New', Courier, monospace; font-size: 13px; line-height: 1.4;">
                         <!-- Rendered by JS -->
                     </div>
