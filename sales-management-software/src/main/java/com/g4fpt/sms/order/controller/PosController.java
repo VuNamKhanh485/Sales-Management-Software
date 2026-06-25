@@ -290,9 +290,9 @@ public class PosController {
 
         List<OrderTransaction> orders;
         if (isOwner) {
-            orders = orderTransactionRepository.findByDateRange(startOfDay, endOfDay);
+            orders = orderTransactionRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(startOfDay, endOfDay);
         } else {
-            orders = orderTransactionRepository.findByCreatedByAndDateRange(
+            orders = orderTransactionRepository.findByCreatedByAndCreatedAtBetweenOrderByCreatedAtDesc(
                     userDetails.getEmployee().getId(), startOfDay, endOfDay);
         }
 
@@ -309,9 +309,8 @@ public class PosController {
 
             String branchName = "SMS STORE";
             if (order.getBranchId() != null) {
-                branchName = branchNames.computeIfAbsent(order.getBranchId(), id ->
-                    branchRepository.findById(id).map(b -> b.getName()).orElse("SMS STORE")
-                );
+                branchName = branchNames.computeIfAbsent(order.getBranchId(),
+                        id -> branchRepository.findById(id).map(b -> b.getName()).orElse("SMS STORE"));
             }
             map.put("branchName", branchName);
 
