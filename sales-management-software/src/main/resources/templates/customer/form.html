@@ -48,13 +48,9 @@
                             <input type="email" th:field="*{email}" class="form-control">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Nhóm khách hàng</label>
-                            <select th:field="*{customerRankId}" class="form-select">
-                                <option value="">-- Chọn hạng thẻ --</option>
-                                <option th:each="rank : ${ranks}"
-                                        th:value="${rank.id}"
-                                        th:text="${rank.name}"></option>
-                            </select>
+                            <label class="form-label">Hạng thẻ (Tự động cập nhật)</label>
+                            <input type="text" th:value="${currentRankName}" class="form-control" readonly disabled>
+                            <input type="hidden" th:field="*{customerRankId}">
                         </div>
 
                     

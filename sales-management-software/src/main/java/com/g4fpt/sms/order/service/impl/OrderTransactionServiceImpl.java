@@ -15,6 +15,7 @@ import com.g4fpt.sms.voucher.repository.VoucherRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.g4fpt.sms.customer.service.CustomerService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -28,6 +29,7 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
     private final ProductUnitRepository productUnitRepository;
     private final CustomerRepository customerRepository;
     private final VoucherRepository voucherRepository;
+    private final CustomerService customerService;
 
     @Override
     @Transactional
@@ -46,7 +48,7 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         // 2. Tính VAT
         BigDecimal vatRate = request.getVatRate() != null
                 ? request.getVatRate()
-                : new BigDecimal("0.08");
+                : new BigDecimal("0.02");
         BigDecimal vatAmount = totalAmount.multiply(vatRate)
                 .setScale(0, RoundingMode.HALF_UP);
 
@@ -54,7 +56,7 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         BigDecimal discountAmount = BigDecimal.ZERO;
         Voucher voucher = null;
         if (request.getVoucherCode() != null && !request.getVoucherCode().isBlank()) {
-            voucher = validateVoucher(request.getVoucherCode(), totalAmount);
+            voucher = validateVoucher(request.getVoucherCode(), totalAmount, request.getCustomerId());
             discountAmount = calculateVoucherDiscount(voucher, totalAmount);
         }
 
@@ -120,11 +122,19 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             order.getDetails().add(detail);
         }
 
-        return orderTransactionRepository.save(order);
+        OrderTransaction savedOrder = orderTransactionRepository.save(order);
+        if (request.getCustomerId() != null) {
+            customerService.updateCustomerRank(request.getCustomerId());
+        }
+        return savedOrder;
     }
 
     @Override
-    public Voucher validateVoucher(String code, BigDecimal totalAmount) {
+    public Voucher validateVoucher(String code, BigDecimal totalAmount, Long customerId) {
+        if (customerId == null) {
+            throw new RuntimeException("Voucher chỉ áp dụng cho khách hàng thành viên. Vui lòng chọn khách hàng!");
+        }
+
         Voucher voucher = voucherRepository.findByCode(code)
                 .orElseThrow(() -> new RuntimeException("Mã voucher không tồn tại!"));
 
@@ -140,6 +150,29 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         if (totalAmount.compareTo(voucher.getMinOrderAmount()) < 0) {
             throw new RuntimeException("Đơn hàng chưa đạt giá trị tối thiểu "
                     + voucher.getMinOrderAmount() + "đ để dùng voucher này!");
+        }
+
+        // Kiểm tra điều kiện hạng thẻ của khách hàng
+        if (voucher.getCustomerRank() != null) {
+            if (customerId == null) {
+                throw new RuntimeException("Voucher này chỉ dành cho khách hàng hạng " 
+                        + voucher.getCustomerRank().getName() + " trở lên!");
+            }
+            Customer customer = customerRepository.findById(customerId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin khách hàng!"));
+            
+            if (customer.getCustomerRank() == null) {
+                if (voucher.getCustomerRank().getConditionTotalRevenue().compareTo(BigDecimal.ZERO) > 0) {
+                    throw new RuntimeException("Voucher này chỉ dành cho khách hàng hạng " 
+                            + voucher.getCustomerRank().getName() + " trở lên!");
+                }
+            } else {
+                if (customer.getCustomerRank().getConditionTotalRevenue()
+                        .compareTo(voucher.getCustomerRank().getConditionTotalRevenue()) < 0) {
+                    throw new RuntimeException("Voucher này chỉ dành cho khách hàng hạng " 
+                            + voucher.getCustomerRank().getName() + " trở lên!");
+                }
+            }
         }
 
         return voucher;

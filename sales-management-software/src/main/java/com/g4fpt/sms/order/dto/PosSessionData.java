@@ -13,6 +13,7 @@ public class PosSessionData {
     private Map<Integer, PosCart> carts = new LinkedHashMap<>();
     private int activeIndex = 1;
     private int nextIndex = 2;
+    private Long activeBranchId;
 
     public PosSessionData() {
         carts.put(1, new PosCart());

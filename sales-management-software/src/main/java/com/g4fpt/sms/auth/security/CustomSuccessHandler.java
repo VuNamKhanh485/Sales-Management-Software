@@ -22,7 +22,7 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
                     || authorityName.getAuthority().equals("ROLE_MANAGER")) {
                 redirect = "/branch";
             } else if (authorityName.getAuthority().equals("ROLE_SALE_STAFF")) {
-                redirect = "/sale";
+                redirect = "/pos";
             }
 
         }

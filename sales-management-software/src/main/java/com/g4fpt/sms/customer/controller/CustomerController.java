@@ -68,6 +68,7 @@ public class CustomerController {
             Model model) {
 
         CustomerRequestDTO dto = new CustomerRequestDTO();
+        String currentRankName = "Thành viên";
 
         if (id != null) {
             Customer customer = customerService.getCustomerById(id);
@@ -81,11 +82,12 @@ public class CustomerController {
             dto.setNote(customer.getNote());
             if (customer.getCustomerRank() != null) {
                 dto.setCustomerRankId(customer.getCustomerRank().getId());
+                currentRankName = customer.getCustomerRank().getName();
             }
         }
 
         model.addAttribute("customerDTO", dto);
-        model.addAttribute("ranks", customerRankService.getAllRanks());
+        model.addAttribute("currentRankName", currentRankName);
         model.addAttribute("genders", Gender.values());
 
         return "customer/form";
@@ -108,9 +110,19 @@ public class CustomerController {
             }
         } catch (Exception e) {
 
+            String currentRankName = "Thành viên";
+            if (dto.getId() != null) {
+                try {
+                    Customer customer = customerService.getCustomerById(dto.getId());
+                    if (customer.getCustomerRank() != null) {
+                        currentRankName = customer.getCustomerRank().getName();
+                    }
+                } catch (Exception ignored) {}
+            }
+
             model.addAttribute("errorMessage", e.getMessage());
             model.addAttribute("customerDTO", dto);
-            model.addAttribute("ranks", customerRankService.getAllRanks());
+            model.addAttribute("currentRankName", currentRankName);
             model.addAttribute("genders", Gender.values());
             return "customer/form";
         }

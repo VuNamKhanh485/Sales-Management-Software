@@ -32,7 +32,6 @@ public class Brand {
     @Column(nullable = false, unique = true)
     @ToString.Include
     private String name;
-    
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private BrandStatus status;

@@ -134,7 +134,7 @@
                         <td class="text-end text-danger" th:text="'-' + ${#numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
                     </tr>
                     <tr>
-                        <td class="text-muted">Thuế VAT (8%):</td>
+                        <td class="text-muted">Thuế VAT (2%):</td>
                         <td class="text-end text-dark" th:text="${#numbers.formatDecimal(order.finalAmount.add(order.discountAmount).subtract(order.totalAmount), 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
                     </tr>
                     <tr class="total-row">
