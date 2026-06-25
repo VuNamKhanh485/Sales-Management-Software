@@ -100,9 +100,10 @@ public class UnitController {
         return "redirect:/unit";
     }
 
-    @PostMapping("/api/create")
+
+    @PostMapping("/create")
     @ResponseBody
-    public org.springframework.http.ResponseEntity<?> createApi(@Valid @RequestBody UnitRequest unitRequest, BindingResult result) {
+    public org.springframework.http.ResponseEntity<?> createAjax(@Valid @RequestBody UnitRequest unitRequest, BindingResult result) {
         if (result.hasErrors()) {
             return org.springframework.http.ResponseEntity.badRequest().body(result.getAllErrors());
         }
