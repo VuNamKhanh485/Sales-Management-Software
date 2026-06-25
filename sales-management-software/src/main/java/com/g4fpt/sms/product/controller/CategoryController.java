@@ -31,7 +31,7 @@ public class CategoryController {
                        @RequestParam(defaultValue = "10") int size,
                        @RequestParam(defaultValue = "name") String sortField,
                        @RequestParam(defaultValue = "asc") String sortDir) {
-        Page<CategoryResponse> categoryPage = categoryService.findAll(keyword, size, page, sortField, sortDir);
+        Page<CategoryResponse> categoryPage = categoryService.findAll(keyword, page, size, sortField, sortDir);
 
         model.addAttribute("categoryPage", categoryPage);
         model.addAttribute("keyword", keyword);
