@@ -103,17 +103,26 @@ public class CategoryController {
         return "redirect:/category";
     }
 
-    @PostMapping("/create")
-    @ResponseBody
-    public org.springframework.http.ResponseEntity<?> createAjax(@Valid @RequestBody CategoryRequest categoryRequest, BindingResult result) {
+    @GetMapping("/popup-form")
+    public String popupForm(Model model) {
+        model.addAttribute("categoryRequest", new CategoryRequest());
+        return "category/popup-form";
+    }
+
+    @PostMapping("/popup-form")
+    public String submitPopupForm(@Valid @ModelAttribute CategoryRequest categoryRequest, BindingResult result, Model model) {
         if (result.hasErrors()) {
-            return org.springframework.http.ResponseEntity.badRequest().body(result.getAllErrors());
+            return "category/popup-form";
         }
         try {
             CategoryResponse response = categoryService.create(categoryRequest);
-            return org.springframework.http.ResponseEntity.ok(response);
+            model.addAttribute("newId", response.getId());
+            model.addAttribute("newName", response.getName());
+            model.addAttribute("type", "CATEGORY");
+            return "common/popup-success";
         } catch (DuplicateException e) {
-            return org.springframework.http.ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", e.getMessage()));
+            result.rejectValue("categoryName", "error.categoryName", e.getMessage());
+            return "category/popup-form";
         }
     }
 }

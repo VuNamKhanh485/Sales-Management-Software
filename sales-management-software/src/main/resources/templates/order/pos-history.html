@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Lịch sử bán hàng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>body { padding: 10px; background-color: #fff; font-size: 13px;}</style>
+</head>
+<body>
+    <form th:action="@{/pos/sales-history}" method="GET" class="d-flex gap-2 align-items-center mb-3">
+        <label class="small fw-semibold text-muted mb-0">Chọn ngày:</label>
+        <input type="date" name="date" class="form-control form-control-sm" style="max-width: 180px;" th:value="${filterDate}" onchange="this.form.submit()">
+        <a th:href="@{/pos/sales-history}" class="btn btn-secondary btn-sm">Hôm nay</a>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Mã hóa đơn</th>
+                    <th th:if="${isOwner}">Chi nhánh</th>
+                    <th>Thời gian</th>
+                    <th>Khách hàng</th>
+                    <th class="text-end">Tổng thanh toán</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th class="text-center">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(orders)}">
+                    <td th:colspan="${isOwner ? 7 : 6}" class="text-center text-muted py-4">Không có hóa đơn nào được bán trong ngày này.</td>
+                </tr>
+                <tr th:each="order : ${orders}">
+                    <td class="fw-semibold text-primary" th:text="${order.code}"></td>
+                    <td th:if="${isOwner}">
+                        <span class="badge bg-light text-dark border" th:text="${branchNames.get(order.branchId) != null ? branchNames.get(order.branchId) : 'SMS STORE'}"></span>
+                    </td>
+                    <td th:text="${#temporals.format(order.createdAt, 'HH:mm dd/MM')}"></td>
+                    <td th:text="${order.customer != null ? order.customer.fullName : 'Khách lẻ'}"></td>
+                    <td class="text-end fw-semibold" th:text="${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                    <td class="text-center">
+                        <span th:if="${order.status.name() == 'COMPLETED'}" class="badge bg-success">Hoàn thành</span>
+                        <span th:if="${order.status.name() == 'CANCELLED'}" class="badge bg-danger">Đã hủy</span>
+                        <span th:if="${order.status.name() != 'COMPLETED' and order.status.name() != 'CANCELLED'}" class="badge bg-secondary" th:text="${order.status}"></span>
+                    </td>
+                    <td class="text-center">
+                        <a th:href="@{/pos/sales-history/{id}(id=${order.id})}" class="btn btn-sm btn-outline-primary py-0" style="font-size: 11px;">
+                            <i class="bi bi-eye"></i> Chi tiết
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

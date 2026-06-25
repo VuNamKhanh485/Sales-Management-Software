@@ -271,75 +271,34 @@
 
     <!-- Modal Category -->
     <div id="modalCategory" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
+        <div class="modal-box" style="padding:0; overflow:hidden;">
+            <div class="modal-header" style="padding: 20px 20px 0; margin-bottom: 0;">
                 <span>Thêm Danh mục mới</span>
                 <button class="modal-close" onclick="closeModal('modalCategory')">×</button>
             </div>
-            <form id="formCategory" onsubmit="submitCategory(event)">
-                <div class="form-group" style="margin-bottom:12px;">
-                    <label class="form-label">Tên danh mục <span style="color:red">*</span></label>
-                    <input type="text" id="catName" class="form-input" required>
-                </div>
-                <div class="form-group" style="margin-bottom:12px;">
-                    <label class="form-label">Trạng thái</label>
-                    <select id="catStatus" class="form-select">
-                        <option value="ACTIVE">Hoạt động</option>
-                        <option value="INACTIVE">Ngừng hoạt động</option>
-                    </select>
-                </div>
-                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-                    <button type="button" class="btn-cancel" onclick="closeModal('modalCategory')">Hủy</button>
-                    <button type="submit" class="btn-primary">Lưu</button>
-                </div>
-            </form>
+            <iframe src="/category/popup-form" style="width:100%; border:none; height:320px;"></iframe>
         </div>
     </div>
 
     <!-- Modal Brand -->
     <div id="modalBrand" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
+        <div class="modal-box" style="padding:0; overflow:hidden;">
+            <div class="modal-header" style="padding: 20px 20px 0; margin-bottom: 0;">
                 <span>Thêm Thương hiệu mới</span>
                 <button class="modal-close" onclick="closeModal('modalBrand')">×</button>
             </div>
-            <form id="formBrand" onsubmit="submitBrand(event)">
-                <div class="form-group" style="margin-bottom:12px;">
-                    <label class="form-label">Tên thương hiệu <span style="color:red">*</span></label>
-                    <input type="text" id="brandNameInput" class="form-input" required>
-                </div>
-                <div class="form-group" style="margin-bottom:12px;">
-                    <label class="form-label">Trạng thái</label>
-                    <select id="brandStatusInput" class="form-select">
-                        <option value="ACTIVE">Hoạt động</option>
-                        <option value="INACTIVE">Ngừng hoạt động</option>
-                    </select>
-                </div>
-                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-                    <button type="button" class="btn-cancel" onclick="closeModal('modalBrand')">Hủy</button>
-                    <button type="submit" class="btn-primary">Lưu</button>
-                </div>
-            </form>
+            <iframe src="/brand/popup-form" style="width:100%; border:none; height:250px;"></iframe>
         </div>
     </div>
 
     <!-- Modal Unit -->
     <div id="modalUnit" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
+        <div class="modal-box" style="padding:0; overflow:hidden;">
+            <div class="modal-header" style="padding: 20px 20px 0; margin-bottom: 0;">
                 <span>Thêm Đơn vị tính mới</span>
                 <button class="modal-close" onclick="closeModal('modalUnit')">×</button>
             </div>
-            <form id="formUnit" onsubmit="submitUnit(event)">
-                <div class="form-group" style="margin-bottom:12px;">
-                    <label class="form-label">Tên đơn vị <span style="color:red">*</span></label>
-                    <input type="text" id="unitNameInput" class="form-input" required>
-                </div>
-                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-                    <button type="button" class="btn-cancel" onclick="closeModal('modalUnit')">Hủy</button>
-                    <button type="submit" class="btn-primary">Lưu</button>
-                </div>
-            </form>
+            <iframe src="/unit/popup-form" style="width:100%; border:none; height:180px;"></iframe>
         </div>
     </div>
 
@@ -454,81 +413,30 @@
         if(id === 'modalUnit') document.getElementById('formUnit').reset();
     }
 
-    async function submitCategory(e) {
-        e.preventDefault();
-        const data = {
-            categoryName: document.getElementById('catName').value,
-            categoryStatus: document.getElementById('catStatus').value,
-            description: ''
-        };
-        try {
-            const res = await fetch('/category/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            if (res.ok) {
-                const category = await res.json();
-                const option = new Option(category.name, category.id, true, true);
-                $('#categoryId').append(option).trigger('change');
-                closeModal('modalCategory');
-            } else {
-                alert('Tạo danh mục thất bại hoặc trùng tên!');
-            }
-        } catch(err) { alert('Lỗi mạng!'); }
-    }
+    window.addEventListener('message', function(event) {
+        const data = event.data;
+        if (!data || !data.type) return;
 
-    async function submitBrand(e) {
-        e.preventDefault();
-        const data = {
-            brandName: document.getElementById('brandNameInput').value,
-            brandStatus: document.getElementById('brandStatusInput').value
-        };
-        try {
-            const res = await fetch('/brand/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+        if (data.type === 'CATEGORY_CREATED') {
+            const option = new Option(data.name, data.id, true, true);
+            $('#categoryId').append(option).trigger('change');
+            closeModal('modalCategory');
+        } else if (data.type === 'BRAND_CREATED') {
+            const option = new Option(data.name, data.id, true, true);
+            $('#brandId').append(option).trigger('change');
+            closeModal('modalBrand');
+        } else if (data.type === 'UNIT_CREATED') {
+            unitList.push({id: data.id, name: data.name});
+            $('select[name^="productUnitsRequest"], .unit-select2').each(function() {
+                const opt = new Option(data.name, data.id, false, false);
+                $(this).find('option[value="NEW_UNIT"]').before(opt);
             });
-            if (res.ok) {
-                const brand = await res.json();
-                const option = new Option(brand.name, brand.id, true, true);
-                $('#brandId').append(option).trigger('change');
-                closeModal('modalBrand');
-            } else {
-                alert('Tạo thương hiệu thất bại hoặc trùng tên!');
+            if (currentUnitSelect) {
+                $(currentUnitSelect).val(data.id).trigger('change');
             }
-        } catch(err) { alert('Lỗi mạng!'); }
-    }
-
-    async function submitUnit(e) {
-        e.preventDefault();
-        const data = { name: document.getElementById('unitNameInput').value };
-        try {
-            const res = await fetch('/unit/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            if (res.ok) {
-                const unit = await res.json();
-                // Add to unitList so future rows have it
-                unitList.push({id: unit.id, name: unit.name});
-                // Update all unit selects
-                $('select[name^="productUnitsRequest"], .unit-select2').each(function() {
-                    const opt = new Option(unit.name, unit.id, false, false);
-                    $(this).find('option[value="NEW_UNIT"]').before(opt);
-                });
-                // Select in current row
-                if (currentUnitSelect) {
-                    $(currentUnitSelect).val(unit.id).trigger('change');
-                }
-                closeModal('modalUnit');
-            } else {
-                alert('Tạo đơn vị thất bại hoặc trùng tên!');
-            }
-        } catch(err) { alert('Lỗi mạng!'); }
-    }
+            closeModal('modalUnit');
+        }
+    });
 </script>
 </body>
 </html>

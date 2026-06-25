@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thành công</title>
+</head>
+<body>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const newId = /*[[${newId}]]*/ 0;
+        const newName = /*[[${newName}]]*/ '';
+        const type = /*[[${type}]]*/ '';
+        
+        // Gửi message lên iframe cha
+        window.parent.postMessage({
+            type: type + '_CREATED',
+            id: newId,
+            name: newName
+        }, '*');
+        /*]]>*/
+    </script>
+</body>
+</html>

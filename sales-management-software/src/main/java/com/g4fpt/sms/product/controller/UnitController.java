@@ -101,17 +101,26 @@ public class UnitController {
     }
 
 
-    @PostMapping("/create")
-    @ResponseBody
-    public org.springframework.http.ResponseEntity<?> createAjax(@Valid @RequestBody UnitRequest unitRequest, BindingResult result) {
+    @GetMapping("/popup-form")
+    public String popupForm(Model model) {
+        model.addAttribute("unitRequest", new UnitRequest());
+        return "unit/popup-form";
+    }
+
+    @PostMapping("/popup-form")
+    public String submitPopupForm(@Valid @ModelAttribute UnitRequest unitRequest, BindingResult result, Model model) {
         if (result.hasErrors()) {
-            return org.springframework.http.ResponseEntity.badRequest().body(result.getAllErrors());
+            return "unit/popup-form";
         }
         try {
             UnitResponse response = unitService.create(unitRequest);
-            return org.springframework.http.ResponseEntity.ok(response);
+            model.addAttribute("newId", response.getId());
+            model.addAttribute("newName", response.getName());
+            model.addAttribute("type", "UNIT");
+            return "common/popup-success";
         } catch (DuplicateException e) {
-            return org.springframework.http.ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", e.getMessage()));
+            result.rejectValue("unitName", "error.unitName", e.getMessage());
+            return "unit/popup-form";
         }
     }
 }
