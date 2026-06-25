@@ -129,7 +129,29 @@ public class CustomerController {
 
         return "redirect:/customers";
     }
+    @GetMapping("/popup-form")
+    public String popupForm(Model model) {
+        model.addAttribute("customerDTO", new CustomerRequestDTO());
+        model.addAttribute("genders", Gender.values());
+        return "customer/popup-form";
+    }
 
+    @PostMapping("/popup-form")
+    public String popupFormSubmit(@ModelAttribute("customerDTO") CustomerRequestDTO dto, Model model) {
+        Long currentUserId = 1L; // Fake auth
+        try {
+            Customer created = customerService.createCustomer(dto, currentUserId);
+            model.addAttribute("success", true);
+            model.addAttribute("data", created);
+            model.addAttribute("type", "CUSTOMER_CREATED");
+        } catch (Exception e) {
+            model.addAttribute("success", false);
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("genders", Gender.values());
+            return "customer/popup-form";
+        }
+        return "common/popup-success";
+    }
 
 
 

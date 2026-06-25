@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Khuyến mãi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/apple-design.css}" rel="stylesheet">
+    <style>
+        body { padding: 10px; background-color: #fff; }
+    </style>
+</head>
+<body>
+    <div th:if="${#lists.isEmpty(vouchers)}" class="text-center text-muted py-3 small">
+        Không có khuyến mãi nào phù hợp với hạng thẻ của bạn
+    </div>
+    
+    <div class="list-group">
+        <div th:each="v : ${vouchers}" class="list-group-item p-2 mb-2 rounded border bg-light shadow-sm d-flex justify-content-between align-items-center">
+            <div style="flex-grow: 1; padding-right: 8px;">
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-success font-monospace" style="font-size: 12px; letter-spacing: 0.5px;" th:text="${v.code}"></span>
+                    <span th:if="${v.customerRank != null}" class="badge bg-danger ms-2" th:text="${v.customerRank.name}"></span>
+                    <span th:unless="${v.customerRank != null}" class="badge bg-secondary ms-2">Mọi thành viên</span>
+                </div>
+                <div class="fw-semibold text-dark mt-1" style="font-size: 12.5px;" th:text="${v.name}"></div>
+                <div class="text-muted mt-1" style="font-size: 11px;">
+                    <i class="bi bi-gift-fill text-warning me-1"></i>
+                    <span th:if="${v.discountType.name() == 'PERCENT'}" th:text="'Giảm ' + ${v.discountValue} + '%' + (${v.maxDiscountAmount != null ? ' (Tối đa ' + #numbers.formatDecimal(v.maxDiscountAmount, 0, 'COMMA', 0, 'POINT') + 'đ)' : ''})"></span>
+                    <span th:if="${v.discountType.name() == 'AMOUNT'}" th:text="'Giảm ' + ${#numbers.formatDecimal(v.discountValue, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                    • Đơn từ <span th:text="${#numbers.formatDecimal(v.minOrderAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                </div>
+            </div>
+            <form th:action="@{/pos/apply-voucher}" method="POST" target="_parent">
+                <input type="hidden" name="code" th:value="${v.code}">
+                <button type="submit" class="btn btn-sm btn-outline-success fw-bold px-2 py-1">Chọn</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
