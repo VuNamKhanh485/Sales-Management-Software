@@ -105,17 +105,26 @@ public class BrandController {
         return "redirect:/brand";
     }
 
-    @PostMapping("/create")
-    @ResponseBody
-    public org.springframework.http.ResponseEntity<?> createAjax(@Valid @RequestBody BrandRequest brandRequest, BindingResult result) {
+    @GetMapping("/popup-form")
+    public String popupForm(Model model) {
+        model.addAttribute("brandRequest", new BrandRequest());
+        return "brand/popup-form";
+    }
+
+    @PostMapping("/popup-form")
+    public String submitPopupForm(@Valid @ModelAttribute BrandRequest brandRequest, BindingResult result, Model model) {
         if (result.hasErrors()) {
-            return org.springframework.http.ResponseEntity.badRequest().body(result.getAllErrors());
+            return "brand/popup-form";
         }
         try {
             BrandResponse response = brandService.create(brandRequest);
-            return org.springframework.http.ResponseEntity.ok(response);
+            model.addAttribute("newId", response.getId());
+            model.addAttribute("newName", response.getName());
+            model.addAttribute("type", "BRAND");
+            return "common/popup-success";
         } catch (DuplicateException e) {
-            return org.springframework.http.ResponseEntity.badRequest().body(java.util.Collections.singletonMap("error", e.getMessage()));
+            result.rejectValue("brandName", "error.brandName", e.getMessage());
+            return "brand/popup-form";
         }
     }
 }
