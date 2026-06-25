@@ -1,5 +1,7 @@
 package com.g4fpt.sms.product.controller;
 
+import com.g4fpt.sms.common.exception.NotFoundException;
+import com.g4fpt.sms.common.exception.ResourceInUseException;
 import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
 import com.g4fpt.sms.product.dto.request.ProductRequest;
 import com.g4fpt.sms.product.dto.response.ProductResponse;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
 @Controller
@@ -78,28 +81,38 @@ public class ProductController {
 
     @PostMapping({"/form", "/form/{id}"})
     public String form(@Valid @ModelAttribute ProductRequest productRequest,
-                         BindingResult result, Model model,
-                         @PathVariable(required = false) Long id) {
+                       BindingResult result, Model model,
+                       @PathVariable(required = false) Long id,
+                       RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             addAttributeToForm(model, id);
             return "product/form";
         }
-
-        try{
-            if(id == null){
+        String action;
+        try {
+            if (id == null) {
+                action = "Tạo";
                 productService.create(productRequest);
-            }else{
+            } else {
+                action = "Sửa";
                 productService.update(id, productRequest);
             }
 
-        }catch(ValidationException e){
+        } catch (ValidationException e) {
             addAttributeToForm(model, id);
             e.getErrors().forEach(err ->
                     result.rejectValue(err.getField(), "error", err.getMessage())
             );
             return "product/form";
+
+        }catch (NotFoundException | ResourceInUseException e){
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/product";
         }
 
+        redirectAttributes.addFlashAttribute(
+                "successMessage",
+                action + " sản phẩm thành công!");
         return "redirect:/product";
     }
 
@@ -117,4 +130,18 @@ public class ProductController {
         model.addAttribute("brandList", brandService.findAll());
         model.addAttribute("unitList", unitService.findAll());
     }
+
+    @PostMapping("/delete")
+    public String delete(@RequestParam("id") Long id,
+                         RedirectAttributes redirectAttributes) {
+        try {
+            categoryService.deleteById(id);
+        }catch (NotFoundException | ResourceInUseException e){
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/product";
+        }
+        redirectAttributes.addFlashAttribute("successMessage", "Xóa thành công");
+        return "redirect:/product";
+    }
+
 }
