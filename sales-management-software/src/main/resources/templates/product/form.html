@@ -175,48 +175,62 @@
                     <div class="section-title">Thông tin cơ bản</div>
 
                     <div class="form-group form-group--full">
-                        <label class="form-label">Tên sản phẩm</label>
-                        <input type="text" class="form-input" name="name" th:field="*{name}" placeholder="VD: Sữa chua Vinamilk" required/>
+                        <label class="form-label">
+                            Tên sản phẩm
+                            <input type="text" class="form-input" name="name" th:field="*{name}" placeholder="VD: Sữa chua Vinamilk" required/>
+                        </label>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Danh mục</label>
-                        <select class="form-select select2-init" id="categoryId" name="categoryId" th:field="*{categoryId}" required>
-                            <option value="">-- Chọn danh mục --</option>
-                            <option th:each="c : ${categoryList}" th:value="${c.id}" th:text="${c.name}"></option>
-                            <option value="NEW_CATEGORY" style="color:var(--primary); font-weight:bold;">+ Thêm mới...</option>
-                        </select>
+                        <label class="form-label">
+                            Danh mục
+                            <select class="form-select select2-init" id="categoryId" name="categoryId" th:field="*{categoryId}" required>
+                                <option value="">-- Chọn danh mục --</option>
+                                <option th:each="c : ${categoryList}" th:value="${c.id}" th:text="${c.name}"></option>
+                                <option value="NEW_CATEGORY" style="color:var(--primary); font-weight:bold;">+ Thêm mới...</option>
+                            </select>
+                        </label>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Thương hiệu</label>
-                        <select class="form-select select2-init" id="brandId" name="brandId" th:field="*{brandId}">
-                            <option value="">-- Chọn thương hiệu --</option>
-                            <option th:each="b : ${brandList}" th:value="${b.id}" th:text="${b.name}"></option>
-                            <option value="NEW_BRAND" style="color:var(--primary); font-weight:bold;">+ Thêm mới...</option>
-                        </select>
+                        <label class="form-label">
+                            Thương hiệu
+                            <select class="form-select select2-init" id="brandId" name="brandId" th:field="*{brandId}">
+                                <option value="">-- Chọn thương hiệu --</option>
+                                <option th:each="b : ${brandList}" th:value="${b.id}" th:text="${b.name}"></option>
+                                <option value="NEW_BRAND" style="color:var(--primary); font-weight:bold;">+ Thêm mới...</option>
+                            </select>
+                        </label>
                     </div>
 
                     <div class="form-group form-group--full">
-                        <label class="form-label">Ảnh (URL)</label>
-                        <input type="text" class="form-input" name="imageUrl" th:value="*{imageUrl}" placeholder="https://..."/>
+                        <label class="form-label">
+                            Ảnh (URL)
+                            <input type="text" class="form-input" name="imageUrl" th:value="*{imageUrl}" placeholder="https://..."/>
+                        </label>
                     </div>
 
                     <div class="form-group form-group--full">
-                        <label class="form-label">Mô tả</label>
-                        <textarea class="form-textarea" name="description" rows="3" th:text="*{description}"></textarea>
+                        <label class="form-label">
+                            Mô tả
+                            <textarea class="form-textarea" name="description" rows="3" th:text="*{description}"></textarea>
+                        </label>
                     </div>
 
                     <div class="form-group form-group--full">
-                        <label class="form-label">Ghi chú</label>
-                        <textarea class="form-textarea" name="note" rows="2" th:text="*{note}"></textarea>
+                        <label class="form-label">
+                            Ghi chú
+                            <textarea class="form-textarea" name="note" rows="2" th:text="*{note}"></textarea>
+                        </label>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Trạng thái</label>
-                        <select class="form-select" name="status" th:field="*{status}">
-                            <option th:each="s : ${T(com.g4fpt.sms.product.enums.ProductStatus).values()}" th:value="${s}" th:text="${s}"></option>
-                        </select>
+                        <label class="form-label">
+                            Trạng thái
+                            <select class="form-select" name="status" th:field="*{status}">
+                                <option th:each="s : ${T(com.g4fpt.sms.product.enums.ProductStatus).values()}" th:value="${s}" th:text="${s}"></option>
+                            </select>
+                        </label>
                     </div>
 
                     <div class="section-title">Quy đổi Đơn vị tính</div>
