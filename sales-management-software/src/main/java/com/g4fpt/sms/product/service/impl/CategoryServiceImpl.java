@@ -38,7 +38,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Page<CategoryResponse> findAll(String keyword, int size, int page, String sortField, String sortDirection) {
+    public Page<CategoryResponse> findAll(String keyword, int page, int size, String sortField, String sortDirection) {
         Sort sort = sortDirection.equalsIgnoreCase("asc")
                 ? Sort.by(sortField).ascending()
                 : Sort.by(sortField).descending();

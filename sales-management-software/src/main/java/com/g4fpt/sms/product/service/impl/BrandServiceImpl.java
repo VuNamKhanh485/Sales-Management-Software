@@ -39,7 +39,7 @@ public class BrandServiceImpl implements BrandService {
     }
 
     @Override
-    public Page<BrandResponse> findAll(String keyword, int size, int page, String sortField, String sortDirection) {
+    public Page<BrandResponse> findAll(String keyword, int page, int size, String sortField, String sortDirection) {
         Sort sort = sortDirection.equalsIgnoreCase("asc")
                 ? Sort.by(sortField).ascending()
                 : Sort.by(sortField).descending();
