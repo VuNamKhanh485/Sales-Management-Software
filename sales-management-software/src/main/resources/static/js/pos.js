@@ -1,7 +1,20 @@
 // =============================================
-// Biến global — được set từ Thymeleaf inline
+// Biến cấu hình — được tải từ DOM (#pos-config)
 // =============================================
-// const finalAmount = ... (set trong pos.html)
+let finalAmount = 0;
+let customerId = null;
+let showSuccessModal = false;
+let successOrderCode = '';
+
+function loadConfig() {
+    const configEl = document.getElementById('pos-config');
+    if (configEl) {
+        finalAmount = parseFloat(configEl.getAttribute('data-final-amount')) || 0;
+        customerId = configEl.getAttribute('data-customer-id') || null;
+        showSuccessModal = configEl.getAttribute('data-show-success-modal') === 'true';
+        successOrderCode = configEl.getAttribute('data-success-order-code') || '';
+    }
+}
 
 // =============================================
 // 1. Đóng đơn hàng
@@ -64,14 +77,38 @@ function generateSuggestions() {
 }
 
 // =============================================
+// 4. Modal khách hàng mới và sự kiện CUSTOMER_CREATED
+// =============================================
+function closeCustomerModal() {
+    const modalEl = document.getElementById('newCustomerModal');
+    if (modalEl) {
+        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        modal.hide();
+    }
+}
+
+window.addEventListener('message', function(event) {
+    const data = event.data;
+    if (!data || !data.type) return;
+
+    if (data.type === 'CUSTOMER_CREATED') {
+        closeCustomerModal();
+        const cust = data.data; // Customer object
+        // Reload với set-customer
+        window.location.href = `/pos/set-customer?customerId=${cust.id}&customerName=${encodeURIComponent(cust.fullName)}&customerPhone=${encodeURIComponent(cust.phone)}`;
+    }
+});
+
+// =============================================
 // Khởi tạo khi load trang
 // =============================================
 document.addEventListener('DOMContentLoaded', () => {
+    loadConfig();
     generateSuggestions();
     calcChange();
 
     // Tự động hiển thị hóa đơn thành công nếu có
-    if (typeof showSuccessModal !== 'undefined' && showSuccessModal) {
+    if (showSuccessModal) {
         const modalEl = document.getElementById('successReceiptModal');
         if (modalEl) {
             const successModal = new bootstrap.Modal(modalEl);

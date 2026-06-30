@@ -2,8 +2,7 @@ function downloadPdf() {
     const element = document.getElementById('receiptContent');
     if (!element) return;
 
-    // Use global orderCode or fallback to 'SMS'
-    const name = typeof orderCode !== 'undefined' ? orderCode : 'SMS';
+    const name = element.getAttribute('data-order-code') || 'SMS';
 
     const opt = {
         margin:       [10, 10, 10, 10],
@@ -23,7 +22,8 @@ function printReceipt() {
 // Tự động kích hoạt khi được mở từ tab mới kèm tham số
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const name = typeof orderCode !== 'undefined' ? orderCode : 'SMS';
+    const element = document.getElementById('receiptContent');
+    const name = element ? (element.getAttribute('data-order-code') || 'SMS') : 'SMS';
 
     if (urlParams.get('downloadPdf') === 'true') {
         const element = document.getElementById('receiptContent');
