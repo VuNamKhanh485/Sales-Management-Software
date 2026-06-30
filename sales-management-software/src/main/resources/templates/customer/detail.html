@@ -5,101 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chi tiết khách hàng — SMS</title>
     <link rel="stylesheet" th:href="@{/css/apple-design.css}">
-    <style>
-        .page-content {
-            max-width: 1100px;
-            margin: var(--sp-xl) auto;
-            padding: 0 var(--sp-md);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: var(--sp-md);
-            margin-bottom: var(--sp-lg);
-        }
-        @media (max-width: 800px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        .stat-card {
-            background: var(--canvas);
-            border: 1px solid var(--hairline);
-            border-radius: var(--r-md);
-            padding: var(--sp-sm) var(--sp-md);
-            text-align: center;
-        }
-        .stat-card__label {
-            font-size: 13px;
-            color: var(--ink-muted-48);
-            margin-bottom: 4px;
-        }
-        .stat-card__value {
-            font-family: var(--font-display);
-            font-size: 21px;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .detail-panel {
-            background: var(--canvas);
-            border: 1px solid var(--hairline);
-            border-radius: var(--r-lg);
-            padding: var(--sp-xl);
-            margin-bottom: var(--sp-xl);
-        }
-        .detail-header {
-            margin-bottom: var(--sp-lg);
-            padding-bottom: var(--sp-sm);
-            border-bottom: 1px solid var(--divider-soft);
-        }
-        .detail-header__name {
-            font-family: var(--font-display);
-            font-size: 24px;
-            font-weight: 600;
-            color: var(--ink);
-            margin: 0 0 4px 0;
-        }
-        .detail-header__meta {
-            font-size: 13px;
-            color: var(--ink-muted-48);
-        }
-
-        .detail-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: var(--sp-lg);
-        }
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .detail-item__label {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--ink-muted-48);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-        .detail-item__value {
-            font-size: 15px;
-            color: var(--ink);
-        }
-
-        .pagination {
-            display: flex; gap: 4px; list-style: none; padding: 0; margin: 0;
-        }
-        .pagination a {
-            display: inline-flex; align-items: center; justify-content: center;
-            min-width: 32px; height: 32px; border-radius: var(--r-sm);
-            font-size: 14px; color: var(--ink-muted-80); text-decoration: none;
-            transition: background 0.15s;
-        }
-        .pagination a:hover { background: var(--divider-soft); }
-        .pagination .active a { background: var(--primary); color: var(--on-primary); }
-        .pagination .disabled a { opacity: 0.4; pointer-events: none; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/customer.css}">
 </head>
 <body>
 
@@ -108,8 +14,8 @@
 
     <!-- ── Sub Nav ── -->
     <div class="sub-nav">
-        <a href="/customers" style="color:var(--primary); text-decoration:none; font-size:14px; margin-right:8px;">Khách hàng</a>
-        <span style="color:var(--ink-muted-48); font-size:12px; margin-right:8px;">›</span>
+        <a href="/customers" class="sub-nav__back">Khách hàng</a>
+        <span class="sub-nav__sep">›</span>
         <h1 class="sub-nav__title" style="margin:0;">Chi tiết Khách hàng</h1>
     </div>
 
@@ -123,15 +29,16 @@
             </div>
             <div class="stat-card">
                 <div class="stat-card__label">Điểm tích lũy</div>
-                <div class="stat-card__value" style="color:var(--success);" th:text="${customer.totalPoint - customer.usedPoint} + ' điểm'">0 điểm</div>
+                <div class="stat-card__value stat-card__value--success" th:text="${customer.totalPoint - customer.usedPoint} + ' điểm'">0 điểm</div>
             </div>
             <div class="stat-card">
                 <div class="stat-card__label">Tổng đơn hàng</div>
-                <div class="stat-card__value" style="color:var(--ink);" th:text="${orderPage.totalElements} + ' đơn'">0 đơn</div>
+                <div class="stat-card__value stat-card__value--ink" th:text="${orderPage.totalElements} + ' đơn'">0 đơn</div>
             </div>
             <div class="stat-card">
                 <div class="stat-card__label">Lần cuối ghé</div>
-                <div class="stat-card__value" style="color:var(--ink);" th:text="${orderPage.totalElements > 0 ? #temporals.format(orderPage.content[0].createdAt, 'dd/MM/yyyy') : '—'}">—</div>
+                <div class="stat-card__value stat-card__value--ink"
+                     th:text="${orderPage.totalElements > 0 ? #temporals.format(orderPage.content[0].createdAt, 'dd/MM/yyyy') : '—'}">—</div>
             </div>
         </div>
 
@@ -143,7 +50,7 @@
                     Tham gia từ <span th:text="${#temporals.format(customer.createdAt, 'dd/MM/yyyy')}"></span>
                 </div>
             </div>
-            
+
             <div class="detail-grid">
                 <div class="detail-item">
                     <span class="detail-item__label">Mã KH</span>
@@ -177,11 +84,11 @@
 
         <!-- ── Lịch sử giao dịch ── -->
         <div class="card-panel">
-            <div style="padding:16px; border-bottom:1px solid var(--hairline); font-family:var(--font-display); font-size:18px; font-weight:600; color:var(--ink);">
+            <div class="transaction-header">
                 Lịch sử giao dịch
             </div>
-            
-            <div style="overflow-x:auto;">
+
+            <div class="table-scroll">
                 <table>
                     <thead>
                         <tr>
@@ -212,7 +119,7 @@
                                 </span>
                                 <span th:if="${order.details.size() > 2}" class="code-chip" style="font-size:11px;" th:text="'+' + (${order.details.size() - 2})"></span>
                             </td>
-                            <td style="font-weight:600;" th:text="${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                            <td class="amount-cell" th:text="${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
                             <td>
                                 <span class="badge"
                                       th:classappend="${order.status == 'COMPLETED'} ? 'badge-active' :
@@ -231,8 +138,8 @@
             </div>
 
             <!-- Pagination -->
-            <div th:if="${orderPage.totalPages > 1}" style="padding:16px; border-top:1px solid var(--hairline); display:flex; justify-content:space-between; align-items:center;">
-                <small style="color:var(--ink-muted-48);">
+            <div th:if="${orderPage.totalPages > 1}" class="pagination-bar">
+                <small class="pagination-bar__info">
                     Hiển thị <span th:text="${orderPage.numberOfElements}"></span> /
                     <span th:text="${orderPage.totalElements}"></span> đơn hàng
                 </small>

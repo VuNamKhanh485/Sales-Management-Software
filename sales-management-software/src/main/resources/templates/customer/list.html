@@ -5,33 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Danh sách khách hàng — SMS</title>
     <link rel="stylesheet" th:href="@{/css/apple-design.css}">
-    <style>
-        .page-content {
-            max-width: 1100px;
-            margin: var(--sp-xl) auto;
-            padding: 0 var(--sp-md);
-        }
-        .header-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: var(--sp-lg);
-            flex-wrap: wrap;
-            gap: var(--sp-sm);
-        }
-        .pagination {
-            display: flex; gap: 4px; list-style: none; padding: 0; margin: 0;
-        }
-        .pagination a {
-            display: inline-flex; align-items: center; justify-content: center;
-            min-width: 32px; height: 32px; border-radius: var(--r-sm);
-            font-size: 14px; color: var(--ink-muted-80); text-decoration: none;
-            transition: background 0.15s;
-        }
-        .pagination a:hover { background: var(--divider-soft); }
-        .pagination .active a { background: var(--primary); color: var(--on-primary); }
-        .pagination .disabled a { opacity: 0.4; pointer-events: none; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/customer.css}">
 </head>
 <body>
 
@@ -64,7 +38,7 @@
         </div>
 
         <div class="card-panel">
-            <div style="overflow-x:auto;">
+            <div class="table-scroll">
                 <table>
                     <thead>
                         <tr>
@@ -88,13 +62,13 @@
                         </tr>
                         <tr th:each="cus : ${customerPage.content}">
                             <td>
-                                <div style="font-weight:600; color:var(--ink);" th:text="${cus.fullName}"></div>
-                                <div style="font-size:13px; color:var(--ink-muted-48);" th:text="${cus.email}"></div>
+                                <div class="customer-name" th:text="${cus.fullName}"></div>
+                                <div class="customer-email" th:text="${cus.email}"></div>
                             </td>
                             <td th:text="${cus.phone}"></td>
                             <td>
                                 <span th:if="${cus.customerRank != null}" class="code-chip" th:text="${cus.customerRank.name}"></span>
-                                <span th:unless="${cus.customerRank != null}" style="color:var(--ink-muted-48);">—</span>
+                                <span th:unless="${cus.customerRank != null}" class="text-muted">—</span>
                             </td>
                             <td th:text="${#numbers.formatDecimal(cus.totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
                             <td>
@@ -104,7 +78,7 @@
                             </td>
                             <td>
                                 <div class="actions" style="justify-content:flex-end;">
-                                    <a th:href="@{/customers/detail/{id}(id=${cus.id})}" class="action-edit" style="color:var(--ink-muted-80);">Xem</a>
+                                    <a th:href="@{/customers/detail/{id}(id=${cus.id})}" class="action-view">Xem</a>
                                     <a th:href="@{/customers/edit/{id}(id=${cus.id})}" class="action-edit">Sửa</a>
                                 </div>
                             </td>
@@ -114,12 +88,12 @@
             </div>
 
             <!-- Pagination -->
-            <div th:if="${customerPage.totalPages > 0}" style="padding:16px; border-top:1px solid var(--hairline); display:flex; justify-content:space-between; align-items:center;">
-                <small style="color:var(--ink-muted-48);">
+            <div th:if="${customerPage.totalPages > 0}" class="pagination-bar">
+                <small class="pagination-bar__info">
                     Hiển thị <span th:text="${customerPage.numberOfElements}"></span> /
                     <span th:text="${customerPage.totalElements}"></span> khách hàng
                 </small>
-                
+
                 <nav th:if="${customerPage.totalPages > 1}">
                     <ul class="pagination">
                         <li th:classappend="${currentPage == 1} ? 'disabled'">

@@ -246,27 +246,55 @@ public class PosController {
     @GetMapping("/search-customer")
     public String findCustomers(
             @RequestParam String phone,
-            RedirectAttributes ra) {
+            @ModelAttribute("posSession") PosSessionData session,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            Model model) {
 
         String keyword = phone.trim();
         if (keyword.isEmpty()) {
             return "redirect:/pos";
         }
+
+        // Tìm kiếm khách hàng
         org.springframework.data.domain.Page<Customer> page = customerRepository
-                .findByStatusAndPhoneContainingOrStatusAndFullNameContainingIgnoreCase(
-                        CustomerStatus.ACTIVE, keyword,
-                        CustomerStatus.ACTIVE, keyword,
+                .searchActiveByPhoneOrName(
+                        CustomerStatus.ACTIVE.name(), keyword,
                         org.springframework.data.domain.PageRequest.of(0, 5));
 
         List<Customer> result = page.getContent();
         if (result.isEmpty()) {
-            ra.addFlashAttribute("customerSearchError", "Không tìm thấy khách hàng");
+            model.addAttribute("customerSearchError", "Không tìm thấy khách hàng");
         } else {
-            ra.addFlashAttribute("customerSearchResults", result);
+            // Force init lazy-loaded customerRank to avoid LazyInitializationException
+            result.forEach(c -> {
+                if (c.getCustomerRank() != null) {
+                    c.getCustomerRank().getName();
+                }
+            });
+            model.addAttribute("customerSearchResults", result);
         }
-        ra.addFlashAttribute("searchedPhone", phone);
+        model.addAttribute("searchedPhone", phone);
 
-        return "redirect:/pos";
+        // === Setup các model attributes giống showPosScreen ===
+        if (session.getActiveBranchId() == null && userDetails != null) {
+            Long defaultBranchId = userDetails.getBranchId();
+            session.setActiveBranchId(defaultBranchId != null ? defaultBranchId : 1L);
+        }
+        if (session.getActiveBranchId() != null) {
+            branchRepository.findById(session.getActiveBranchId()).ifPresent(branch -> {
+                model.addAttribute("activeBranch", branch);
+            });
+        }
+        boolean isOwner = userDetails != null && userDetails.hasRole("OWNER");
+        model.addAttribute("isOwner", isOwner);
+        if (isOwner) {
+            model.addAttribute("branches", branchRepository.findAll());
+        }
+        model.addAttribute("posData", session);
+        model.addAttribute("cart", session.getActiveCart());
+        model.addAttribute("categories", categoryRepository.findAll());
+
+        return "order/pos";
     }
 
     @GetMapping("/sales-history")
@@ -289,7 +317,7 @@ public class PosController {
 
         List<OrderTransaction> orders;
         if (isOwner) {
-            orders = orderTransactionRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(startOfDay, endOfDay);
+            orders = orderTransactionRepository.findByDateRange(startOfDay, endOfDay);
         } else {
             orders = orderTransactionRepository.findByCreatedByAndCreatedAtBetweenOrderByCreatedAtDesc(
                     userDetails.getEmployee().getId(), startOfDay, endOfDay);

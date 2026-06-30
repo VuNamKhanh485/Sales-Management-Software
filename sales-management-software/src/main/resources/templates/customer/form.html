@@ -5,81 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${customerDTO.id == null ? 'Thêm Khách hàng — SMS' : 'Sửa Khách hàng — SMS'}"></title>
     <link rel="stylesheet" th:href="@{/css/apple-design.css}">
-    <style>
-        .form-page {
-            max-width: 700px;
-            margin: var(--sp-xxl) auto;
-            padding: 0 var(--sp-xl);
-        }
-        .form-card {
-            background: var(--canvas);
-            border: 1px solid var(--hairline);
-            border-radius: var(--r-lg);
-            padding: var(--sp-xl);
-        }
-        .form-card__header {
-            margin-bottom: var(--sp-xl);
-            padding-bottom: var(--sp-md);
-            border-bottom: 1px solid var(--divider-soft);
-        }
-        .form-card__title {
-            font-family: var(--font-display);
-            font-size: 28px;
-            font-weight: 600;
-            letter-spacing: -0.374px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: var(--sp-md) var(--sp-lg);
-        }
-        @media (max-width: 560px) {
-            .form-grid { grid-template-columns: 1fr; }
-        }
-
-        .form-group { display: flex; flex-direction: column; gap: 6px; }
-        .form-group--full { grid-column: 1 / -1; }
-
-        .form-label {
-            font-size: 13px; font-weight: 600; color: var(--ink);
-        }
-        .form-input, .form-select, .form-textarea {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1px solid var(--hairline);
-            border-radius: var(--r-md);
-            font-family: var(--font-text);
-            font-size: 15px;
-            background: var(--canvas);
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .form-input:focus, .form-select:focus, .form-textarea:focus {
-            border-color: var(--primary-focus);
-            box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.12);
-        }
-        .form-input[readonly] {
-            background: var(--canvas-parchment);
-            color: var(--ink-muted-48);
-            cursor: not-allowed;
-        }
-
-        .form-select {
-            padding-right: 36px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7' fill='none'%3E%3Cpath d='M1 1L5.5 6L10 1' stroke='%237a7a7a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 14px center;
-            appearance: none;
-        }
-        
-        .action-bar {
-            margin-top: var(--sp-xxl);
-            padding-top: var(--sp-lg);
-            border-top: 1px solid var(--divider-soft);
-            display: flex; justify-content: flex-end; gap: var(--sp-sm);
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/customer.css}">
 </head>
 <body>
 
@@ -88,9 +14,9 @@
 
     <!-- ── Sub Nav ── -->
     <div class="sub-nav">
-        <a href="/customers" style="color:var(--primary); text-decoration:none; font-size:14px; margin-right:8px;">Khách hàng</a>
-        <span style="color:var(--ink-muted-48); font-size:12px; margin-right:8px;">›</span>
-        <h1 style="font-size:21px; font-weight:600; margin:0;" th:text="${customerDTO.id == null ? 'Thêm mới' : 'Chỉnh sửa'}"></h1>
+        <a href="/customers" class="sub-nav__back">Khách hàng</a>
+        <span class="sub-nav__sep">›</span>
+        <h1 class="sub-nav__title" th:text="${customerDTO.id == null ? 'Thêm mới' : 'Chỉnh sửa'}" style="margin:0;"></h1>
     </div>
 
     <main class="form-page">
@@ -107,14 +33,14 @@
                 <input type="hidden" th:field="*{id}"/>
 
                 <div class="form-grid">
-                    
+
                     <div class="form-group">
-                        <label class="form-label">Họ và tên <span style="color:var(--danger)">*</span></label>
+                        <label class="form-label">Họ và tên <span class="required-mark">*</span></label>
                         <input type="text" class="form-input" th:field="*{fullName}" required>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Số điện thoại <span style="color:var(--danger)">*</span></label>
+                        <label class="form-label">Số điện thoại <span class="required-mark">*</span></label>
                         <input type="text" class="form-input" th:field="*{phone}" required>
                     </div>
 
@@ -127,6 +53,18 @@
                         <label class="form-label">Hạng thẻ (Tự động cập nhật)</label>
                         <input type="text" class="form-input" th:value="${currentRankName}" readonly disabled>
                         <input type="hidden" th:field="*{customerRankId}">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Giới tính</label>
+                        <select class="form-select" th:field="*{gender}">
+                            <option th:each="g : ${genders}" th:value="${g.name()}" th:text="${g.name()}"></option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Ngày sinh</label>
+                        <input type="date" class="form-input" th:field="*{dob}">
                     </div>
 
                     <div class="form-group" th:if="${customerDTO.id != null}">
@@ -150,8 +88,8 @@
                 </div>
 
                 <div class="form-actions">
-                    <a href="/customers" class="btn-cancel" style="padding:10px 20px; font-size:15px;">Hủy</a>
-                    <button type="submit" class="btn-primary" style="padding:10px 24px; font-size:15px;">Lưu khách hàng</button>
+                    <a href="/customers" class="btn-cancel">Hủy</a>
+                    <button type="submit" class="btn-primary">Lưu khách hàng</button>
                 </div>
             </form>
         </div>

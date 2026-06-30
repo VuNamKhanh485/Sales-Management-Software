@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
  
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.List;
  
@@ -24,7 +26,8 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
     List<OrderTransaction> findByCreatedByAndCreatedAtBetweenOrderByCreatedAtDesc(
             Long createdBy, LocalDateTime startDate, LocalDateTime endDate);
  
-    @EntityGraph(attributePaths = {"customer"})
-    List<OrderTransaction> findByCreatedAtBetweenOrderByCreatedAtDesc(
-            LocalDateTime startDate, LocalDateTime endDate);
+    @Query("SELECT o FROM OrderTransaction o LEFT JOIN FETCH o.customer WHERE o.createdAt BETWEEN :start AND :end ORDER BY o.createdAt DESC")
+    List<OrderTransaction> findByDateRange(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
 }
