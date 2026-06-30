@@ -15,6 +15,8 @@ import com.g4fpt.sms.product.repository.CategoryRepository;
 import com.g4fpt.sms.product.repository.ProductUnitRepository;
 import com.g4fpt.sms.voucher.entity.Voucher;
 import com.g4fpt.sms.voucher.repository.VoucherRepository;
+import com.g4fpt.sms.inventory.entity.Inventory;
+import com.g4fpt.sms.inventory.repository.InventoryRepository;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -47,6 +49,7 @@ public class PosController {
     private final OrderTransactionRepository orderTransactionRepository;
     private final BranchRepository branchRepository;
     private final VoucherRepository voucherRepository;
+    private final InventoryRepository inventoryRepository;
 
     @ModelAttribute("posSession")
     public PosSessionData setupSession() {
@@ -470,6 +473,7 @@ public class PosController {
     // =============================================
     @GetMapping("/product-list")
     public String getProductList(
+            @ModelAttribute("posSession") PosSessionData session,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String keyword,
             Model model) {
@@ -492,7 +496,20 @@ public class PosController {
                     .collect(Collectors.toList());
         }
 
+        // Lấy tồn kho thực tế cho từng sản phẩm tại chi nhánh đang chọn
+        Long branchId = session.getActiveBranchId();
+        Map<Long, Integer> stockMap = new HashMap<>();
+        if (branchId != null) {
+            for (ProductUnit pu : all) {
+                int stock = inventoryRepository.findByBranchIdAndProductUnitId(branchId, pu.getId())
+                        .map(Inventory::getStock)
+                        .orElse(0);
+                stockMap.put(pu.getId(), stock);
+            }
+        }
+
         model.addAttribute("products", all);
+        model.addAttribute("stockMap", stockMap);
         model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("keyword", keyword);
         model.addAttribute("categoryId", categoryId);

@@ -2,6 +2,8 @@ package com.g4fpt.sms.order.service.impl;
 
 import com.g4fpt.sms.customer.entity.Customer;
 import com.g4fpt.sms.customer.repository.CustomerRepository;
+import com.g4fpt.sms.inventory.entity.Inventory;
+import com.g4fpt.sms.inventory.repository.InventoryRepository;
 import com.g4fpt.sms.order.dto.POSCartItemRequest;
 import com.g4fpt.sms.order.dto.POSCheckoutRequest;
 import com.g4fpt.sms.order.entity.OrderTransaction;
@@ -30,6 +32,7 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
     private final CustomerRepository customerRepository;
     private final VoucherRepository voucherRepository;
     private final CustomerService customerService;
+    private final InventoryRepository inventoryRepository;
 
     @Override
     @Transactional
@@ -108,10 +111,27 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             order.setVoucher(voucher);
         }
 
-        // 9. Tạo OrderTransactionDetail
+        // 9. Tạo OrderTransactionDetail và trừ tồn kho
         for (POSCartItemRequest item : request.getItems()) {
             ProductUnit pu = productUnitRepository.findById(item.getProductUnitId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+
+            // Trừ tồn kho tại chi nhánh tương ứng
+            Long branchId = request.getBranchId();
+            Inventory inventory = inventoryRepository.findByBranchIdAndProductUnitId(branchId, pu.getId())
+                    .orElseThrow(() -> new RuntimeException("Sản phẩm '" + pu.getProduct().getName() 
+                            + "' [" + (pu.getUnit() != null ? pu.getUnit().getName() : "") 
+                            + "] chưa được khai báo tồn kho tại chi nhánh này!"));
+
+            if (inventory.getStock() < item.getQuantity()) {
+                throw new RuntimeException("Sản phẩm '" + pu.getProduct().getName() 
+                        + "' [" + (pu.getUnit() != null ? pu.getUnit().getName() : "") 
+                        + "] không đủ tồn kho! (Yêu cầu: " + item.getQuantity() 
+                        + ", Hiện có: " + inventory.getStock() + ")");
+            }
+
+            inventory.setStock(inventory.getStock() - item.getQuantity());
+            inventoryRepository.save(inventory);
 
             OrderTransactionDetail detail = OrderTransactionDetail.builder()
                     .orderTransaction(order)

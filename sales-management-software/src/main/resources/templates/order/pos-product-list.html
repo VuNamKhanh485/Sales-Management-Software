@@ -27,7 +27,13 @@
                 <div class="p-2">
                     <div class="small fw-semibold text-truncate" th:text="${p.product.name}"></div>
                     <div class="text-muted" style="font-size:10px" th:text="${p.sku}"></div>
-                    <div class="text-primary fw-bold small" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></div>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <span class="text-primary fw-bold small" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        <span class="badge rounded-pill" 
+                              th:classappend="${(stockMap.get(p.id) != null ? stockMap.get(p.id) : 0) > 0 ? 'bg-success' : 'bg-danger'}"
+                              style="font-size: 10px;" 
+                              th:text="'Tồn: ' + ${(stockMap.get(p.id) != null ? stockMap.get(p.id) : 0)}"></span>
+                    </div>
                 </div>
             </div>
         </div>
