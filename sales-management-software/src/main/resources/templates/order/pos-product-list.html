@@ -22,7 +22,7 @@
             Không tìm thấy sản phẩm
         </div>
         <div th:each="p : ${products}" class="col-6 col-md-4 col-lg-3">
-            <div class="product-card-modal" th:onclick="'window.parent.location.href=\'/pos/add-by-id?productUnitId=' + ${p.id} + '\''">
+            <div class="product-card-modal" th:onclick="'window.parent.addById(' + ${p.id} + ')'">
                 <img th:src="${p.product.imageUrl != null ? p.product.imageUrl : 'https://via.placeholder.com/150x80?text=No+Image'}" alt="Img">
                 <div class="p-2">
                     <div class="small fw-semibold text-truncate" th:text="${p.product.name}"></div>

@@ -35,8 +35,8 @@
                 <div class="order-tabs-row">
 
                     <!-- SKU input -->
-                    <form th:action="@{/pos/add}" method="GET" class="d-flex gap-2 me-2" style="min-width:220px">
-                        <input type="text" name="keyword" class="form-control form-control-sm"
+                    <form onsubmit="addBySku(event)" class="d-flex gap-2 me-2" style="min-width:220px">
+                        <input type="text" id="skuKeyword" class="form-control form-control-sm"
                             placeholder="Quét SKU / barcode..." autofocus>
                         <button type="submit" class="btn btn-primary btn-sm px-2">
                             <i class="bi bi-upc-scan"></i>
@@ -47,7 +47,7 @@
 
                     <!-- Order tabs -->
                     <div th:each="entry : ${posData.carts}" class="d-flex">
-                        <a th:href="@{/pos/switch/{i}(i=${entry.key})}"
+                        <a href="#" th:onclick="'switchOrder(' + ${entry.key} + ', event)'"
                             th:classappend="${entry.key == session.activeIndex} ? 'active'" class="order-tab">
                             <i class="bi bi-receipt" style="font-size:12px"></i>
                             <span th:text="'Đơn ' + ${entry.key}"></span>
@@ -88,7 +88,7 @@
                                 <td class="text-center">
                                     <select th:if="${cartItemUnitsMap != null and cartItemUnitsMap.containsKey(item.productUnitId) and #lists.size(cartItemUnitsMap.get(item.productUnitId)) > 1}"
                                             class="unit-select"
-                                            th:onchange="'location.href=\'/pos/update-unit?index=' + ${stat.index} + '&productUnitId=\' + this.value'">
+                                            th:onchange="'updateUnit(' + ${stat.index} + ', this.value)'">
                                         <option th:each="pu : ${cartItemUnitsMap.get(item.productUnitId)}"
                                                 th:value="${pu.id}"
                                                 th:text="${pu.unit != null ? pu.unit.name : 'Mặc định'} + ' (' + ${pu.conventionValue} + ')'"
@@ -100,11 +100,11 @@
                                 </td>
                                 <td>
                                     <div class="qty-control">
-                                        <a th:href="@{/pos/update-qty(index=${stat.index},quantity=${item.quantity - 1})}"
+                                        <a href="#" th:onclick="'updateQty(' + ${stat.index} + ', ' + ${item.quantity - 1} + ', event)'"
                                             class="btn btn-outline-secondary btn-sm qty-btn">−</a>
                                         <span class="fw-bold" style="min-width:28px;text-align:center"
                                             th:text="${item.quantity}"></span>
-                                        <a th:href="@{/pos/update-qty(index=${stat.index},quantity=${item.quantity + 1})}"
+                                        <a href="#" th:onclick="'updateQty(' + ${stat.index} + ', ' + ${item.quantity + 1} + ', event)'"
                                             class="btn btn-outline-primary btn-sm qty-btn">+</a>
                                     </div>
                                 </td>
@@ -113,7 +113,7 @@
                                     th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')} + 'đ'">
                                 </td>
                                 <td>
-                                    <a th:href="@{/pos/remove(index=${stat.index})}"
+                                    <a href="#" th:onclick="'removeCartItem(' + ${stat.index} + ', event)'"
                                         class="btn btn-sm btn-outline-danger qty-btn">
                                         <i class="bi bi-trash" style="font-size:11px"></i>
                                     </a>
@@ -155,7 +155,7 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li th:each="br : ${branches}">
-                                <a class="dropdown-item" th:href="@{/pos/change-branch(branchId=${br.id})}"
+                                <a class="dropdown-item" href="#" th:onclick="'changeBranch(' + ${br.id} + ', event)'"
                                     th:text="${br.name}"></a>
                             </li>
                         </ul>
@@ -189,8 +189,8 @@
                 <!-- Khách hàng -->
                 <div class="panel-customer">
                     <div th:if="${cart.customerId == null}">
-                        <form th:action="@{/pos/search-customer}" method="GET" class="d-flex gap-2 mb-1">
-                            <input type="text" name="phone" id="customerPhone" class="form-control form-control-sm"
+                        <form onsubmit="searchCustomer(event)" class="d-flex gap-2 mb-1">
+                            <input type="text" id="customerPhone" class="form-control form-control-sm"
                                 placeholder="SĐT hoặc tên khách hàng..." th:value="${searchedPhone}">
                             <button type="submit" class="btn btn-outline-primary btn-sm px-2" title="Tìm">
                                 <i class="bi bi-search"></i>
@@ -213,7 +213,7 @@
                                             <span class="badge bg-info text-dark" th:text="${c.customerRank != null ? c.customerRank.name : 'Thường'}"></span>
                                         </div>
                                     </div>
-                                    <a th:href="@{/pos/set-customer(customerId=${c.id},customerName=${c.fullName},customerPhone=${c.phone})}"
+                                    <a href="#" th:onclick="'selectCustomer(' + ${c.id} + ', \'' + ${c.fullName} + '\', \'' + ${c.phone} + '\', event)'"
                                        class="btn btn-sm btn-primary py-1 px-2 fw-semibold" style="font-size: 11px;">Chọn</a>
                                 </div>
                             </div>
@@ -226,7 +226,7 @@
                             <span class="fw-semibold small" th:text="${cart.customerName}"></span>
                             <div class="text-muted" style="font-size:11px" th:text="${cart.customerPhone}"></div>
                         </div>
-                        <a th:href="@{/pos/remove-customer}" class="btn btn-sm btn-outline-danger py-0">
+                        <a href="#" th:onclick="'removeCustomer(event)'" class="btn btn-sm btn-outline-danger py-0">
                             <i class="bi bi-x"></i>
                         </a>
                     </div>
@@ -237,8 +237,8 @@
 
                     <!-- Voucher -->
                     <div class="mb-3" th:if="${cart.voucherCode == null}">
-                        <form th:action="@{/pos/apply-voucher}" method="POST" class="d-flex gap-2">
-                            <input type="text" name="code" id="voucherCode" class="form-control form-control-sm"
+                        <form onsubmit="applyVoucher(event)" class="d-flex gap-2">
+                            <input type="text" id="voucherCode" class="form-control form-control-sm"
                                 placeholder="Mã giảm giá...">
                             <button type="submit" class="btn btn-outline-primary btn-sm">Áp dụng</button>
                         </form>
@@ -254,7 +254,7 @@
                                 <i class="bi bi-tag-fill me-1"></i>
                                 <span th:text="${cart.voucherCode}"></span>
                             </span>
-                            <a th:href="@{/pos/remove-voucher}" class="btn btn-sm btn-outline-danger py-0">
+                            <a href="#" th:onclick="'removeVoucher(event)'" class="btn btn-sm btn-outline-danger py-0">
                                 <i class="bi bi-x"></i>
                             </a>
                         </div>
