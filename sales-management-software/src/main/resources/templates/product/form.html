@@ -177,7 +177,11 @@
                     <div class="form-group form-group--full">
                         <label class="form-label">
                             Tên sản phẩm
-                            <input type="text" class="form-input" name="name" th:field="*{name}" placeholder="VD: Sữa chua Vinamilk" required/>
+                            <input type="text"
+                                   class="form-input"
+                                   th:field="*{name}"
+                                   placeholder="VD: Sữa chua Vinamilk"
+                                   required/>
                         </label>
                     </div>
 
@@ -187,9 +191,13 @@
                             <select class="form-select select2-init" id="categoryId" name="categoryId" th:field="*{categoryId}" required>
                                 <option value="">-- Chọn danh mục --</option>
                                 <option th:each="c : ${categoryList}" th:value="${c.id}" th:text="${c.name}"></option>
-                                <option value="NEW_CATEGORY" style="color:var(--primary); font-weight:bold;">+ Thêm mới...</option>
                             </select>
                         </label>
+                        <button type="button"
+                           class="add-link"
+                           onclick="openCategoryModal(); return false;">
+                            + Thêm danh mục mới
+                        </button>
                     </div>
 
                     <div class="form-group">
@@ -198,9 +206,13 @@
                             <select class="form-select select2-init" id="brandId" name="brandId" th:field="*{brandId}">
                                 <option value="">-- Chọn thương hiệu --</option>
                                 <option th:each="b : ${brandList}" th:value="${b.id}" th:text="${b.name}"></option>
-                                <option value="NEW_BRAND" style="color:var(--primary); font-weight:bold;">+ Thêm mới...</option>
                             </select>
                         </label>
+                        <button type="button"
+                                class="add-link"
+                                onclick="openBrandModal(); return false;">
+                            + Thêm thương hiệu mới
+                        </button>
                     </div>
 
                     <div class="form-group form-group--full">
@@ -319,6 +331,14 @@
 <script th:inline="javascript">
     const unitList = /*[[${unitList}]]*/ [];
     let rowIndex = document.querySelectorAll('#unitTable tr:not(#no-unit-row)').length;
+
+    function openCategoryModal() {
+        document.getElementById('modalCategory').style.display = 'flex';
+    }
+
+    function openBrandModal() {
+        document.getElementById('modalBrand').style.display = 'flex';
+    }
 
     function addUnitRow() {
         const noUnitRow = document.getElementById('no-unit-row');
