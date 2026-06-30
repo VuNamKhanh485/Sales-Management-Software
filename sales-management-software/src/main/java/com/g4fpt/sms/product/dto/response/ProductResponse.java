@@ -21,4 +21,16 @@ public class ProductResponse {
     private ProductStatus status;
     private String note;
     private List<ProductUnitResponse> productUnitsResponses;
+
+    public String getBaseSku(){
+        if (productUnitsResponses == null) {
+            return "-";
+        }
+
+        return productUnitsResponses.stream()
+                .filter(u -> Boolean.TRUE.equals(u.getIsBaseUnit()))
+                .findFirst()
+                .map(ProductUnitResponse::getSku)
+                .orElse("-");
+    }
 }

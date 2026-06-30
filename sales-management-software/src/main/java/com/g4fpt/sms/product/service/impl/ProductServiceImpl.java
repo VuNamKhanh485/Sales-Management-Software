@@ -97,7 +97,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductResponse> findAll(ProductFilterRequest filter, int size, int page,
+    public Page<ProductResponse> findAll(ProductFilterRequest filter, int page, int size,
                                          String sortField, String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase("asc")
                 ? Sort.by(sortField).ascending()
