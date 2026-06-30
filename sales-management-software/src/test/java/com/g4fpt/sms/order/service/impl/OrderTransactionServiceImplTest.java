@@ -14,6 +14,7 @@ import com.g4fpt.sms.voucher.entity.Voucher;
 import com.g4fpt.sms.voucher.enums.DiscountType;
 import com.g4fpt.sms.voucher.enums.VoucherStatus;
 import com.g4fpt.sms.voucher.repository.VoucherRepository;
+import com.g4fpt.sms.inventory.repository.InventoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,6 +50,9 @@ class OrderTransactionServiceImplTest {
     @Mock
     private CustomerService customerService;
 
+    @Mock
+    private InventoryRepository inventoryRepository;
+
     @InjectMocks
     private OrderTransactionServiceImpl orderService;
 
@@ -75,6 +79,13 @@ class OrderTransactionServiceImplTest {
         checkoutRequest.setPaymentMethodId(2L);
         checkoutRequest.setVatRate(new BigDecimal("0.08")); // 8% VAT
         checkoutRequest.setItems(Collections.singletonList(cartItemRequest));
+
+        lenient().when(inventoryRepository.findByBranchIdAndProductUnitId(anyLong(), anyLong()))
+                .thenAnswer(invocation -> {
+                    com.g4fpt.sms.inventory.entity.Inventory inv = new com.g4fpt.sms.inventory.entity.Inventory();
+                    inv.setStock(100);
+                    return Optional.of(inv);
+                });
     }
 
     @Test
