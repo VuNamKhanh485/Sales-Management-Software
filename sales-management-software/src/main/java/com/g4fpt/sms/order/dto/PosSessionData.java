@@ -3,16 +3,16 @@ package com.g4fpt.sms.order.dto;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 @Getter
 @Setter
 public class PosSessionData {
 
-    private Map<Integer, PosCart> carts = new LinkedHashMap<>();
+    private Map<Integer, PosCart> carts = new TreeMap<>();
     private int activeIndex = 1;
-    private int nextIndex = 2;
+    private Long activeBranchId;
 
     public PosSessionData() {
         carts.put(1, new PosCart());
@@ -29,20 +29,27 @@ public class PosSessionData {
         return carts.size() < 5;
     }
 
+    private int getSmallestUnusedIndex() {
+        int i = 1;
+        while (carts.containsKey(i)) {
+            i++;
+        }
+        return i;
+    }
+
     public void addNewOrder() {
         if (canAddOrder()) {
-            carts.put(nextIndex, new PosCart());
-            activeIndex = nextIndex;
-            nextIndex++;
+            int newIndex = getSmallestUnusedIndex();
+            carts.put(newIndex, new PosCart());
+            activeIndex = newIndex;
         }
     }
 
     public void removeOrder(int index) {
         carts.remove(index);
         if (carts.isEmpty()) {
-            carts.put(nextIndex, new PosCart());
-            activeIndex = nextIndex;
-            nextIndex++;
+            carts.put(1, new PosCart());
+            activeIndex = 1;
         } else if (activeIndex == index) {
             activeIndex = carts.keySet().iterator().next();
         }

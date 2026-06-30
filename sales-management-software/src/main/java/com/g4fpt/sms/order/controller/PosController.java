@@ -3,6 +3,7 @@ package com.g4fpt.sms.order.controller;
 import com.g4fpt.sms.branch.repository.BranchRepository;
 import com.g4fpt.sms.customer.entity.Customer;
 import com.g4fpt.sms.customer.repository.CustomerRepository;
+import com.g4fpt.sms.customer.enums.CustomerStatus;
 import com.g4fpt.sms.order.dto.*;
 import com.g4fpt.sms.order.entity.OrderTransaction;
 import com.g4fpt.sms.order.repository.OrderTransactionRepository;
@@ -13,12 +14,19 @@ import com.g4fpt.sms.product.enums.ProductStatus;
 import com.g4fpt.sms.product.repository.CategoryRepository;
 import com.g4fpt.sms.product.repository.ProductUnitRepository;
 import com.g4fpt.sms.voucher.entity.Voucher;
+import com.g4fpt.sms.voucher.repository.VoucherRepository;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.g4fpt.sms.auth.security.CustomUserDetails;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -38,6 +46,7 @@ public class PosController {
     private final CustomerRepository customerRepository;
     private final OrderTransactionRepository orderTransactionRepository;
     private final BranchRepository branchRepository;
+    private final VoucherRepository voucherRepository;
 
     @ModelAttribute("posSession")
     public PosSessionData setupSession() {
@@ -51,7 +60,25 @@ public class PosController {
     public String showPosScreen(
             @ModelAttribute("posSession") PosSessionData session,
             @RequestParam(required = false) Long successOrderId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             Model model) {
+
+        if (session.getActiveBranchId() == null && userDetails != null) {
+            Long defaultBranchId = userDetails.getBranchId();
+            session.setActiveBranchId(defaultBranchId != null ? defaultBranchId : 1L);
+        }
+
+        if (session.getActiveBranchId() != null) {
+            branchRepository.findById(session.getActiveBranchId()).ifPresent(branch -> {
+                model.addAttribute("activeBranch", branch);
+            });
+        }
+
+        boolean isOwner = userDetails != null && userDetails.hasRole("OWNER");
+        model.addAttribute("isOwner", isOwner);
+        if (isOwner) {
+            model.addAttribute("branches", branchRepository.findAll());
+        }
 
         // Đổi tên từ "session" thành "posData"
         model.addAttribute("posData", session);
@@ -73,6 +100,7 @@ public class PosController {
 
         return "order/pos";
     }
+
     // =============================================
     // 2. Thêm đơn mới
     // =============================================
@@ -98,6 +126,18 @@ public class PosController {
             @ModelAttribute("posSession") PosSessionData session) {
 
         session.switchOrder(index);
+        return "redirect:/pos";
+    }
+
+    @GetMapping("/change-branch")
+    public String changeBranch(
+            @RequestParam Long branchId,
+            @ModelAttribute("posSession") PosSessionData session,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        if (userDetails != null && userDetails.hasRole("OWNER")) {
+            session.setActiveBranchId(branchId);
+        }
         return "redirect:/pos";
     }
 
@@ -203,35 +243,125 @@ public class PosController {
         return "redirect:/pos";
     }
 
-    // =============================================
-    // 10. API tìm khách hàng
-    // =============================================
-    @GetMapping("/api/customer")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> findCustomer(
-            @RequestParam String phone) {
+    @GetMapping("/search-customer")
+    public String findCustomers(
+            @RequestParam String phone,
+            @ModelAttribute("posSession") PosSessionData session,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            Model model) {
 
-        Map<String, Object> result = new HashMap<>();
         String keyword = phone.trim();
-        Customer customer = customerRepository.findByPhone(keyword)
-                .orElseGet(() -> {
-                    org.springframework.data.domain.Page<Customer> page = 
-                        customerRepository.findByPhoneContainingOrFullNameContainingIgnoreCase(keyword, keyword, org.springframework.data.domain.PageRequest.of(0, 1));
-                    return page.isEmpty() ? null : page.getContent().get(0);
-                });
-
-        if (customer != null) {
-            result.put("found", true);
-            result.put("id", customer.getId());
-            result.put("name", customer.getFullName());
-            result.put("phone", customer.getPhone());
-            result.put("point", customer.getTotalPoint() - customer.getUsedPoint());
-            result.put("rank", customer.getCustomerRank() != null
-                    ? customer.getCustomerRank().getName() : "Thường");
-        } else {
-            result.put("found", false);
+        if (keyword.isEmpty()) {
+            return "redirect:/pos";
         }
-        return ResponseEntity.ok(result);
+
+        // Tìm kiếm khách hàng
+        org.springframework.data.domain.Page<Customer> page = customerRepository
+                .searchActiveByPhoneOrName(
+                        CustomerStatus.ACTIVE.name(), keyword,
+                        org.springframework.data.domain.PageRequest.of(0, 5));
+
+        List<Customer> result = page.getContent();
+        if (result.isEmpty()) {
+            model.addAttribute("customerSearchError", "Không tìm thấy khách hàng");
+        } else {
+            // Force init lazy-loaded customerRank to avoid LazyInitializationException
+            result.forEach(c -> {
+                if (c.getCustomerRank() != null) {
+                    c.getCustomerRank().getName();
+                }
+            });
+            model.addAttribute("customerSearchResults", result);
+        }
+        model.addAttribute("searchedPhone", phone);
+
+        // === Setup các model attributes giống showPosScreen ===
+        if (session.getActiveBranchId() == null && userDetails != null) {
+            Long defaultBranchId = userDetails.getBranchId();
+            session.setActiveBranchId(defaultBranchId != null ? defaultBranchId : 1L);
+        }
+        if (session.getActiveBranchId() != null) {
+            branchRepository.findById(session.getActiveBranchId()).ifPresent(branch -> {
+                model.addAttribute("activeBranch", branch);
+            });
+        }
+        boolean isOwner = userDetails != null && userDetails.hasRole("OWNER");
+        model.addAttribute("isOwner", isOwner);
+        if (isOwner) {
+            model.addAttribute("branches", branchRepository.findAll());
+        }
+        model.addAttribute("posData", session);
+        model.addAttribute("cart", session.getActiveCart());
+        model.addAttribute("categories", categoryRepository.findAll());
+
+        return "order/pos";
+    }
+
+    @GetMapping("/sales-history")
+    public String getSalesHistory(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(required = false) String date,
+            Model model) {
+
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
+
+        boolean isOwner = userDetails.hasRole("OWNER");
+        LocalDate localDate = (date != null && !date.isBlank())
+                ? LocalDate.parse(date)
+                : LocalDate.now();
+
+        LocalDateTime startOfDay = localDate.atStartOfDay();
+        LocalDateTime endOfDay = localDate.atTime(LocalTime.MAX);
+
+        List<OrderTransaction> orders;
+        if (isOwner) {
+            orders = orderTransactionRepository.findByDateRange(startOfDay, endOfDay);
+        } else {
+            orders = orderTransactionRepository.findByCreatedByAndDateRange(
+                    userDetails.getEmployee().getId(), startOfDay, endOfDay);
+        }
+
+        Map<Long, String> branchNames = new HashMap<>();
+        orders.forEach(order -> {
+            if (order.getBranchId() != null) {
+                branchNames.computeIfAbsent(order.getBranchId(),
+                        id -> branchRepository.findById(id).map(b -> b.getName()).orElse("SMS STORE"));
+            }
+        });
+
+        model.addAttribute("isOwner", isOwner);
+        model.addAttribute("orders", orders);
+        model.addAttribute("branchNames", branchNames);
+        model.addAttribute("filterDate", localDate.toString());
+
+        return "order/pos-history";
+    }
+
+    @GetMapping("/sales-history/{id}")
+    public String getOrderDetail(@PathVariable Long id, Model model) {
+        OrderTransaction order = orderTransactionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        model.addAttribute("order", order);
+
+        String branchName = "SMS STORE";
+        String branchAddress = "123 Đường Láng, Đống Đa, Hà Nội";
+        String branchPhone = "0987 654 321";
+        if (order.getBranchId() != null) {
+            var branchOpt = branchRepository.findById(order.getBranchId());
+            if (branchOpt.isPresent()) {
+                branchName = branchOpt.get().getName();
+                branchAddress = branchOpt.get().getAddress();
+                branchPhone = branchOpt.get().getPhone();
+            }
+        }
+        model.addAttribute("branchName", branchName);
+        model.addAttribute("branchAddress", branchAddress);
+        model.addAttribute("branchPhone", branchPhone);
+
+        return "order/pos-history-detail";
     }
 
     // =============================================
@@ -242,7 +372,14 @@ public class PosController {
             @RequestParam Long customerId,
             @RequestParam String customerName,
             @RequestParam String customerPhone,
-            @ModelAttribute("posSession") PosSessionData session) {
+            @ModelAttribute("posSession") PosSessionData session,
+            RedirectAttributes ra) {
+
+        Customer customer = customerRepository.findById(customerId).orElse(null);
+        if (customer == null || customer.getStatus() != com.g4fpt.sms.customer.enums.CustomerStatus.ACTIVE) {
+            ra.addFlashAttribute("error", "Khách hàng này hiện đang ngừng hoạt động hoặc không tồn tại!");
+            return "redirect:/pos";
+        }
 
         PosCart cart = session.getActiveCart();
         cart.setCustomerId(customerId);
@@ -266,16 +403,15 @@ public class PosController {
     // =============================================
     // 13. API kiểm tra voucher
     // =============================================
-    @GetMapping("/api/voucher")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> checkVoucher(
+    @PostMapping("/apply-voucher")
+    public String applyVoucher(
             @RequestParam String code,
-            @ModelAttribute("posSession") PosSessionData session) {
+            @ModelAttribute("posSession") PosSessionData session,
+            RedirectAttributes ra) {
 
-        Map<String, Object> result = new HashMap<>();
         PosCart cart = session.getActiveCart();
         try {
-            Voucher voucher = posService.validateVoucher(code, cart.getTotalAmount());
+            Voucher voucher = posService.validateVoucher(code, cart.getTotalAmount(), cart.getCustomerId());
             BigDecimal discount;
             if (voucher.getDiscountType().name().equals("PERCENT")) {
                 discount = cart.getTotalAmount()
@@ -289,14 +425,11 @@ public class PosController {
             }
             cart.setVoucherCode(code);
             cart.setVoucherDiscount(discount);
-            result.put("success", true);
-            result.put("discount", discount);
-            result.put("message", "Áp dụng thành công! Giảm " + discount + "đ");
+            ra.addFlashAttribute("voucherSuccess", "Áp dụng thành công! Giảm " + discount + "đ");
         } catch (Exception e) {
-            result.put("success", false);
-            result.put("message", e.getMessage());
+            ra.addFlashAttribute("voucherError", e.getMessage());
         }
-        return ResponseEntity.ok(result);
+        return "redirect:/pos";
     }
 
     // =============================================
@@ -313,11 +446,11 @@ public class PosController {
     // =============================================
     // 15. API lấy sản phẩm theo category (cho modal)
     // =============================================
-    @GetMapping("/api/products")
-    @ResponseBody
-    public ResponseEntity<List<Map<String, Object>>> getProducts(
+    @GetMapping("/product-list")
+    public String getProductList(
             @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String keyword,
+            Model model) {
 
         List<ProductUnit> all = productUnitRepo.findAll().stream()
                 .filter(pu -> pu.getProduct() != null
@@ -337,20 +470,50 @@ public class PosController {
                     .collect(Collectors.toList());
         }
 
-        List<Map<String, Object>> result = all.stream().map(pu -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", pu.getId());
-            map.put("name", pu.getProduct().getName());
-            map.put("sku", pu.getSku());
-            map.put("price", pu.getPrice());
-            map.put("imageUrl", pu.getProduct().getImageUrl());
-            map.put("unitName", pu.getUnit() != null ? pu.getUnit().getName() : "");
-            map.put("category", pu.getProduct().getCategory() != null
-                    ? pu.getProduct().getCategory().getName() : "");
-            return map;
-        }).collect(Collectors.toList());
+        model.addAttribute("products", all);
+        model.addAttribute("categories", categoryRepository.findAll());
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("categoryId", categoryId);
 
-        return ResponseEntity.ok(result);
+        return "order/pos-product-list";
+    }
+
+    // =============================================
+    // 15b. API lấy danh sách voucher khả dụng theo khách hàng
+    // =============================================
+    @GetMapping("/voucher-list")
+    public String getAvailableVouchers(
+            @ModelAttribute("posSession") PosSessionData session,
+            Model model) {
+
+        Long customerId = session.getActiveCart().getCustomerId();
+        if (customerId == null) {
+            model.addAttribute("vouchers", new java.util.ArrayList<>());
+            return "order/pos-voucher-list";
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        List<Voucher> activeVouchers = voucherRepository.findAll().stream()
+                .filter(v -> v.getStatus() == com.g4fpt.sms.voucher.enums.VoucherStatus.ACTIVE)
+                .filter(v -> v.getStartAt().isBefore(now) && v.getEndAt().isAfter(now))
+                .collect(Collectors.toList());
+
+        Customer customer = customerRepository.findById(customerId).orElse(null);
+        final Customer finalCust = customer;
+        
+        List<Voucher> result = activeVouchers.stream()
+                .filter(v -> {
+                    if (v.getCustomerRank() == null) return true;
+                    if (finalCust == null || finalCust.getCustomerRank() == null) {
+                        return v.getCustomerRank().getConditionTotalRevenue().compareTo(BigDecimal.ZERO) == 0;
+                    }
+                    return finalCust.getCustomerRank().getConditionTotalRevenue()
+                            .compareTo(v.getCustomerRank().getConditionTotalRevenue()) >= 0;
+                })
+                .collect(Collectors.toList());
+
+        model.addAttribute("vouchers", result);
+        return "order/pos-voucher-list";
     }
 
     // =============================================
@@ -362,6 +525,7 @@ public class PosController {
             @RequestParam(required = false) String note,
             @RequestParam Long paymentMethodId,
             @RequestParam BigDecimal givenAmount,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             RedirectAttributes ra) {
 
         PosCart cart = session.getActiveCart();
@@ -372,8 +536,17 @@ public class PosController {
 
         try {
             POSCheckoutRequest request = new POSCheckoutRequest();
-            request.setBranchId(1L);
-            request.setEmployeeId(1L);
+            if (userDetails != null && userDetails.getEmployee() != null) {
+                request.setEmployeeId(userDetails.getEmployee().getId());
+                Long branchId = session.getActiveBranchId();
+                if (branchId == null) {
+                    branchId = userDetails.getBranchId();
+                }
+                request.setBranchId(branchId != null ? branchId : 1L);
+            } else {
+                request.setEmployeeId(1L);
+                request.setBranchId(session.getActiveBranchId() != null ? session.getActiveBranchId() : 1L);
+            }
             request.setCustomerId(cart.getCustomerId());
             request.setVoucherCode(cart.getVoucherCode());
             request.setPaymentMethodId(paymentMethodId);
