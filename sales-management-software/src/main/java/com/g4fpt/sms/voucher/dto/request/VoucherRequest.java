@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -40,9 +42,11 @@ public class VoucherRequest {
 
     @NotNull(message = "Thời gian bắt đầu không được để trống")
     @FutureOrPresent(message = "Thời gian bắt đầu không được trước hiện tại")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime startAt;
 
     @NotNull(message = "Thời gian kết thúc không được để trống")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime endAt;
 
     @NotNull(message = "Trạng thái không được để trống")

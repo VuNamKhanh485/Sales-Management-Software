@@ -115,8 +115,12 @@ public class VoucherController {
 
     @PostMapping("/vouchers/delete/{id}")
     public String deleteMvc(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        voucherService.delete(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Xóa voucher thành công!");
+        try {
+            voucherService.delete(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Xóa voucher thành công!");
+        } catch (AppException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return "redirect:/vouchers";
     }
 
