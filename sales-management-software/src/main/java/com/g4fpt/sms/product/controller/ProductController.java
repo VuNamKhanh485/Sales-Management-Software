@@ -64,7 +64,8 @@ public class ProductController {
 
     @GetMapping({"/form", "/form/{id}"})
     public String form(Model model,
-                       @PathVariable(required = false) Long id) {
+                       @PathVariable(required = false) Long id,
+                       @RequestParam(required = false) String from) {
         ProductRequest productRequest = new ProductRequest();
         if(id != null) {
             ProductResponse productResponse = productService.findById(id);
@@ -73,15 +74,18 @@ public class ProductController {
 
         addAttributeToForm(model, id);
         model.addAttribute("productRequest",  productRequest);
+        model.addAttribute("from", from);
         return "product/form";
     }
 
     @PostMapping({"/form", "/form/{id}"})
     public String form(@Valid @ModelAttribute ProductRequest productRequest,
                          BindingResult result, Model model,
-                         @PathVariable(required = false) Long id) {
+                         @PathVariable(required = false) Long id,
+                         @RequestParam(required = false) String from) {
         if (result.hasErrors()) {
             addAttributeToForm(model, id);
+            model.addAttribute("from", from);
             return "product/form";
         }
 
@@ -94,12 +98,16 @@ public class ProductController {
 
         }catch(ValidationException e){
             addAttributeToForm(model, id);
+            model.addAttribute("from", from);
             e.getErrors().forEach(err ->
                     result.rejectValue(err.getField(), "error", err.getMessage())
             );
             return "product/form";
         }
 
+        if (from != null && !from.trim().isEmpty()) {
+            return "redirect:" + from;
+        }
         return "redirect:/product";
     }
 

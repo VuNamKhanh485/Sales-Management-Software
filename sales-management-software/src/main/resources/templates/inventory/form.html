@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${inventoryRequest.id != null ? 'Sửa tồn kho' : 'Thêm tồn kho'}">Form tồn kho</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+<div class="admin-shell">
+    <div th:replace="~{component/navbar :: sidebar-component}"></div>
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <div>
+                <p class="admin-kicker">Admin Panel</p>
+                <h1 th:text="${inventoryRequest.id != null ? 'Sửa tồn kho' : 'Thêm tồn kho'}">Form tồn kho</h1>
+            </div>
+        </header>
+        <section class="admin-content p-4">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0"
+                    th:text="${inventoryRequest.id != null ? 'Cập nhật thông tin tồn kho' : 'Thêm mặt hàng vào kho'}">
+                    Form
+                </h2>
+                <a th:href="@{/inventory/{id}(id=${inventoryRequest.branchId})}" class="btn btn-secondary"
+                   th:if="${inventoryRequest.branchId != null}">
+                    <i class="bi bi-arrow-left"></i> Quay lại
+                </a>
+                <a th:href="@{/inventory}" class="btn btn-secondary"
+                   th:if="${inventoryRequest.branchId == null}">
+                    <i class="bi bi-arrow-left"></i> Quay lại danh sách
+                </a>
+            </div>
+
+            <!-- Thông báo lỗi -->
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Thông tin tồn kho</h6>
+                </div>
+                <div class="card-body">
+                    <form
+                        th:action="${inventoryRequest.id != null
+                                    ? '/inventory/update/' + inventoryRequest.id
+                                    : '/inventory/save'}"
+                        th:object="${inventoryRequest}"
+                        method="post">
+
+                        <!-- Trường ẩn: branchId (chỉ dùng khi sửa hoặc cho manager/staff khi thêm) -->
+                        <input type="hidden" th:field="*{branchId}" th:if="${inventoryRequest.id != null or !#authentication.principal.hasRole('OWNER')}" />
+
+                        <div class="row">
+                            <!-- CHI NHÁNH -->
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-semibold">Chi nhánh</label>
+
+                                <!--
+                                    Khi Thêm mới:
+                                -->
+                                <div th:if="${inventoryRequest.id == null}">
+                                    <!-- OWNER: Được chọn chi nhánh từ dropdown -->
+                                    <div th:if="${#authentication.principal.hasRole('OWNER')}">
+                                        <select th:field="*{branchId}" class="form-select" required>
+                                            <option value="">-- Chọn chi nhánh --</option>
+                                            <option th:each="b : ${branches}"
+                                                    th:value="${b.id}"
+                                                    th:text="${b.branchCode + ' - ' + b.name}">
+                                            </option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- BRANCH_MANAGER hoặc WAREHOUSE_STAFF: Không được chọn, chỉ hiển thị chi nhánh làm việc -->
+                                    <div th:if="${!#authentication.principal.hasRole('OWNER')}">
+                                        <input type="text" class="form-control bg-light"
+                                               th:value="${userBranch.branchCode + ' - ' + userBranch.name}"
+                                               readonly />
+                                    </div>
+                                </div>
+
+                                <!--
+                                    Khi Sửa: hiển thị tên chi nhánh hiện tại (chỉ đọc) cho tất cả mọi người
+                                -->
+                                <div th:if="${inventoryRequest.id != null}">
+                                    <input type="text" class="form-control bg-light"
+                                           th:value="${branch.branchCode + ' - ' + branch.name}"
+                                           readonly />
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="row">
+                            <!--
+                                Ô SẢN PHẨM (riêng biệt)
+                                - Khi Thêm mới: dropdown tất cả sản phẩm
+                                - Khi Sửa: hiển thị read-only, không cho đổi
+                            -->
+                            <div class="col-md-6 mb-3">
+                                <label for="productId" class="form-label fw-semibold">Sản phẩm</label>
+
+                                <div th:if="${inventoryRequest.id == null}">
+                                    <select id="productId" th:field="*{productId}" class="form-select" required>
+                                        <option value="">-- Chọn sản phẩm --</option>
+                                        <option th:each="p : ${products}"
+                                                th:value="${p.id}"
+                                                th:text="${p.name}">
+                                        </option>
+                                    </select>
+                                    <small class="text-muted">
+                                        Lưu ý: chỉ chọn những cặp Sản phẩm + Đơn vị đã được cấu hình.
+                                    </small>
+                                </div>
+
+                                <div th:if="${inventoryRequest.id != null}">
+                                    <input type="hidden" th:field="*{productId}" />
+                                    <input type="text" class="form-control bg-light"
+                                           th:value="${productUnit != null ? productUnit.product.name : 'N/A'}"
+                                           readonly />
+                                </div>
+                            </div>
+
+                            <!--
+                                Ô ĐƠN VỊ (riêng biệt)
+                                - Khi Thêm mới: dropdown tất cả đơn vị
+                                - Khi Sửa: hiển thị read-only, không cho đổi
+                            -->
+                            <div class="col-md-6 mb-3">
+                                <label for="unitId" class="form-label fw-semibold">Đơn vị</label>
+
+                                <div th:if="${inventoryRequest.id == null}">
+                                    <select id="unitId" th:field="*{unitId}" class="form-select" required>
+                                        <option value="">-- Chọn đơn vị --</option>
+                                        <option th:each="u : ${units}"
+                                                th:value="${u.id}"
+                                                th:text="${u.name}">
+                                        </option>
+                                    </select>
+                                    <small class="text-muted">
+                                        Chọn đơn vị phù hợp với sản phẩm đã chọn bên trái.
+                                    </small>
+                                </div>
+
+                                <div th:if="${inventoryRequest.id != null}">
+                                    <input type="hidden" th:field="*{unitId}" />
+                                    <input type="text" class="form-control bg-light"
+                                           th:value="${productUnit != null ? productUnit.unit.name : 'N/A'}"
+                                           readonly />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- TỒN KHO -->
+                            <div class="col-md-4 mb-3">
+                                <label for="stock" class="form-label fw-semibold">Số lượng tồn kho</label>
+                                <input type="number" id="stock" th:field="*{stock}"
+                                       class="form-control" min="0"
+                                       placeholder="Nhập số lượng..." required />
+                            </div>
+
+                            <!-- TỒN TỐI THIỂU -->
+                            <div class="col-md-4 mb-3">
+                                <label for="minStock" class="form-label fw-semibold">Tồn tối thiểu</label>
+                                <input type="number" id="minStock" th:field="*{minStock}"
+                                       class="form-control" min="0"
+                                       placeholder="Nhập tồn tối thiểu..." required />
+                            </div>
+
+                            <!-- TỒN TỐI ĐA -->
+                            <div class="col-md-4 mb-3">
+                                <label for="maxStock" class="form-label fw-semibold">
+                                    Tồn tối đa
+                                    <span class="text-muted fw-normal">(không bắt buộc)</span>
+                                </label>
+                                <input type="number" id="maxStock" th:field="*{maxStock}"
+                                       class="form-control" min="0"
+                                       placeholder="Để trống nếu không giới hạn" />
+                            </div>
+                        </div>
+
+                        <!-- VỊ TRÍ TRONG CỬA HÀNG -->
+                        <div class="mb-4">
+                            <label for="positionInShop" class="form-label fw-semibold">
+                                Vị trí trong cửa hàng
+                                <span class="text-muted fw-normal">(không bắt buộc)</span>
+                            </label>
+                            <input type="text" id="positionInShop" th:field="*{positionInShop}"
+                                   class="form-control"
+                                   placeholder="Ví dụ: Kệ A, Tầng 2..." />
+                        </div>
+
+                        <!-- NÚT BẤM -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i>
+                                <span th:text="${inventoryRequest.id != null ? 'Cập nhật' : 'Lưu tồn kho'}">
+                                    Lưu
+                                </span>
+                            </button>
+                            <a th:href="@{/inventory/{id}(id=${inventoryRequest.branchId})}"
+                               class="btn btn-outline-secondary"
+                               th:if="${inventoryRequest.branchId != null}">
+                                Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
