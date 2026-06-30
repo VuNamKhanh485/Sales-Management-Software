@@ -25,7 +25,9 @@
             <div class="product-card-modal" th:onclick="'window.parent.addById(' + ${p.id} + ')'">
                 <img th:src="${p.product.imageUrl != null ? p.product.imageUrl : 'https://via.placeholder.com/150x80?text=No+Image'}" alt="Img">
                 <div class="p-2">
-                    <div class="small fw-semibold text-truncate" th:text="${p.product.name}"></div>
+                    <div class="small fw-semibold text-truncate" 
+                         th:text="${p.product.name} + ' (' + (${p.unit != null ? p.unit.name : 'Mặc định'}) + ')'"
+                         th:title="${p.product.name} + ' (' + (${p.unit != null ? p.unit.name : 'Mặc định'}) + ')'"></div>
                     <div class="text-muted" style="font-size:10px" th:text="${p.sku}"></div>
                     <div class="d-flex justify-content-between align-items-center mt-1">
                         <span class="text-primary fw-bold small" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>

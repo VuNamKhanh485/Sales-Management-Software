@@ -87,7 +87,9 @@ public class PosController {
         model.addAttribute("posData", session);
         model.addAttribute("cart", session.getActiveCart());
 
-        List<Category> categories = categoryRepository.findAll();
+        List<Category> categories = categoryRepository.findAll().stream()
+                .filter(c -> c.getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE)
+                .collect(Collectors.toList());
         model.addAttribute("categories", categories);
 
         if (successOrderId != null) {
@@ -170,10 +172,10 @@ public class PosController {
         ProductUnit pu = productUnitRepo.findBySku(kw)
                 .orElseGet(() -> productUnitRepo.findByBarcodeUnit(kw).orElse(null));
 
-        if (pu != null) {
+        if (pu != null && pu.getProduct() != null && pu.getProduct().getStatus() == ProductStatus.ACTIVE) {
             addProductToCart(session.getActiveCart(), pu);
         } else {
-            ra.addFlashAttribute("error", "Không tìm thấy sản phẩm: " + kw);
+            ra.addFlashAttribute("error", "Không tìm thấy sản phẩm hoặc sản phẩm đã ngưng hoạt động: " + kw);
         }
         return "redirect:/pos";
     }
@@ -188,10 +190,10 @@ public class PosController {
             RedirectAttributes ra) {
 
         ProductUnit pu = productUnitRepo.findById(productUnitId).orElse(null);
-        if (pu != null) {
+        if (pu != null && pu.getProduct() != null && pu.getProduct().getStatus() == ProductStatus.ACTIVE) {
             addProductToCart(session.getActiveCart(), pu);
         } else {
-            ra.addFlashAttribute("error", "Không tìm thấy sản phẩm");
+            ra.addFlashAttribute("error", "Không tìm thấy sản phẩm hoặc sản phẩm đã ngưng hoạt động!");
         }
         return "redirect:/pos";
     }
@@ -316,7 +318,10 @@ public class PosController {
         }
         model.addAttribute("posData", session);
         model.addAttribute("cart", session.getActiveCart());
-        model.addAttribute("categories", categoryRepository.findAll());
+        List<Category> categories = categoryRepository.findAll().stream()
+                .filter(c -> c.getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE)
+                .collect(Collectors.toList());
+        model.addAttribute("categories", categories);
 
         populateDropdownUnits(session, model);
         return "order/pos";
@@ -480,7 +485,9 @@ public class PosController {
 
         List<ProductUnit> all = productUnitRepo.findAll().stream()
                 .filter(pu -> pu.getProduct() != null
-                        && pu.getProduct().getStatus() == ProductStatus.ACTIVE)
+                        && pu.getProduct().getStatus() == ProductStatus.ACTIVE
+                        && pu.getProduct().getCategory() != null
+                        && pu.getProduct().getCategory().getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE)
                 .collect(Collectors.toList());
 
         if (keyword != null && !keyword.isBlank()) {
@@ -510,7 +517,11 @@ public class PosController {
 
         model.addAttribute("products", all);
         model.addAttribute("stockMap", stockMap);
-        model.addAttribute("categories", categoryRepository.findAll());
+        
+        List<Category> categories = categoryRepository.findAll().stream()
+                .filter(c -> c.getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE)
+                .collect(Collectors.toList());
+        model.addAttribute("categories", categories);
         model.addAttribute("keyword", keyword);
         model.addAttribute("categoryId", categoryId);
 

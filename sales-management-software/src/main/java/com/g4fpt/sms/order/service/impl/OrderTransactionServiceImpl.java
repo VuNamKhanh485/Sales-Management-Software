@@ -116,6 +116,10 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             ProductUnit pu = productUnitRepository.findById(item.getProductUnitId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
 
+            if (pu.getProduct() == null || pu.getProduct().getStatus() != com.g4fpt.sms.product.enums.ProductStatus.ACTIVE) {
+                throw new RuntimeException("Sản phẩm '" + (pu.getProduct() != null ? pu.getProduct().getName() : "Không tên") + "' đã ngưng hoạt động hoặc không tồn tại!");
+            }
+
             // Trừ tồn kho tại chi nhánh tương ứng
             Long branchId = request.getBranchId();
             Inventory inventory = inventoryRepository.findByBranchIdAndProductUnitId(branchId, pu.getId())

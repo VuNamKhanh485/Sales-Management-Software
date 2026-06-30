@@ -69,6 +69,12 @@ class OrderTransactionServiceImplTest {
         sampleProductUnit.setBarcodeUnit("1234567890123");
         sampleProductUnit.setConventionValue(1);
 
+        com.g4fpt.sms.product.entity.Product product = new com.g4fpt.sms.product.entity.Product();
+        product.setId(1L);
+        product.setName("Sample Product");
+        product.setStatus(com.g4fpt.sms.product.enums.ProductStatus.ACTIVE);
+        sampleProductUnit.setProduct(product);
+
         cartItemRequest = new POSCartItemRequest();
         cartItemRequest.setProductUnitId(1L);
         cartItemRequest.setQuantity(2); // Total = 200,000 VND

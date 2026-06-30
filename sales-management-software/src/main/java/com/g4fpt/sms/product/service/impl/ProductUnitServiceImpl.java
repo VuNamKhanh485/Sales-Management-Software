@@ -120,7 +120,9 @@ public class ProductUnitServiceImpl implements ProductUnitService {
                 errors.add(new ValidationError("Sku", "Sku is existed"));
             }
         }
-        throw new ValidationException(errors);
+        if (!errors.isEmpty()) {
+            throw new ValidationException(errors);
+        }
     }
 
     private void requestToEntity(ProductUnitRequest productUnitRequest, ProductUnit productUnit, Product product) {
