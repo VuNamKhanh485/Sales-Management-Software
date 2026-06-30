@@ -9,6 +9,7 @@ import com.g4fpt.sms.voucher.enums.DiscountType;
 import com.g4fpt.sms.voucher.enums.VoucherStatus;
 import com.g4fpt.sms.order.repository.OrderTransactionRepository;
 import com.g4fpt.sms.voucher.mapper.VoucherMapper;
+import com.g4fpt.sms.customer.repository.CustomerRankRepository;
 import com.g4fpt.sms.voucher.repository.VoucherRepository;
 import com.g4fpt.sms.voucher.service.VoucherService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class VoucherServiceImpl implements VoucherService {
 
     private final VoucherRepository voucherRepository;
     private final OrderTransactionRepository orderTransactionRepository;
+    private final CustomerRankRepository customerRankRepository;
     private final VoucherMapper voucherMapper;
 
     @Override
@@ -46,6 +48,11 @@ public class VoucherServiceImpl implements VoucherService {
         }
 
         Voucher voucher = voucherMapper.toEntity(request);
+        if (request.getCustomerRankId() != null) {
+            voucher.setCustomerRank(customerRankRepository.findById(request.getCustomerRankId()).orElse(null));
+        } else {
+            voucher.setCustomerRank(null);
+        }
         return voucherMapper.toResponse(voucherRepository.save(voucher));
     }
 
@@ -74,6 +81,12 @@ public class VoucherServiceImpl implements VoucherService {
         voucher.setStartAt(request.getStartAt());
         voucher.setEndAt(request.getEndAt());
         voucher.setStatus(request.getStatus());
+
+        if (request.getCustomerRankId() != null) {
+            voucher.setCustomerRank(customerRankRepository.findById(request.getCustomerRankId()).orElse(null));
+        } else {
+            voucher.setCustomerRank(null);
+        }
 
         return voucherMapper.toResponse(voucherRepository.save(voucher));
     }

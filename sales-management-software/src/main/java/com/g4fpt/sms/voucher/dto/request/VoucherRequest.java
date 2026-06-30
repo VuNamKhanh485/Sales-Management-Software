@@ -52,4 +52,6 @@ public class VoucherRequest {
     @NotNull(message = "Trạng thái không được để trống")
     @Builder.Default
     private VoucherStatus status = VoucherStatus.ACTIVE;
+
+    private Long customerRankId;
 }
