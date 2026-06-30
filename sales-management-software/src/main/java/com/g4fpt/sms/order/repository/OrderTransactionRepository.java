@@ -18,6 +18,8 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
  
     long countByCustomerId(Long customerId);
  
+    boolean existsByVoucherId(Long voucherId);
+ 
     @EntityGraph(attributePaths = {"customer"})
     List<OrderTransaction> findByCreatedByAndCreatedAtBetweenOrderByCreatedAtDesc(
             Long createdBy, LocalDateTime startDate, LocalDateTime endDate);

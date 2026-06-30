@@ -7,6 +7,7 @@ import com.g4fpt.sms.voucher.dto.response.VoucherResponse;
 import com.g4fpt.sms.voucher.entity.Voucher;
 import com.g4fpt.sms.voucher.enums.DiscountType;
 import com.g4fpt.sms.voucher.enums.VoucherStatus;
+import com.g4fpt.sms.order.repository.OrderTransactionRepository;
 import com.g4fpt.sms.voucher.mapper.VoucherMapper;
 import com.g4fpt.sms.voucher.repository.VoucherRepository;
 import com.g4fpt.sms.voucher.service.VoucherService;
@@ -26,19 +27,21 @@ import java.time.LocalDateTime;
 public class VoucherServiceImpl implements VoucherService {
 
     private final VoucherRepository voucherRepository;
+    private final OrderTransactionRepository orderTransactionRepository;
     private final VoucherMapper voucherMapper;
 
     @Override
     @Transactional
     public VoucherResponse create(VoucherRequest request) {
-        if (voucherRepository.existsByCode(request.getCode().trim().toUpperCase())) {
-            throw new AppException(ErrorCode.VOUCHER_CODE_EXISTED);
+        java.util.Optional<Voucher> existing = voucherRepository.findByCode(request.getCode().trim().toUpperCase());
+        if (existing.isPresent()) {
+            return update(existing.get().getId(), request);
         }
 
         validateTimeRange(request.getStartAt(), request.getEndAt());
         validateDiscountValue(request.getDiscountType(), request.getDiscountValue());
 
-        if (request.getStartAt().isBefore(LocalDateTime.now().minusMinutes(5))) {
+        if (request.getStartAt().toLocalDate().isBefore(java.time.LocalDate.now())) {
             throw new AppException(ErrorCode.VOUCHER_START_DATE_PAST);
         }
 
@@ -93,7 +96,23 @@ public class VoucherServiceImpl implements VoucherService {
     @Transactional(readOnly = true)
     public Page<VoucherResponse> search(String keyword, VoucherStatus status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Voucher> result = voucherRepository.search(keyword, status, pageable);
+        Page<Voucher> result;
+
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        String kw = hasKeyword ? keyword.trim() : null;
+
+        if (hasKeyword && status != null) {
+            result = voucherRepository.findByStatusAndCodeContainingIgnoreCaseOrStatusAndNameContainingIgnoreCase(
+                    status, kw, status, kw, pageable);
+        } else if (hasKeyword) {
+            result = voucherRepository.findByCodeContainingIgnoreCaseOrNameContainingIgnoreCase(
+                    kw, kw, pageable);
+        } else if (status != null) {
+            result = voucherRepository.findByStatus(status, pageable);
+        } else {
+            result = voucherRepository.findAll(pageable);
+        }
+
         return result.map(voucherMapper::toResponse);
     }
 
@@ -101,7 +120,9 @@ public class VoucherServiceImpl implements VoucherService {
     @Transactional(readOnly = true)
     public Page<VoucherResponse> getActiveVouchers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("endAt").ascending());
-        Page<Voucher> result = voucherRepository.findAllActive(LocalDateTime.now(), pageable);
+        LocalDateTime now = LocalDateTime.now();
+        Page<Voucher> result = voucherRepository.findByStatusAndStartAtLessThanEqualAndEndAtGreaterThanEqual(
+                VoucherStatus.ACTIVE, now, now, pageable);
         return result.map(voucherMapper::toResponse);
     }
 
@@ -109,7 +130,7 @@ public class VoucherServiceImpl implements VoucherService {
     @Transactional
     public void delete(Long id) {
         Voucher voucher = findById(id);
-        if (voucherRepository.isVoucherUsed(id)) {
+        if (orderTransactionRepository.existsByVoucherId(id)) {
             throw new AppException(ErrorCode.VOUCHER_ALREADY_USED);
         }
         voucherRepository.delete(voucher);
