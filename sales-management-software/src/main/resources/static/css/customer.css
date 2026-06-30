@@ -1,0 +1,267 @@
+/* ================================================================
+   customer.css — Styles dùng chung cho module Customer
+   (list.html, detail.html, form.html)
+   ================================================================ */
+
+/* ── Shared layout ─────────────────────────────────────────────── */
+.page-content {
+    max-width: 1100px;
+    margin: var(--sp-xl) auto;
+    padding: 0 var(--sp-md);
+}
+
+/* ── list.html ─────────────────────────────────────────────────── */
+.header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: var(--sp-lg);
+    flex-wrap: wrap;
+    gap: var(--sp-sm);
+}
+
+/* ── detail.html — Stats grid ──────────────────────────────────── */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--sp-md);
+    margin-bottom: var(--sp-lg);
+}
+@media (max-width: 800px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.stat-card {
+    background: var(--canvas);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    padding: var(--sp-sm) var(--sp-md);
+    text-align: center;
+}
+.stat-card__label {
+    font-size: 13px;
+    color: var(--ink-muted-48);
+    margin-bottom: 4px;
+}
+.stat-card__value {
+    font-family: var(--font-display);
+    font-size: 21px;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+/* ── detail.html — Detail panel ────────────────────────────────── */
+.detail-panel {
+    background: var(--canvas);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    padding: var(--sp-xl);
+    margin-bottom: var(--sp-xl);
+}
+.detail-header {
+    margin-bottom: var(--sp-lg);
+    padding-bottom: var(--sp-sm);
+    border-bottom: 1px solid var(--divider-soft);
+}
+.detail-header__name {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0 0 4px 0;
+}
+.detail-header__meta {
+    font-size: 13px;
+    color: var(--ink-muted-48);
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--sp-lg);
+}
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.detail-item__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-muted-48);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.detail-item__value {
+    font-size: 15px;
+    color: var(--ink);
+}
+
+/* ── detail.html — Transaction table header ─────────────────────── */
+.transaction-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--hairline);
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink);
+}
+.table-scroll {
+    overflow-x: auto;
+}
+.pagination-bar {
+    padding: 16px;
+    border-top: 1px solid var(--hairline);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.pagination-bar__info {
+    color: var(--ink-muted-48);
+}
+
+/* ── Pagination (dùng chung list & detail) ──────────────────────── */
+.pagination {
+    display: flex;
+    gap: 4px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.pagination a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    border-radius: var(--r-sm);
+    font-size: 14px;
+    color: var(--ink-muted-80);
+    text-decoration: none;
+    transition: background 0.15s;
+}
+.pagination a:hover { background: var(--divider-soft); }
+.pagination .active a { background: var(--primary); color: var(--on-primary); }
+.pagination .disabled a { opacity: 0.4; pointer-events: none; }
+
+/* ── form.html ──────────────────────────────────────────────────── */
+.form-page {
+    max-width: 700px;
+    margin: var(--sp-xxl) auto;
+    padding: 0 var(--sp-xl);
+}
+.form-card {
+    background: var(--canvas);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    padding: var(--sp-xl);
+}
+.form-card__header {
+    margin-bottom: var(--sp-xl);
+    padding-bottom: var(--sp-md);
+    border-bottom: 1px solid var(--divider-soft);
+}
+.form-card__title {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.374px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-md) var(--sp-lg);
+}
+@media (max-width: 560px) {
+    .form-grid { grid-template-columns: 1fr; }
+}
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group--full { grid-column: 1 / -1; }
+
+.form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+}
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    font-family: var(--font-text);
+    font-size: 15px;
+    background: var(--canvas);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    border-color: var(--primary-focus);
+    box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.12);
+}
+.form-input[readonly] {
+    background: var(--canvas-parchment);
+    color: var(--ink-muted-48);
+    cursor: not-allowed;
+}
+
+.form-select {
+    padding-right: 36px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7' fill='none'%3E%3Cpath d='M1 1L5.5 6L10 1' stroke='%237a7a7a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    appearance: none;
+}
+
+.form-actions {
+    margin-top: var(--sp-xxl);
+    padding-top: var(--sp-lg);
+    border-top: 1px solid var(--divider-soft);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--sp-sm);
+}
+
+/* ── Utilities ──────────────────────────────────────────────────── */
+.text-muted {
+    color: var(--ink-muted-48);
+}
+.required-mark {
+    color: var(--danger);
+}
+.customer-name {
+    font-weight: 600;
+    color: var(--ink);
+}
+.customer-email {
+    font-size: 13px;
+    color: var(--ink-muted-48);
+}
+.amount-cell {
+    font-weight: 600;
+}
+.stat-card__value--success {
+    color: var(--success);
+}
+.stat-card__value--ink {
+    color: var(--ink);
+}
+.sub-nav__back {
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 14px;
+    margin-right: 8px;
+}
+.sub-nav__sep {
+    color: var(--ink-muted-48);
+    font-size: 12px;
+    margin-right: 8px;
+}
+.action-view {
+    color: var(--ink-muted-80);
+}

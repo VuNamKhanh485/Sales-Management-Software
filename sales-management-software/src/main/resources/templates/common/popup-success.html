@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thành công</title>
+</head>
+<body>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const newId = /*[[${newId}]]*/ 0;
+        const newName = /*[[${newName}]]*/ '';
+        let type = /*[[${type}]]*/ '';
+        const customerPhone = /*[[${customerPhone}]]*/ '';
+        
+        // Nếu type chưa kết thúc bằng _CREATED, tự động thêm vào
+        if (type && !type.endsWith('_CREATED')) {
+            type = type + '_CREATED';
+        }
+        
+        const messagePayload = {
+            type: type,
+            id: newId,
+            name: newName
+        };
+        
+        if (type === 'CUSTOMER_CREATED') {
+            messagePayload.data = {
+                id: newId,
+                fullName: newName,
+                phone: customerPhone
+            };
+        }
+        
+        // Gửi message lên iframe cha
+        window.parent.postMessage(messagePayload, '*');
+        /*]]>*/
+    </script>
+</body>
+</html>

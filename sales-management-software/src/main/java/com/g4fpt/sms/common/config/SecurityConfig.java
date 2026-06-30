@@ -28,6 +28,9 @@ public class SecurityConfig {
                         .requestMatchers("/employee/**").hasAnyRole("OWNER", "MANAGER")
                         .anyRequest().authenticated()
                 )
+                .headers(headers -> headers
+                        .frameOptions(frameOptions -> frameOptions.sameOrigin())
+                )
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")

@@ -243,41 +243,68 @@ public class PosController {
         return "redirect:/pos";
     }
 
-    @GetMapping("/data/customer")
-    @ResponseBody
-    public ResponseEntity<List<Map<String, Object>>> findCustomers(
-            @RequestParam String phone) {
+    @GetMapping("/search-customer")
+    public String findCustomers(
+            @RequestParam String phone,
+            @ModelAttribute("posSession") PosSessionData session,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            Model model) {
 
         String keyword = phone.trim();
+        if (keyword.isEmpty()) {
+            return "redirect:/pos";
+        }
+
+        // Tìm kiếm khách hàng
         org.springframework.data.domain.Page<Customer> page = customerRepository
-                .findByStatusAndPhoneContainingOrStatusAndFullNameContainingIgnoreCase(
-                        CustomerStatus.ACTIVE, keyword,
-                        CustomerStatus.ACTIVE, keyword,
+                .searchActiveByPhoneOrName(
+                        CustomerStatus.ACTIVE.name(), keyword,
                         org.springframework.data.domain.PageRequest.of(0, 5));
 
-        List<Map<String, Object>> result = page.getContent().stream().map(customer -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", customer.getId());
-            map.put("name", customer.getFullName());
-            map.put("phone", customer.getPhone());
-            map.put("point", customer.getTotalPoint() - customer.getUsedPoint());
-            map.put("rank", customer.getCustomerRank() != null
-                    ? customer.getCustomerRank().getName()
-                    : "Thường");
-            return map;
-        }).collect(Collectors.toList());
+        List<Customer> result = page.getContent();
+        if (result.isEmpty()) {
+            model.addAttribute("customerSearchError", "Không tìm thấy khách hàng");
+        } else {
+            // Force init lazy-loaded customerRank to avoid LazyInitializationException
+            result.forEach(c -> {
+                if (c.getCustomerRank() != null) {
+                    c.getCustomerRank().getName();
+                }
+            });
+            model.addAttribute("customerSearchResults", result);
+        }
+        model.addAttribute("searchedPhone", phone);
 
-        return ResponseEntity.ok(result);
+        // === Setup các model attributes giống showPosScreen ===
+        if (session.getActiveBranchId() == null && userDetails != null) {
+            Long defaultBranchId = userDetails.getBranchId();
+            session.setActiveBranchId(defaultBranchId != null ? defaultBranchId : 1L);
+        }
+        if (session.getActiveBranchId() != null) {
+            branchRepository.findById(session.getActiveBranchId()).ifPresent(branch -> {
+                model.addAttribute("activeBranch", branch);
+            });
+        }
+        boolean isOwner = userDetails != null && userDetails.hasRole("OWNER");
+        model.addAttribute("isOwner", isOwner);
+        if (isOwner) {
+            model.addAttribute("branches", branchRepository.findAll());
+        }
+        model.addAttribute("posData", session);
+        model.addAttribute("cart", session.getActiveCart());
+        model.addAttribute("categories", categoryRepository.findAll());
+
+        return "order/pos";
     }
 
-    @GetMapping("/data/sales-history")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> getSalesHistory(
+    @GetMapping("/sales-history")
+    public String getSalesHistory(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam(required = false) String date) {
+            @RequestParam(required = false) String date,
+            Model model) {
 
         if (userDetails == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return "redirect:/login";
         }
 
         boolean isOwner = userDetails.hasRole("OWNER");
@@ -290,81 +317,51 @@ public class PosController {
 
         List<OrderTransaction> orders;
         if (isOwner) {
-            orders = orderTransactionRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(startOfDay, endOfDay);
+            orders = orderTransactionRepository.findByDateRange(startOfDay, endOfDay);
         } else {
-            orders = orderTransactionRepository.findByCreatedByAndCreatedAtBetweenOrderByCreatedAtDesc(
+            orders = orderTransactionRepository.findByCreatedByAndDateRange(
                     userDetails.getEmployee().getId(), startOfDay, endOfDay);
         }
 
         Map<Long, String> branchNames = new HashMap<>();
-
-        List<Map<String, Object>> ordersList = orders.stream().map(order -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", order.getId());
-            map.put("code", order.getCode());
-            map.put("createdAt", order.getCreatedAt() != null ? order.getCreatedAt().toString() : "");
-            map.put("customerName", order.getCustomer() != null ? order.getCustomer().getFullName() : "Khách lẻ");
-            map.put("finalAmount", order.getFinalAmount());
-            map.put("status", order.getStatus());
-
-            String branchName = "SMS STORE";
+        orders.forEach(order -> {
             if (order.getBranchId() != null) {
-                branchName = branchNames.computeIfAbsent(order.getBranchId(),
+                branchNames.computeIfAbsent(order.getBranchId(),
                         id -> branchRepository.findById(id).map(b -> b.getName()).orElse("SMS STORE"));
             }
-            map.put("branchName", branchName);
+        });
 
-            return map;
-        }).collect(Collectors.toList());
+        model.addAttribute("isOwner", isOwner);
+        model.addAttribute("orders", orders);
+        model.addAttribute("branchNames", branchNames);
+        model.addAttribute("filterDate", localDate.toString());
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("isOwner", isOwner);
-        response.put("orders", ordersList);
-
-        return ResponseEntity.ok(response);
+        return "order/pos-history";
     }
 
-    @GetMapping("/data/order/{id}")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> getOrderDetail(@PathVariable Long id) {
+    @GetMapping("/sales-history/{id}")
+    public String getOrderDetail(@PathVariable Long id, Model model) {
         OrderTransaction order = orderTransactionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
 
-        Map<String, Object> map = new HashMap<>();
-        map.put("code", order.getCode());
-        map.put("createdAt", order.getCreatedAt() != null ? order.getCreatedAt().toString() : "");
-        map.put("customerName", order.getCustomer() != null ? order.getCustomer().getFullName() : "Khách lẻ");
-        map.put("totalAmount", order.getTotalAmount());
-        map.put("discountAmount", order.getDiscountAmount());
-        map.put("finalAmount", order.getFinalAmount());
-        map.put("paidAmount", order.getPaidAmount());
-        map.put("changeAmount", order.getChangeAmount());
-        map.put("note", order.getNote());
-        map.put("status", order.getStatus());
+        model.addAttribute("order", order);
 
-        map.put("branchName", "SMS STORE");
-        map.put("branchAddress", "123 Đường Láng, Đống Đa, Hà Nội");
-        map.put("branchPhone", "0987 654 321");
+        String branchName = "SMS STORE";
+        String branchAddress = "123 Đường Láng, Đống Đa, Hà Nội";
+        String branchPhone = "0987 654 321";
         if (order.getBranchId() != null) {
-            branchRepository.findById(order.getBranchId()).ifPresent(branch -> {
-                map.put("branchName", branch.getName());
-                map.put("branchAddress", branch.getAddress());
-                map.put("branchPhone", branch.getPhone());
-            });
+            var branchOpt = branchRepository.findById(order.getBranchId());
+            if (branchOpt.isPresent()) {
+                branchName = branchOpt.get().getName();
+                branchAddress = branchOpt.get().getAddress();
+                branchPhone = branchOpt.get().getPhone();
+            }
         }
+        model.addAttribute("branchName", branchName);
+        model.addAttribute("branchAddress", branchAddress);
+        model.addAttribute("branchPhone", branchPhone);
 
-        List<Map<String, Object>> details = order.getDetails().stream().map(d -> {
-            Map<String, Object> dm = new HashMap<>();
-            dm.put("productName", d.getProductUnit().getProduct().getName());
-            dm.put("sku", d.getProductUnit().getSku());
-            dm.put("quantity", d.getQuantity());
-            dm.put("salePrice", d.getSalePrice());
-            dm.put("totalAmount", d.getTotalAmount());
-            return dm;
-        }).collect(Collectors.toList());
-
-        map.put("items", details);
-        return ResponseEntity.ok(map);
+        return "order/pos-history-detail";
     }
 
     // =============================================
@@ -406,13 +403,12 @@ public class PosController {
     // =============================================
     // 13. API kiểm tra voucher
     // =============================================
-    @GetMapping("/api/voucher")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> checkVoucher(
+    @PostMapping("/apply-voucher")
+    public String applyVoucher(
             @RequestParam String code,
-            @ModelAttribute("posSession") PosSessionData session) {
+            @ModelAttribute("posSession") PosSessionData session,
+            RedirectAttributes ra) {
 
-        Map<String, Object> result = new HashMap<>();
         PosCart cart = session.getActiveCart();
         try {
             Voucher voucher = posService.validateVoucher(code, cart.getTotalAmount(), cart.getCustomerId());
@@ -429,14 +425,11 @@ public class PosController {
             }
             cart.setVoucherCode(code);
             cart.setVoucherDiscount(discount);
-            result.put("success", true);
-            result.put("discount", discount);
-            result.put("message", "Áp dụng thành công! Giảm " + discount + "đ");
+            ra.addFlashAttribute("voucherSuccess", "Áp dụng thành công! Giảm " + discount + "đ");
         } catch (Exception e) {
-            result.put("success", false);
-            result.put("message", e.getMessage());
+            ra.addFlashAttribute("voucherError", e.getMessage());
         }
-        return ResponseEntity.ok(result);
+        return "redirect:/pos";
     }
 
     // =============================================
@@ -453,11 +446,11 @@ public class PosController {
     // =============================================
     // 15. API lấy sản phẩm theo category (cho modal)
     // =============================================
-    @GetMapping("/data/products")
-    @ResponseBody
-    public ResponseEntity<List<Map<String, Object>>> getProducts(
+    @GetMapping("/product-list")
+    public String getProductList(
             @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String keyword,
+            Model model) {
 
         List<ProductUnit> all = productUnitRepo.findAll().stream()
                 .filter(pu -> pu.getProduct() != null
@@ -477,33 +470,26 @@ public class PosController {
                     .collect(Collectors.toList());
         }
 
-        List<Map<String, Object>> result = all.stream().map(pu -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", pu.getId());
-            map.put("name", pu.getProduct().getName());
-            map.put("sku", pu.getSku());
-            map.put("price", pu.getPrice());
-            map.put("imageUrl", pu.getProduct().getImageUrl());
-            map.put("unitName", pu.getUnit() != null ? pu.getUnit().getName() : "");
-            map.put("category", pu.getProduct().getCategory() != null
-                    ? pu.getProduct().getCategory().getName()
-                    : "");
-            return map;
-        }).collect(Collectors.toList());
+        model.addAttribute("products", all);
+        model.addAttribute("categories", categoryRepository.findAll());
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("categoryId", categoryId);
 
-        return ResponseEntity.ok(result);
+        return "order/pos-product-list";
     }
 
     // =============================================
     // 15b. API lấy danh sách voucher khả dụng theo khách hàng
     // =============================================
-    @GetMapping("/data/vouchers")
-    @ResponseBody
-    public ResponseEntity<List<Map<String, Object>>> getAvailableVouchers(
-            @RequestParam(required = false) Long customerId) {
+    @GetMapping("/voucher-list")
+    public String getAvailableVouchers(
+            @ModelAttribute("posSession") PosSessionData session,
+            Model model) {
 
+        Long customerId = session.getActiveCart().getCustomerId();
         if (customerId == null) {
-            return ResponseEntity.ok(new java.util.ArrayList<>());
+            model.addAttribute("vouchers", new java.util.ArrayList<>());
+            return "order/pos-voucher-list";
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -512,46 +498,22 @@ public class PosController {
                 .filter(v -> v.getStartAt().isBefore(now) && v.getEndAt().isAfter(now))
                 .collect(Collectors.toList());
 
-        Customer customer = null;
-        if (customerId != null) {
-            customer = customerRepository.findById(customerId).orElse(null);
-        }
-
+        Customer customer = customerRepository.findById(customerId).orElse(null);
         final Customer finalCust = customer;
-        List<Map<String, Object>> result = activeVouchers.stream()
+        
+        List<Voucher> result = activeVouchers.stream()
                 .filter(v -> {
-                    // Nếu voucher không yêu cầu hạng thẻ, ai cũng được dùng
-                    if (v.getCustomerRank() == null) {
-                        return true;
-                    }
-                    // Nếu voucher có yêu cầu hạng thẻ:
-                    if (finalCust == null) {
-                        // Khách lẻ chỉ dùng được voucher có yêu cầu hạng có doanh thu = 0
+                    if (v.getCustomerRank() == null) return true;
+                    if (finalCust == null || finalCust.getCustomerRank() == null) {
                         return v.getCustomerRank().getConditionTotalRevenue().compareTo(BigDecimal.ZERO) == 0;
                     }
-                    if (finalCust.getCustomerRank() == null) {
-                        return v.getCustomerRank().getConditionTotalRevenue().compareTo(BigDecimal.ZERO) == 0;
-                    }
-                    // So sánh hạn mức doanh thu tối thiểu của hạng thẻ khách hàng phải >= hạng thẻ
-                    // của voucher
                     return finalCust.getCustomerRank().getConditionTotalRevenue()
                             .compareTo(v.getCustomerRank().getConditionTotalRevenue()) >= 0;
                 })
-                .map(v -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("id", v.getId());
-                    map.put("code", v.getCode());
-                    map.put("name", v.getName());
-                    map.put("discountType", v.getDiscountType().name());
-                    map.put("discountValue", v.getDiscountValue());
-                    map.put("minOrderAmount", v.getMinOrderAmount());
-                    map.put("maxDiscountAmount", v.getMaxDiscountAmount());
-                    map.put("rankName", v.getCustomerRank() != null ? v.getCustomerRank().getName() : "Mọi khách hàng");
-                    return map;
-                })
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(result);
+        model.addAttribute("vouchers", result);
+        return "order/pos-voucher-list";
     }
 
     // =============================================
