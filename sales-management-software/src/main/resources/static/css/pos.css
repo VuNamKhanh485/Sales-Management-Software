@@ -3,10 +3,7 @@ body {
     background-color: #f0f4f8 !important; /* Xanh nhạt/xám làm nền, overide apple-design.css */
 }
 
-/* Navbar override for POS specifically to look deeper */
-.global-nav {
-    background: #001a33; 
-}
+/* Navbar override removed to use default theme color */
 
 .pos-wrapper { 
     display: flex; 
