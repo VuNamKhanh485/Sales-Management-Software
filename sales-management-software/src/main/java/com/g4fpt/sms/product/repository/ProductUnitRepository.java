@@ -19,6 +19,9 @@ public interface ProductUnitRepository extends JpaRepository<ProductUnit, Long> 
 
     List<ProductUnit> findByProduct_Id(Long id);
 
+    @Query("SELECT pu FROM ProductUnit pu LEFT JOIN FETCH pu.unit WHERE pu.product.id = :productId")
+    List<ProductUnit> findByProductIdWithUnit(@Param("productId") Long productId);
+
     ProductUnit findByIdAndProduct_Id(Long id, Long productId);
 
     Optional<ProductUnit> findBySku(String sku);

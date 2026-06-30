@@ -98,6 +98,7 @@ public class PosController {
             });
         }
 
+        populateDropdownUnits(session, model);
         return "order/pos";
     }
 
@@ -212,6 +213,26 @@ public class PosController {
         return "redirect:/pos";
     }
 
+    @GetMapping("/update-unit")
+    public String updateUnit(
+            @RequestParam int index,
+            @RequestParam Long productUnitId,
+            @ModelAttribute("posSession") PosSessionData session) {
+
+        PosCart cart = session.getActiveCart();
+        if (index >= 0 && index < cart.getItems().size()) {
+            ProductUnit pu = productUnitRepo.findById(productUnitId).orElse(null);
+            if (pu != null) {
+                PosCartItem item = cart.getItems().get(index);
+                item.setProductUnitId(pu.getId());
+                item.setSku(pu.getSku());
+                item.setPrice(pu.getPrice());
+                item.setUnitName(pu.getUnit() != null ? pu.getUnit().getName() : "");
+            }
+        }
+        return "redirect:/pos";
+    }
+
     // =============================================
     // 8. Xóa sản phẩm
     // =============================================
@@ -294,6 +315,7 @@ public class PosController {
         model.addAttribute("cart", session.getActiveCart());
         model.addAttribute("categories", categoryRepository.findAll());
 
+        populateDropdownUnits(session, model);
         return "order/pos";
     }
 
@@ -596,5 +618,18 @@ public class PosController {
             newItem.setImageUrl(pu.getProduct().getImageUrl());
             cart.getItems().add(newItem);
         }
+    }
+
+    private void populateDropdownUnits(PosSessionData session, Model model) {
+        Map<Long, List<ProductUnit>> cartItemUnitsMap = new HashMap<>();
+        for (PosCartItem item : session.getActiveCart().getItems()) {
+            productUnitRepo.findById(item.getProductUnitId()).ifPresent(pu -> {
+                if (pu.getProduct() != null) {
+                    List<ProductUnit> units = productUnitRepo.findByProductIdWithUnit(pu.getProduct().getId());
+                    cartItemUnitsMap.put(item.getProductUnitId(), units);
+                }
+            });
+        }
+        model.addAttribute("cartItemUnitsMap", cartItemUnitsMap);
     }
 }
