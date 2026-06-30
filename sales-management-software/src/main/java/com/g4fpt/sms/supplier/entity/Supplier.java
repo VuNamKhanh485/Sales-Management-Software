@@ -24,7 +24,7 @@ public class Supplier {
     @ToString.Include
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "supplier_code", nullable = false, unique = true)
     @ToString.Include
     private String code;
 

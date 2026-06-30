@@ -169,7 +169,7 @@
                 <h1 class="form-card__title" th:text="${id != null} ? 'Cập nhật Sản phẩm' : 'Thêm Sản phẩm mới'"></h1>
             </div>
 
-            <form th:action="@{/product/form/{id}(id=${id})}" method="post" th:object="${productRequest}">
+            <form th:action="${id != null} ? @{/product/form/{id}(id=${id}, from=${from})} : @{/product/form(from=${from})}" method="post" th:object="${productRequest}">
                 <div class="form-grid">
                     
                     <div class="section-title">Thông tin cơ bản</div>

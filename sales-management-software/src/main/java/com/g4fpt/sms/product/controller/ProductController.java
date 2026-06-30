@@ -69,6 +69,7 @@ public class ProductController {
     @GetMapping({"/form", "/form/{id}"})
     public String form(Model model,
                        @PathVariable(required = false) Long id,
+                       @RequestParam(required = false) String from,
                        RedirectAttributes redirectAttributes) {
         ProductRequest productRequest = new ProductRequest();
         if(id != null) {
@@ -83,6 +84,7 @@ public class ProductController {
 
         addAttributeToForm(model, id);
         model.addAttribute("productRequest",  productRequest);
+        model.addAttribute("from", from);
         return "product/form";
     }
 
@@ -90,9 +92,11 @@ public class ProductController {
     public String form(@Valid @ModelAttribute ProductRequest productRequest,
                        BindingResult result, Model model,
                        @PathVariable(required = false) Long id,
+                       @RequestParam(required = false) String from,
                        RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             addAttributeToForm(model, id);
+            model.addAttribute("from", from);
             return "product/form";
         }
         String action;
@@ -107,6 +111,7 @@ public class ProductController {
 
         } catch (ValidationException e) {
             addAttributeToForm(model, id);
+            model.addAttribute("from", from);
             e.getErrors().forEach(err ->
                     result.rejectValue(err.getField(), "error", err.getMessage())
             );
@@ -120,6 +125,10 @@ public class ProductController {
         redirectAttributes.addFlashAttribute(
                 "successMessage",
                 action + " sản phẩm thành công!");
+
+        if (from != null && !from.trim().isEmpty()) {
+            return "redirect:" + from;
+        }
         return "redirect:/product";
     }
 
