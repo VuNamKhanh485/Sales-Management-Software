@@ -19,7 +19,7 @@ public interface BrandRepository extends JpaRepository<Brand, Long> {
     @Query("""
             SELECT CASE WHEN COUNT(otd) > 0 THEN true ELSE false END
             FROM OrderTransactionDetail otd
-            WHERE otd.productUnit.product.brand.id =: brandId
+            WHERE otd.productUnit.product.brand.id = :brandId
     """)
     boolean existInOrderTransaction(@Param("brandId") Long brandId);
 }

@@ -349,7 +349,7 @@ public class PosController {
         if (isOwner) {
             orders = orderTransactionRepository.findByDateRange(startOfDay, endOfDay);
         } else {
-            orders = orderTransactionRepository.findByCreatedByAndDateRange(
+            orders = orderTransactionRepository.findByCreatedByAndCreatedAtBetweenOrderByCreatedAtDesc(
                     userDetails.getEmployee().getId(), startOfDay, endOfDay);
         }
 

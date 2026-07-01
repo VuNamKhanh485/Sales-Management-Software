@@ -16,7 +16,7 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
     @Query("""
             SELECT CASE WHEN COUNT(otd) > 0 THEN true ELSE false END
             FROM OrderTransactionDetail otd
-            WHERE otd.productUnit.unit.id =: unitId
+            WHERE otd.productUnit.unit.id = :unitId
     """)
     boolean existInOrderTransaction(@Param("unitId") Long unitId);
 }

@@ -16,7 +16,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     @Query("""
             SELECT CASE WHEN COUNT(otd) > 0 THEN true ELSE false END
             FROM OrderTransactionDetail otd
-            WHERE otd.productUnit.product.category.id =: categoryId
+            WHERE otd.productUnit.product.category.id = :categoryId
     """)
     boolean existInOrderTransaction(@Param("categoryId") Long categoryId);
 }
