@@ -119,17 +119,15 @@ public class CustomerServiceImpl implements CustomerService {
 
     private CustomerRank determineRank(BigDecimal totalRevenue, long orderCount) {
         String rankName;
-        if (orderCount <= 1) {
+        double revenue = totalRevenue != null ? totalRevenue.doubleValue() : 0.0;
+        if (revenue < 5000000.0) {
             rankName = "Thành viên";
+        } else if (revenue < 10000000.0) {
+            rankName = "Bạc";
+        } else if (revenue < 15000000.0) {
+            rankName = "Vàng";
         } else {
-            double revenue = totalRevenue != null ? totalRevenue.doubleValue() : 0.0;
-            if (revenue < 10000000.0) {
-                rankName = "Bạc";
-            } else if (revenue < 15000000.0) {
-                rankName = "Vàng";
-            } else {
-                rankName = "Kim cương";
-            }
+            rankName = "Kim cương";
         }
 
         return customerRankRepository.findByName(rankName)
