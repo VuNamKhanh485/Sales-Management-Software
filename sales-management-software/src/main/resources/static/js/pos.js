@@ -291,6 +291,14 @@ function addBySku(event) {
 
 function addById(productUnitId) {
     reloadPosFragments(`/pos/add-by-id?productUnitId=${productUnitId}`);
+    
+    const productModalEl = document.getElementById('productModal');
+    if (productModalEl) {
+        const modal = bootstrap.Modal.getInstance(productModalEl);
+        if (modal) {
+            modal.hide();
+        }
+    }
 }
 
 function switchOrder(index, event) {
@@ -305,7 +313,7 @@ function changeBranch(branchId, event) {
     if (event) {
         event.preventDefault();
     }
-    reloadPosFragments(`/pos/change-branch?branchId=${branchId}`);
+    window.location.href = `/pos/change-branch?branchId=${branchId}`;
 }
 
 // Reload iframe contents when showing Modals to refresh stock/data

@@ -22,8 +22,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
            nativeQuery = true)
     Page<Customer> searchByPhoneOrName(@Param("keyword") String keyword, Pageable pageable);
 
-    @Query(value = "SELECT * FROM Customer c WHERE c.status = :status AND (c.phone LIKE CONCAT('%', :keyword, '%') OR LOWER(c.full_name) LIKE LOWER(CONCAT('%', :keyword, '%')))",
-           countQuery = "SELECT count(*) FROM Customer c WHERE c.status = :status AND (c.phone LIKE CONCAT('%', :keyword, '%') OR LOWER(c.full_name) LIKE LOWER(CONCAT('%', :keyword, '%')))",
-           nativeQuery = true)
-    Page<Customer> searchActiveByPhoneOrName(@Param("status") String status, @Param("keyword") String keyword, Pageable pageable);
+    @Query(value = "SELECT c FROM Customer c LEFT JOIN FETCH c.customerRank WHERE c.status = :status AND (c.phone LIKE %:keyword% OR LOWER(c.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')))",
+           countQuery = "SELECT count(c) FROM Customer c WHERE c.status = :status AND (c.phone LIKE %:keyword% OR LOWER(c.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<Customer> searchActiveByPhoneOrName(@Param("status") CustomerStatus status, @Param("keyword") String keyword, Pageable pageable);
 }

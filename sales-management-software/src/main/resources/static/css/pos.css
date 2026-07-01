@@ -332,3 +332,121 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
 }
+
+/* ── POS layout / cleanups ───────────────────────────────────────── */
+.pos-container-height {
+    height: calc(100vh - 52px);
+}
+.pos-sku-form {
+    min-width: 220px;
+}
+.order-tab i {
+    font-size: 12px;
+}
+.order-tab .badge {
+    font-size: 10px;
+}
+.cart-table th.col-stt {
+    width: 36px;
+}
+.cart-table th.col-unit {
+    width: 60px;
+}
+.cart-table th.col-qty {
+    width: 110px;
+}
+.cart-table th.col-price {
+    width: 90px;
+}
+.cart-table th.col-total {
+    width: 100px;
+}
+.cart-table th.col-action {
+    width: 36px;
+}
+.cart-table td .sku-text {
+    font-size: 11px;
+}
+.qty-value {
+    min-width: 28px;
+    text-align: center;
+}
+.cart-table td .btn-outline-danger i {
+    font-size: 11px;
+}
+.customer-search-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+.customer-search-item-meta {
+    font-size: 11px;
+}
+.customer-search-select-btn {
+    font-size: 11px;
+}
+.customer-info-phone {
+    font-size: 11px;
+}
+
+/* Modal Iframe utilities */
+.iframe-prod-list {
+    width: 100%;
+    border: none;
+    height: 500px;
+}
+.iframe-cust-form {
+    width: 100%;
+    border: none;
+    height: 420px;
+}
+.iframe-voucher-list,
+.iframe-sales-history {
+    width: 100%;
+    border: none;
+    height: 450px;
+}
+.modal-receipt-dialog {
+    max-width: 450px;
+}
+
+/* Receipt Print layout */
+.receipt-print-container {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    line-height: 1.4;
+}
+.receipt-store-title {
+    font-family: inherit;
+}
+.receipt-store-subtitle {
+    font-size: 11px;
+}
+.receipt-divider-dashed {
+    border-top: 1px dashed #ccc;
+    margin: 8px 0;
+}
+.receipt-title {
+    font-family: inherit;
+}
+.receipt-table {
+    font-size: 12px;
+    border-collapse: collapse;
+}
+.receipt-table-header {
+    border-bottom: 1px solid #ddd;
+}
+.receipt-table-header th {
+    padding-bottom: 4px;
+}
+.receipt-table-col-qty {
+    width: 40px;
+}
+.receipt-table-col-price {
+    width: 80px;
+}
+.receipt-table-col-total {
+    width: 80px;
+}
+.receipt-final-amount-row {
+    font-size: 14px;
+}

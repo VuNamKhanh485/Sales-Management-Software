@@ -58,10 +58,7 @@ public class CustomerController {
 
     @GetMapping("/create")
     public String showCreateForm(Model model) {
-        model.addAttribute("customerDTO", new CustomerRequestDTO());
-        model.addAttribute("currentRankName", "Thành viên");
-        model.addAttribute("genders", Gender.values());
-        return "customer/form";
+        return renderForm(model, new CustomerRequestDTO(), "Thành viên");
     }
 
     @GetMapping("/edit/{id}")
@@ -84,10 +81,7 @@ public class CustomerController {
             currentRankName = customer.getCustomerRank().getName();
         }
 
-        model.addAttribute("customerDTO", dto);
-        model.addAttribute("currentRankName", currentRankName);
-        model.addAttribute("genders", Gender.values());
-        return "customer/form";
+        return renderForm(model, dto, currentRankName);
     }
 
     @PostMapping("/save")
@@ -106,7 +100,6 @@ public class CustomerController {
                 redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thành công!");
             }
         } catch (Exception e) {
-
             String currentRankName = "Thành viên";
             if (dto.getId() != null) {
                 try {
@@ -119,13 +112,17 @@ public class CustomerController {
             }
 
             model.addAttribute("errorMessage", e.getMessage());
-            model.addAttribute("customerDTO", dto);
-            model.addAttribute("currentRankName", currentRankName);
-            model.addAttribute("genders", Gender.values());
-            return "customer/form";
+            return renderForm(model, dto, currentRankName);
         }
 
         return "redirect:/customers";
+    }
+
+    private String renderForm(Model model, CustomerRequestDTO dto, String rankName) {
+        model.addAttribute("customerDTO", dto);
+        model.addAttribute("currentRankName", rankName);
+        model.addAttribute("genders", Gender.values());
+        return "customer/form";
     }
 
     @GetMapping("/popup-form")
@@ -137,7 +134,7 @@ public class CustomerController {
 
     @PostMapping("/popup-form")
     public String popupFormSubmit(@ModelAttribute("customerDTO") CustomerRequestDTO dto, Model model) {
-        Long currentUserId = 1L; // Fake auth
+        Long currentUserId = 1L;
         try {
             Customer created = customerService.createCustomer(dto, currentUserId);
             model.addAttribute("success", true);

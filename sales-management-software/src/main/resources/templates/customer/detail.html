@@ -16,7 +16,7 @@
     <div class="sub-nav">
         <a href="/customers" class="sub-nav__back">Khách hàng</a>
         <span class="sub-nav__sep">›</span>
-        <h1 class="sub-nav__title" style="margin:0;">Chi tiết Khách hàng</h1>
+        <h1 class="sub-nav__title margin-0">Chi tiết Khách hàng</h1>
     </div>
 
     <main class="page-content">
@@ -97,7 +97,7 @@
                             <th>Sản phẩm</th>
                             <th>Tổng tiền</th>
                             <th>Trạng thái</th>
-                            <th style="text-align:right;">Thao tác</th>
+                            <th class="text-right">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -117,7 +117,7 @@
                                       th:if="${stat.index < 2}"
                                       th:text="${detail.productUnit.product.name + (stat.index < 1 and order.details.size() > 1 ? ', ' : '')}">
                                 </span>
-                                <span th:if="${order.details.size() > 2}" class="code-chip" style="font-size:11px;" th:text="'+' + (${order.details.size() - 2})"></span>
+                                <span th:if="${order.details.size() > 2}" class="code-chip font-11" th:text="'+' + (${order.details.size() - 2})"></span>
                             </td>
                             <td class="amount-cell" th:text="${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
                             <td>
@@ -128,7 +128,7 @@
                                 </span>
                             </td>
                             <td>
-                                <div class="actions" style="justify-content:flex-end;">
+                                <div class="actions justify-end">
                                     <a th:href="@{/orders/{id}(id=${order.id})}" class="action-edit">Chi tiết</a>
                                 </div>
                             </td>

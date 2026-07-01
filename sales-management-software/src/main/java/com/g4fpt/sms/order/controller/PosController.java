@@ -192,6 +192,7 @@ public class PosController {
         ProductUnit pu = productUnitRepo.findById(productUnitId).orElse(null);
         if (pu != null && pu.getProduct() != null && pu.getProduct().getStatus() == ProductStatus.ACTIVE) {
             addProductToCart(session.getActiveCart(), pu);
+            ra.addFlashAttribute("success", "Đã thêm sản phẩm \"" + pu.getProduct().getName() + "\" vào giỏ hàng!");
         } else {
             ra.addFlashAttribute("error", "Không tìm thấy sản phẩm hoặc sản phẩm đã ngưng hoạt động!");
         }
@@ -270,6 +271,7 @@ public class PosController {
     }
 
     @GetMapping("/search-customer")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public String findCustomers(
             @RequestParam String phone,
             @ModelAttribute("posSession") PosSessionData session,
@@ -284,7 +286,7 @@ public class PosController {
         // Tìm kiếm khách hàng
         org.springframework.data.domain.Page<Customer> page = customerRepository
                 .searchActiveByPhoneOrName(
-                        CustomerStatus.ACTIVE.name(), keyword,
+                        CustomerStatus.ACTIVE, keyword,
                         org.springframework.data.domain.PageRequest.of(0, 5));
 
         List<Customer> result = page.getContent();
@@ -532,6 +534,7 @@ public class PosController {
     // 15b. API lấy danh sách voucher khả dụng theo khách hàng
     // =============================================
     @GetMapping("/voucher-list")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public String getAvailableVouchers(
             @ModelAttribute("posSession") PosSessionData session,
             Model model) {

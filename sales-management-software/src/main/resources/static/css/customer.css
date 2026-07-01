@@ -265,3 +265,25 @@
 .action-view {
     color: var(--ink-muted-80);
 }
+
+/* ── Utilities / Cleanups ───────────────────────────────────────── */
+.text-right {
+    text-align: right;
+}
+.margin-0 {
+    margin: 0;
+}
+.flex-1 {
+    flex: 1;
+}
+.justify-end {
+    justify-content: flex-end;
+}
+.font-11 {
+    font-size: 11px;
+}
+.search-bar--list {
+    margin-bottom: 0;
+    flex: 1;
+}
+
