@@ -22,7 +22,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>,
     @Query("""
             SELECT CASE WHEN COUNT(otd) > 0 THEN true ELSE false END
             FROM OrderTransactionDetail otd
-            WHERE otd.productUnit.product.id =: productId
+            WHERE otd.productUnit.product.id = :productId
     """)
     boolean existInOrderTransaction(@Param("productId") Long productId);
 
