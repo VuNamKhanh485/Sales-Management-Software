@@ -9,7 +9,7 @@ import java.util.List;
 public interface ProductUnitService {
     ProductUnit create(ProductUnitRequest productUnitRequest, Product product);
     ProductUnit update(ProductUnitRequest productUnitRequest, Product product);
-    void deleteById(Long id);
+    void deleteById(Long unitId, Long productId);
     List<ProductUnitResponse> findAll();
     ProductUnitResponse findById(Long id);
     List<ProductUnitResponse> findByProductId(Long id);

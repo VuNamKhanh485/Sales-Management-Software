@@ -1,5 +1,6 @@
 package com.g4fpt.sms.product.service.impl;
 
+import com.g4fpt.sms.common.exception.ResourceInUseException;
 import com.g4fpt.sms.product.dto.request.ProductUnitRequest;
 import com.g4fpt.sms.product.dto.response.ProductUnitResponse;
 import com.g4fpt.sms.product.entity.Product;
@@ -55,8 +56,14 @@ public class ProductUnitServiceImpl implements ProductUnitService {
     }
 
     @Override
-    public void deleteById(Long id) {
-        //cần có phần orderTranscation
+    public void deleteById(Long unitId, Long productId) {
+        ProductUnit productUnit = getProductUnitByIdAndProduct(unitId, productId);
+
+        if(productUnitRepository.existInOrderTransaction(unitId)){
+            throw new ResourceInUseException("Sản phẩm này đã nằm trong giao dịch");
+        }
+
+        productUnitRepository.delete(productUnit);
     }
 
     public List<ProductUnit> productUnitSync(List<ProductUnitRequest> productUnitRequests, Product product) {
@@ -68,7 +75,7 @@ public class ProductUnitServiceImpl implements ProductUnitService {
                 .collect(Collectors.toSet());
         for(ProductUnit unit : product.getProductUnits()){
             if(!requestIds.contains(unit.getId())){
-                deleteById(unit.getId());
+                deleteById(unit.getId(), product.getId());
             }
         }
 
@@ -113,7 +120,9 @@ public class ProductUnitServiceImpl implements ProductUnitService {
                 errors.add(new ValidationError("Sku", "Sku is existed"));
             }
         }
-        throw new ValidationException(errors);
+        if (!errors.isEmpty()) {
+            throw new ValidationException(errors);
+        }
     }
 
     private void requestToEntity(ProductUnitRequest productUnitRequest, ProductUnit productUnit, Product product) {

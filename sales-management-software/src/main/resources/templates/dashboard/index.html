@@ -6,45 +6,18 @@
     <title>Tổng quan hệ thống — SMS</title>
     <meta name="description" content="Hệ thống quản lý bán hàng SMS.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
     <style>
-        /* ─────────────────────────────────────────
-           DESIGN TOKENS  (DESIGN-apple.md)
-        ───────────────────────────────────────── */
-        :root {
-            --primary:          #0066cc;
-            --primary-focus:    #0071e3;
-            --ink:              #1d1d1f;
-            --ink-muted-80:     #333333;
-            --ink-muted-48:     #7a7a7a;
-            --divider-soft:     #f0f0f0;
-            --hairline:         #e0e0e0;
-            --canvas:           #ffffff;
-            --canvas-parchment: #f5f5f7;
-            --surface-pearl:    #fafafc;
-            --on-primary:       #ffffff;
-            --success:          #34c759;
-            --danger:           #ff3b30;
-
-            --font-display: "SF Pro Display", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-            --font-text:    "SF Pro Text",    system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-
-            --r-sm: 8px; --r-md: 11px; --r-lg: 18px; --r-pill: 9999px;
-            --sp-xs: 8px; --sp-sm: 12px; --sp-md: 17px; --sp-lg: 24px; --sp-xl: 32px;
+        body {
+            background-color: var(--canvas-parchment);
         }
 
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: var(--font-text);
-            font-size: 15px;
-            line-height: 1.47;
-            letter-spacing: -0.224px;
-            color: var(--ink);
-            background-color: var(--canvas-parchment);
-            min-height: 100vh;
-            display: flex;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+        /* ── Main Container ── */
+        .main-container {
+            flex-grow: 1;
+            padding: var(--sp-xl) var(--sp-xl);
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         /* ── Sidebar ── */
@@ -470,7 +443,7 @@
 <body>
 
 <!-- Left Sidebar Navigation -->
-<div th:replace="~{component/navbar :: sidebar-component}" th:with="page='dashboard'"></div>
+<div th:replace="~{component/navbar :: global-nav('dashboard')}"></div>
 
 <!-- Main Container -->
 <div class="main-container">

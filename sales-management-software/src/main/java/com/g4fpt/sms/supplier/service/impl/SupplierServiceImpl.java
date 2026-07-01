@@ -2,6 +2,7 @@ package com.g4fpt.sms.supplier.service.impl;
 
 import com.g4fpt.sms.common.exception.DuplicateException;
 import com.g4fpt.sms.common.exception.NotFoundException;
+import com.g4fpt.sms.common.exception.ResourceInUseException;
 import com.g4fpt.sms.supplier.dto.request.SupplierRequest;
 import com.g4fpt.sms.supplier.dto.response.SupplierResponse;
 import com.g4fpt.sms.supplier.entity.Supplier;
@@ -42,9 +43,12 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
-    public void delete(Long id) {
+    public void deleteById(Long id) {
         Supplier supplier = getSupplierById(id);
-        //check transaction
+
+        if(supplierRepository.existInOrderTransaction(id)){
+            throw new ResourceInUseException("Nhà cung cấp đã tồn tại giao dịch");
+        }
         supplierRepository.delete(supplier);
     }
 

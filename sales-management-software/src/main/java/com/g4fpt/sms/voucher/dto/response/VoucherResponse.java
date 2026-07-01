@@ -24,4 +24,7 @@ public class VoucherResponse {
     private VoucherStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    private Long customerRankId;
+    private String customerRankName;
 }

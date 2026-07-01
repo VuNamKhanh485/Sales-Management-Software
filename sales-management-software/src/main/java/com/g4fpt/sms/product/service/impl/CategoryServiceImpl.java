@@ -1,5 +1,6 @@
 package com.g4fpt.sms.product.service.impl;
 
+import com.g4fpt.sms.common.exception.ResourceInUseException;
 import com.g4fpt.sms.product.dto.request.CategoryRequest;
 import com.g4fpt.sms.product.dto.response.CategoryResponse;
 import com.g4fpt.sms.product.entity.Category;
@@ -27,16 +28,17 @@ public class CategoryServiceImpl implements CategoryService {
 
 
     @Override
-    public void create(CategoryRequest categoryRequest) {
+    public CategoryResponse create(CategoryRequest categoryRequest) {
         if(categoryRepository.existsByNameIgnoreCase(categoryRequest.getCategoryName())){
             throw new DuplicateException("This name is already in use");
         }
         Category category = categoryMapper.toEntity(categoryRequest);
-        categoryRepository.save(category);
+        Category savedCategory = categoryRepository.save(category);
+        return categoryMapper.toResponse(savedCategory);
     }
 
     @Override
-    public Page<CategoryResponse> findAll(String keyword, int size, int page, String sortField, String sortDirection) {
+    public Page<CategoryResponse> findAll(String keyword, int page, int size, String sortField, String sortDirection) {
         Sort sort = sortDirection.equalsIgnoreCase("asc")
                 ? Sort.by(sortField).ascending()
                 : Sort.by(sortField).descending();
@@ -68,8 +70,12 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteById(long id) {
-        //cần có phần orderTranscation
-        categoryRepository.deleteById(id);
+        Category category = getCategoryById(id);
+
+        if(categoryRepository.existInOrderTransaction(id)){
+            throw new ResourceInUseException("Danh sách đã tồn tại trong giao dịch");
+        }
+        categoryRepository.delete(category);
     }
 
     @Override

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <div th:fragment="modals">
+        <!-- Modal: Danh sách sản phẩm -->
+        <div class="modal fade" id="productModal" tabindex="-1">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header py-2">
+                        <h6 class="modal-title fw-bold">
+                            <i class="bi bi-grid me-1"></i>Danh sách sản phẩm
+                        </h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <iframe src="/pos/product-list" style="width:100%; border:none; height:500px;"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Thêm khách hàng mới -->
+        <div class="modal fade" id="newCustomerModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header py-2">
+                        <h6 class="modal-title fw-bold">
+                            <i class="bi bi-person-plus me-1"></i>Thêm khách hàng mới
+                        </h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <iframe src="/customers/popup-form" style="width:100%; border:none; height:420px;"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Khuyến mãi -->
+        <div class="modal fade" id="voucherModal" tabindex="-1">
+            <div class="modal-dialog modal-md modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header py-2 bg-primary text-white">
+                        <h6 class="modal-title fw-bold text-white">
+                            <i class="bi bi-gift-fill me-1"></i>Chương trình Khuyến mãi
+                        </h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <iframe src="/pos/voucher-list" style="width:100%; border:none; height:450px;"></iframe>
+                    </div>
+                    <div class="modal-footer py-1">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Receipt Hóa đơn thành công -->
+        <div class="modal fade" id="successReceiptModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
+                <div class="modal-content">
+                    <div class="modal-header py-2 bg-success text-white">
+                        <h6 class="modal-title fw-bold">
+                            <i class="bi bi-check-circle-fill me-1"></i>Thanh toán thành công!
+                        </h6>
+                    </div>
+                    <div class="modal-body bg-light">
+                        <!-- Thiết kế biên lai hóa đơn bán hàng -->
+                        <div id="receiptPrintArea" class="bg-white p-4 shadow-sm rounded border receipt-container text-dark"
+                            style="font-family: 'Courier New', Courier, monospace; font-size: 13px; line-height: 1.4;">
+                            <div class="text-center mb-3">
+                                <h5 class="fw-bold mb-1" style="font-family: inherit;"
+                                    th:text="${successBranch != null ? successBranch.name : 'SMS STORE'}">SMS STORE</h5>
+                                <p class="mb-0 text-muted" style="font-size: 11px;"
+                                    th:text="${successBranch != null ? successBranch.address : '123 Đường Láng, Đống Đa, Hà Nội'}">
+                                    123 Đường Láng, Đống Đa, Hà Nội</p>
+                                <p class="mb-0 text-muted" style="font-size: 11px;"
+                                    th:text="${successBranch != null && successBranch.phone != null} ? 'SĐT: ' + ${successBranch.phone} : 'SĐT: 0987 654 321'">
+                                    SĐT: 0987 654 321</p>
+                                <div class="my-2" style="border-top: 1px dashed #ccc;"></div>
+                                <h6 class="fw-bold my-2" style="font-family: inherit;">HÓA ĐƠN BÁN HÀNG</h6>
+                            </div>
+
+                            <div th:if="${successOrder != null}">
+                                <p class="mb-1"><strong>Mã hóa đơn:</strong> <span th:text="${successOrder.code}"></span>
+                                </p>
+                                <p class="mb-1"><strong>Ngày tạo:</strong> <span
+                                        th:text="${#temporals.format(successOrder.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                </p>
+                                <p class="mb-1"><strong>Khách hàng:</strong> <span
+                                        th:text="${successOrder.customer != null ? successOrder.customer.fullName : 'Khách lẻ'}"></span>
+                                </p>
+                                <p class="mb-1" th:if="${successOrder.customer != null}"><strong>SĐT:</strong> <span
+                                        th:text="${successOrder.customer.phone}"></span></p>
+                                <div class="my-2" style="border-top: 1px dashed #ccc;"></div>
+
+                                <table class="w-100 mb-2" style="font-size: 12px; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="border-bottom: 1px solid #ddd;">
+                                            <th class="text-start pb-1">Tên SP</th>
+                                            <th class="text-center pb-1" style="width: 40px;">SL</th>
+                                            <th class="text-end pb-1" style="width: 80px;">Đơn giá</th>
+                                            <th class="text-end pb-1" style="width: 80px;">T.Tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="detail : ${successOrder.details}">
+                                            <td class="py-1 text-start" th:text="${detail.productUnit.product.name}"></td>
+                                            <td class="py-1 text-center" th:text="${detail.quantity}"></td>
+                                            <td class="py-1 text-end"
+                                                th:text="${#numbers.formatDecimal(detail.salePrice, 0, 'COMMA', 0, 'POINT')} + 'đ'">
+                                            </td>
+                                            <td class="py-1 text-end"
+                                                th:text="${#numbers.formatDecimal(detail.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'">
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <div class="my-2" style="border-top: 1px dashed #ccc;"></div>
+
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Tổng tiền hàng:</span>
+                                    <span
+                                        th:text="${#numbers.formatDecimal(successOrder.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1 text-danger"
+                                    th:if="${successOrder.discountAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                                    <span>Giảm giá:</span>
+                                    <span
+                                        th:text="'-' + ${#numbers.formatDecimal(successOrder.discountAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Thuế VAT (2%):</span>
+                                    <span
+                                        th:text="${#numbers.formatDecimal(successOrder.finalAmount.add(successOrder.discountAmount).subtract(successOrder.totalAmount), 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1 fw-bold text-primary"
+                                    style="font-size: 14px;">
+                                    <span>KHÁCH PHẢI TRẢ:</span>
+                                    <span
+                                        th:text="${#numbers.formatDecimal(successOrder.finalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Tiền khách đưa:</span>
+                                    <span
+                                        th:text="${#numbers.formatDecimal(successOrder.paidAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1 text-success fw-bold">
+                                    <span>Tiền thừa:</span>
+                                    <span
+                                        th:text="${#numbers.formatDecimal(successOrder.changeAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                </div>
+
+                                <div class="my-2" style="border-top: 1px dashed #ccc;"></div>
+                                <div class="text-center mt-3 small text-muted">
+                                    <p class="mb-0">Cảm ơn quý khách. Hẹn gặp lại!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer py-2 d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+                        <button type="button" class="btn btn-success btn-sm" onclick="downloadReceiptPdf()">
+                            <i class="bi bi-file-pdf me-1"></i>Xuất PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Lịch sử bán hàng -->
+        <div class="modal fade" id="salesHistoryModal" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header py-2 bg-info text-white">
+                        <h6 class="modal-title fw-bold text-white">
+                            <i class="bi bi-clock-history me-1"></i>Lịch sử bán hàng cá nhân
+                        </h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <iframe src="/pos/sales-history" style="width:100%; border:none; height:450px;"></iframe>
+                    </div>
+                    <div class="modal-footer py-1">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

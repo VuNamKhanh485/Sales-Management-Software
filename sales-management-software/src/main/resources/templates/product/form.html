@@ -2,148 +2,512 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8"/>
-    <title>Cập nhật Sản phẩm</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${id != null} ? 'Cập nhật Sản phẩm — SMS' : 'Thêm Sản phẩm — SMS'">Sản phẩm — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
+    <!-- Select2 & jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <style>
+        .form-page {
+            max-width: 900px;
+            margin: var(--sp-xxl) auto;
+            padding: 0 var(--sp-xl);
+        }
+        .form-card {
+            background: var(--canvas);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-lg);
+            padding: var(--sp-xl);
+        }
+        .form-card__header {
+            margin-bottom: var(--sp-xl);
+            padding-bottom: var(--sp-md);
+            border-bottom: 1px solid var(--divider-soft);
+        }
+        .form-card__title {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.374px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--sp-md) var(--sp-lg);
+        }
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group--full { grid-column: 1 / -1; }
+
+        .form-label {
+            font-size: 13px; font-weight: 600; color: var(--ink);
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            font-family: var(--font-text);
+            font-size: 15px;
+            background: var(--canvas);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: var(--primary-focus);
+            box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.12);
+        }
+
+        .form-select {
+            padding-right: 36px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7' fill='none'%3E%3Cpath d='M1 1L5.5 6L10 1' stroke='%237a7a7a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            appearance: none;
+        }
+
+        .section-title {
+            grid-column: 1 / -1;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-top: var(--sp-lg);
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--hairline);
+        }
+
+        .unit-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: var(--sp-sm);
+        }
+        .unit-table th {
+            font-size: 12px;
+            color: var(--ink-muted-48);
+            font-weight: 600;
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid var(--hairline);
+        }
+        .unit-table td {
+            padding: 8px;
+            border-bottom: 1px dashed var(--divider-soft);
+        }
+        
+        .action-bar {
+            margin-top: var(--sp-xxl);
+            padding-top: var(--sp-lg);
+            border-top: 1px solid var(--divider-soft);
+            display: flex; justify-content: flex-end; gap: var(--sp-sm);
+        }
+
+        /* Select2 Customization for Apple Design */
+        .select2-container--default .select2-selection--single {
+            height: 42px;
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            background: var(--canvas);
+            display: flex; align-items: center;
+        }
+        .select2-container--default .select2-selection--single:focus {
+            border-color: var(--primary-focus);
+            box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.12);
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: normal;
+            color: var(--ink);
+            padding-left: 14px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 40px; right: 8px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            background: var(--canvas);
+            border-radius: var(--r-lg);
+            width: 100%; max-width: 400px;
+            padding: var(--sp-xl);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .modal-header {
+            font-size: 18px; font-weight: 600; margin-bottom: var(--sp-md);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-close {
+            background: none; border: none; font-size: 20px; cursor: pointer; color: var(--ink-muted-48);
+        }
+    </style>
 </head>
 <body>
 
-<h2>Sản phẩm</h2>
+    <!-- ── Global Nav ── -->
+    <div th:replace="~{component/navbar :: global-nav('product')}"></div>
 
-<a th:href="@{/product}">← Quay lại</a>
+    <!-- ── Sub Nav ── -->
+    <div class="sub-nav">
+        <a href="/product" style="color:var(--primary); text-decoration:none; font-size:14px; margin-right:8px;">Sản phẩm</a>
+        <span style="color:var(--ink-muted-48); font-size:12px; margin-right:8px;">›</span>
+        <h1 style="font-size:21px; font-weight:600; margin:0;" th:text="${id != null} ? 'Sửa sản phẩm' : 'Thêm sản phẩm mới'">Sửa sản phẩm</h1>
+    </div>
 
-<br/><br/>
+    <main class="form-page">
+        <div class="form-card">
+            <div class="form-card__header">
+                <h1 class="form-card__title" th:text="${id != null} ? 'Cập nhật Sản phẩm' : 'Thêm Sản phẩm mới'"></h1>
+            </div>
 
-<form th:action="${id != null} ? @{/product/form/{id}(id=${id}, from=${from})} : @{/product/form(from=${from})}" method="post" th:object="${productRequest}">
-    <label>Tên sản phẩm:</label><br/>
-    <input type="text" name="name" th:field="*{name}"/>
+            <form th:action="${id != null} ? @{/product/form/{id}(id=${id}, from=${from})} : @{/product/form(from=${from})}" method="post" th:object="${productRequest}">
+                <div class="form-grid">
+                    
+                    <div class="section-title">Thông tin cơ bản</div>
 
-    <label>Danh mục:</label><br/>
-    <select name="categoryId" th:field="*{categoryId}">
-        <option value="">-- Chọn danh mục --</option>
-        <option th:each="c : ${categoryList}"
-                th:value="${c.id}"
-                th:text="${c.name}">
-        </option>
-    </select><br/><br/>
+                    <div class="form-group form-group--full">
+                        <label class="form-label">
+                            Tên sản phẩm
+                            <input type="text"
+                                   class="form-input"
+                                   th:field="*{name}"
+                                   placeholder="VD: Sữa chua Vinamilk"
+                                   required/>
+                        </label>
+                    </div>
 
-    <label>Thương hiệu:</label><br/>
-    <select name="brandId" th:field="*{brandId}">
-        <option value="">-- Chọn thương hiệu --</option>
-        <option th:each="b : ${brandList}"
-                th:value="${b.id}"
-                th:text="${b.name}">
-        </option>
-    </select><br/><br/>
+                    <div class="form-group">
+                        <label class="form-label">
+                            Danh mục
+                            <select class="form-select select2-init"
+                                    id="categoryId"
+                                    name="categoryId"
+                                    th:field="*{categoryId}"
+                                    required>
+                                <option value="">-- Chọn danh mục --</option>
+                                <option th:each="c : ${categoryList}" th:value="${c.id}" th:text="${c.name}"></option>
+                            </select>
+                        </label>
+                        <button type="button"
+                           class="add-link"
+                           onclick="openCategoryModal(); return false;">
+                            + Thêm danh mục mới
+                        </button>
+                    </div>
 
-    <label>Ảnh (URL):</label><br/>
-    <input type="text" name="imageUrl" th:value="*{imageUrl}"/><br/><br/>
+                    <div class="form-group">
+                        <label class="form-label">
+                            Thương hiệu
+                            <select class="form-select select2-init" id="brandId" name="brandId" th:field="*{brandId}">
+                                <option value="">-- Chọn thương hiệu --</option>
+                                <option th:each="b : ${brandList}" th:value="${b.id}" th:text="${b.name}"></option>
+                            </select>
+                        </label>
+                        <button type="button"
+                                class="add-link"
+                                onclick="openBrandModal(); return false;">
+                            + Thêm thương hiệu mới
+                        </button>
+                    </div>
 
-    <label>Mô tả:</label><br/>
-    <textarea name="description" rows="3" cols="40" th:text="*{description}"></textarea><br/><br/>
+                    <div class="form-group form-group--full">
+                        <label class="form-label">
+                            Ảnh (URL)
+                            <input type="text" class="form-input" name="imageUrl" th:field="*{imageUrl}" placeholder="https://..."/>
+                        </label>
+                    </div>
 
-    <label>Ghi chú:</label><br/>
-    <textarea name="note" rows="3" cols="40" th:text="*{note}"></textarea><br/><br/>
+                    <div class="form-group form-group--full">
+                        <label class="form-label">
+                            Mô tả
+                            <textarea class="form-textarea" name="description" rows="3" th:field="*{description}"></textarea>
+                        </label>
+                    </div>
 
-    <label>Trạng thái:</label><br/>
-    <select name="status" th:field="*{status}">
-        <option value="">-- Chọn trạng thái --</option>
-        <option th:each="s : ${T(com.g4fpt.sms.product.enums.ProductStatus).values()}"
-                th:value="${s}"
-                th:text="${s}">
-        </option>
-    </select><br/><br/>
+                    <div class="form-group form-group--full">
+                        <label class="form-label">
+                            Ghi chú
+                            <textarea class="form-textarea" name="note" rows="2" th:field="*{note}"></textarea>
+                        </label>
+                    </div>
 
-    <hr/>
-    <h3>Đơn vị tính</h3>
+                    <div class="form-group">
+                        <label class="form-label">
+                            Trạng thái
+                            <select class="form-select" name="status" th:field="*{status}">
+                                <option th:each="s : ${T(com.g4fpt.sms.product.enums.ProductStatus).values()}" th:value="${s}" th:text="${s}"></option>
+                            </select>
+                        </label>
+                    </div>
 
-    <table border="1" cellpadding="6" cellspacing="0">
-        <thead>
-        <tr>
-            <th>#</th>
-            <th>Đơn vị</th>
-            <th>Giá trị quy đổi</th>
-            <th>Giá</th>
-            <th>Barcode</th>
-            <th>SKU</th>
-            <th>Đơn vị cơ bản</th>
-        </tr>
-        </thead>
-        <tbody id="unitTable">
-        <tr th:if="${#lists.isEmpty(productRequest.productUnitsRequest)}">
-            <td colspan="7">Chưa có đơn vị tính nào.</td>
-        </tr>
-        <tr th:each="pu, stat : ${productRequest.productUnitsRequest}">
-            <td th:text="${stat.index + 1}"></td>
+                    <div class="section-title">Quy đổi Đơn vị tính</div>
+                    <div class="form-group--full" style="overflow-x:auto;">
+                        <table class="unit-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Đơn vị</th>
+                                    <th>Quy đổi</th>
+                                    <th>Giá bán</th>
+                                    <th>Barcode</th>
+                                    <th>SKU</th>
+                                    <th>Cơ bản</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="unitTable">
+                                <tr th:if="${#lists.isEmpty(productRequest.productUnitsRequest)}" id="no-unit-row">
+                                    <td colspan="8" style="text-align:center; color:var(--ink-muted-48); padding:16px;">Chưa có đơn vị tính nào.</td>
+                                </tr>
+                                <tr th:each="pu, stat : ${productRequest.productUnitsRequest}">
+                                    <td th:text="${stat.index + 1}" class="row-index"></td>
+                                    <input type="hidden" th:field="*{productUnitsRequest[__${stat.index}__].id}">
+                                    
+                                    <td>
+                                        <select class="form-select" th:field="*{productUnitsRequest[__${stat.index}__].unitId}" style="padding:4px 20px 4px 8px; font-size:13px; min-width:100px;">
+                                            <option th:each="unit : ${unitList}"
+                                                    th:value="${unit.id}"
+                                                    th:text="${unit.name}"></option>
+                                        </select>
 
-            <input type="hidden"
-                   th:field="*{productUnitsRequest[__${stat.index}__].id}">
+                                        <button type="button"
+                                                class="btn-link"
+                                                onclick="openUnitModal(this)">
+                                            + Thêm
+                                        </button>
+                                    </td>
+                                    <td><input type="number" class="form-input" th:field="*{productUnitsRequest[__${stat.index}__].conventionValue}" style="padding:4px 8px; font-size:13px; width:70px;"></td>
+                                    <td><input type="number" class="form-input" th:field="*{productUnitsRequest[__${stat.index}__].price}" style="padding:4px 8px; font-size:13px; width:100px;"></td>
+                                    <td><input type="text" class="form-input" th:field="*{productUnitsRequest[__${stat.index}__].barcodeUnit}" style="padding:4px 8px; font-size:13px; width:100px;"></td>
+                                    <td><input type="text" class="form-input" th:field="*{productUnitsRequest[__${stat.index}__].sku}" style="padding:4px 8px; font-size:13px; width:100px;"></td>
+                                    <td style="text-align:center;"><input type="checkbox" th:field="*{productUnitsRequest[__${stat.index}__].isBaseUnit}"></td>
+                                    <td><button type="button" class="btn-icon" style="width:24px; height:24px; font-size:12px; color:var(--danger); background:transparent;" onclick="removeUnitRow(this)">✕</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" class="btn-secondary btn-secondary--sm" style="margin-top:12px;" onclick="addUnitRow()">+ Thêm đơn vị tính</button>
+                    </div>
 
-            <select th:field="*{productUnitsRequest[__${stat.index}__].unitId}">
-                <option th:each="unit : ${unitList}"
-                        th:value="${unit.id}"
-                        th:text="${unit.name}">
-                </option>
-            </select>
-            <td>
-                <input type="number"
-                       th:field="*{productUnitsRequest[__${stat.index}__].conventionValue}">
-            </td>
+                </div>
 
-            <td>
-                <input type="number"
-                       th:field="*{productUnitsRequest[__${stat.index}__].price}">
-            </td>
+                <div class="form-actions">
+                    <a href="/product" class="btn-cancel" style="padding:10px 20px; font-size:15px;">Hủy</a>
+                    <button type="submit" class="btn-primary" style="padding:10px 24px; font-size:15px;">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </main>
 
-            <td>
-                <input type="text"
-                       th:field="*{productUnitsRequest[__${stat.index}__].barcodeUnit}">
-            </td>
-            <td>
-                <input type="text"
-                       th:field="*{productUnitsRequest[__${stat.index}__].sku}">
-            </td>
-            <td style="text-align:center">
-                <input type="checkbox"
-                       th:field="*{productUnitsRequest[__${stat.index}__].isBaseUnit}">
-            </td>
-        </tr>
-        </tbody>
-    </table>
-    <button type="button" onclick="addUnitRow()">Add unit</button>
-    <br/><br/>
-    <button type="submit">Lưu thay đổi</button>
-    <a th:href="@{/product}">Hủy</a>
+    <!-- Modal Category -->
+    <div id="modalCategory" class="modal-overlay">
+        <div class="modal-box" style="padding:0; overflow:hidden;">
+            <div class="modal-header" style="padding: 20px 20px 0; margin-bottom: 0;">
+                <span>Thêm Danh mục mới</span>
+                <button class="modal-close" onclick="closeModal('modalCategory')">×</button>
+            </div>
+            <iframe src="/category/popup-form" style="width:100%; border:none; height:320px;"></iframe>
+        </div>
+    </div>
 
-</form>
+    <!-- Modal Brand -->
+    <div id="modalBrand" class="modal-overlay">
+        <div class="modal-box" style="padding:0; overflow:hidden;">
+            <div class="modal-header" style="padding: 20px 20px 0; margin-bottom: 0;">
+                <span>Thêm Thương hiệu mới</span>
+                <button class="modal-close" onclick="closeModal('modalBrand')">×</button>
+            </div>
+            <iframe src="/brand/popup-form" style="width:100%; border:none; height:250px;"></iframe>
+        </div>
+    </div>
+
+    <!-- Modal Unit -->
+    <div id="modalUnit" class="modal-overlay">
+        <div class="modal-box" style="padding:0; overflow:hidden;">
+            <div class="modal-header" style="padding: 20px 20px 0; margin-bottom: 0;">
+                <span>Thêm Đơn vị tính mới</span>
+                <button class="modal-close" onclick="closeModal('modalUnit')">×</button>
+            </div>
+            <iframe src="/unit/popup-form" style="width:100%; border:none; height:180px;"></iframe>
+        </div>
+    </div>
+
 <script th:inline="javascript">
-    const unit = /*[[${unitList}]]*/ [];
-    let rowIndex = document.querySelectorAll('#unitTable tr').length;
+    const unitList = /*[[${unitList}]]*/ [];
+    let rowIndex = document.querySelectorAll('#unitTable tr:not(#no-unit-row)').length;
+
+    function openCategoryModal() {
+        document.getElementById('modalCategory').style.display = 'flex';
+    }
+
+    function openBrandModal() {
+        document.getElementById('modalBrand').style.display = 'flex';
+    }
+
+    let currentUnitSelect = null;
+
+    function openUnitModal(button){
+        currentUnitSelect = $(button)
+            .closest("td")
+            .find("select");
+        $("#modalUnit").css("display","flex");
+    }
+
     function addUnitRow() {
+        const noUnitRow = document.getElementById('no-unit-row');
+        if (noUnitRow) noUnitRow.style.display = 'none';
+
         const tbody = document.getElementById('unitTable');
         const i = rowIndex++;
 
         let options = '<option value="">-- Chọn --</option>';
-        unit.forEach(u => {
+        // Add 'NEW_UNIT' option to existing unit list
+        unitList.forEach(u => {
             options += `<option value="${u.id}">${u.name}</option>`;
         });
-
         const tr = document.createElement('tr');
 
-        tr.innerHTML =
-            `<td>${i + 1}</td>
-            <td>
-                <select name="productUnitsRequest[${i}].unitId">
+        tr.innerHTML = `
+        <td class="row-index">${i + 1}</td>
+
+        <td>
+            <div class="select-with-action">
+                <select class="form-select unit-select2"
+                        name="productUnitsRequest[${i}].unitId"
+                        style="width:120px;">
                     ${options}
                 </select>
-            </td>
-            <td><input type="number" name="productUnitsRequest[${i}].conventionValue" value="1"></td>
-            <td><input type="number" name="productUnitsRequest[${i}].price"></td>
-            <td><input type="text" name="productUnitsRequest[${i}].barcodeUnit"></td>
-            <td><input type="text" name="productUnitsRequest[${i}].sku"></td>
-            <td><input type="checkbox" name="productUnitsRequest[${i}].isBaseUnit"></td>
-            <td><button type="button" onclick="this.closest('tr').remove()">Xóa</button></td>
-            `;
+
+                <button type="button"
+                        class="btn-link"
+                        onclick="openUnitModal(this)">
+                    + Thêm
+                </button>
+            </div>
+        </td>
+
+        <td>
+            <input type="number"
+                   class="form-input"
+                   name="productUnitsRequest[${i}].conventionValue"
+                   value="1"
+                   style="padding:4px 8px;font-size:13px;width:70px;">
+        </td>
+
+        <td>
+            <input type="number"
+                   class="form-input"
+                   name="productUnitsRequest[${i}].price"
+                   style="padding:4px 8px;font-size:13px;width:100px;">
+        </td>
+
+        <td>
+            <input type="text"
+                   class="form-input"
+                   name="productUnitsRequest[${i}].barcodeUnit"
+                   style="padding:4px 8px;font-size:13px;width:100px;">
+        </td>
+
+        <td>
+            <input type="text"
+                   class="form-input"
+                   name="productUnitsRequest[${i}].sku"
+                   style="padding:4px 8px;font-size:13px;width:100px;">
+        </td>
+
+        <td style="text-align:center;">
+            <input type="checkbox"
+                   name="productUnitsRequest[${i}].isBaseUnit">
+        </td>
+
+        <td>
+            <button type="button"
+                    class="btn-icon"
+                    style="width:24px;height:24px;font-size:12px;color:var(--danger);background:transparent;"
+                    onclick="removeUnitRow(this)">
+                ✕
+            </button>
+        </td>
+    `;
+
         tbody.appendChild(tr);
+
+        // Khởi tạo Select2 cho select vừa thêm
+        $(tr).find(".unit-select2").select2();
+
+        reindexRows();
     }
+
+    function removeUnitRow(btn) {
+        btn.closest('tr').remove();
+        reindexRows();
+
+        const tbody = document.getElementById('unitTable');
+        if (tbody.querySelectorAll('tr').length === 1 && document.getElementById('no-unit-row')) {
+            document.getElementById('no-unit-row').style.display = '';
+        }
+    }
+
+    function reindexRows() {
+        const rows = document.querySelectorAll('#unitTable tr:not(#no-unit-row)');
+        rows.forEach((row, index) => {
+            row.querySelector('.row-index').innerText = index + 1;
+            
+            // Re-index inputs
+            const selects = row.querySelectorAll('select');
+            selects.forEach(s => s.name = s.name.replace(/\[\d+\]/, '[' + index + ']'));
+            
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(i => i.name = i.name.replace(/\[\d+\]/, '[' + index + ']'));
+        });
+        rowIndex = rows.length;
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        modal.style.display = "none";
+
+        const iframe = modal.querySelector("iframe");
+        if (iframe) {
+            iframe.contentWindow.location.reload();
+        }
+        if(id==="modalUnit"){
+            currentUnitSelect=null;
+        }
+    }
+
+    window.addEventListener('message', function(event) {
+        const data = event.data;
+        if (!data || !data.type) return;
+
+        if (data.type === 'CATEGORY_CREATED') {
+            const option = new Option(data.name, data.id, true, true);
+            $('#categoryId').append(option).trigger('change');
+            closeModal('modalCategory');
+        } else if (data.type === 'BRAND_CREATED') {
+            const option = new Option(data.name, data.id, true, true);
+            $('#brandId').append(option).trigger('change');
+            closeModal('modalBrand');
+        } else if (data.type === 'UNIT_CREATED') {
+            unitList.push({id: data.id, name: data.name});
+            $('select[name^="productUnitsRequest"], .unit-select2').each(function() {
+                const opt = new Option(data.name, data.id, false, false);
+                $(this).append(opt);
+            });
+            if (currentUnitSelect) {
+                $(currentUnitSelect).val(data.id).trigger('change');
+            }
+            closeModal('modalUnit');
+        }
+    });
 </script>
 </body>
 </html>

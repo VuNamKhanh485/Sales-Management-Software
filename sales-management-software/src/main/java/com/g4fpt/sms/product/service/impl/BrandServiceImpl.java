@@ -1,5 +1,6 @@
 package com.g4fpt.sms.product.service.impl;
 
+import com.g4fpt.sms.common.exception.ResourceInUseException;
 import com.g4fpt.sms.product.dto.request.BrandRequest;
 import com.g4fpt.sms.product.dto.response.BrandResponse;
 import com.g4fpt.sms.product.entity.Brand;
@@ -28,16 +29,17 @@ public class BrandServiceImpl implements BrandService {
 
 
     @Override
-    public void create(BrandRequest brandRequest) {
+    public BrandResponse create(BrandRequest brandRequest) {
         if(brandRepository.existsByNameIgnoreCase(brandRequest.getBrandName())){
             throw new DuplicateException("This name is already in use");
         }
         Brand brand = brandMapper.toEntity(brandRequest);
-        brandRepository.save(brand);
+        Brand savedBrand = brandRepository.save(brand);
+        return brandMapper.toResponse(savedBrand);
     }
 
     @Override
-    public Page<BrandResponse> findAll(String keyword, int size, int page, String sortField, String sortDirection) {
+    public Page<BrandResponse> findAll(String keyword, int page, int size, String sortField, String sortDirection) {
         Sort sort = sortDirection.equalsIgnoreCase("asc")
                 ? Sort.by(sortField).ascending()
                 : Sort.by(sortField).descending();
@@ -69,8 +71,13 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public void deleteById(long id) {
-        //cần có phần orderTranscation
-        brandRepository.deleteById(id);
+        Brand brand = getBrandById(id);
+
+        if(brandRepository.existInOrderTransaction(id)){
+            throw new ResourceInUseException("Nhãn hàng đã tồn tại trong giao dịch");
+        }
+
+        brandRepository.delete(brand);
     }
 
     @Override

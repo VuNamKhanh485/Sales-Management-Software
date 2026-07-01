@@ -2,8 +2,6 @@ package com.g4fpt.sms.customer.controller;
 
 import com.g4fpt.sms.customer.dto.CustomerRequestDTO;
 import com.g4fpt.sms.customer.entity.Customer;
-import com.g4fpt.sms.customer.repository.CustomerRepository;
-import com.g4fpt.sms.customer.service.CustomerRankService;
 import com.g4fpt.sms.customer.service.CustomerService;
 import com.g4fpt.sms.employee.utils.Gender;
 import com.g4fpt.sms.order.entity.OrderTransaction;
@@ -23,10 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class CustomerController {
 
     private final CustomerService customerService;
-    private final CustomerRankService customerRankService;
-    private final CustomerRepository customerRepository;
     private final OrderTransactionRepository orderTransactionRepository;
-
 
     @GetMapping
     public String listCustomers(
@@ -42,7 +37,6 @@ public class CustomerController {
 
         return "customer/list";
     }
-
 
     @GetMapping("/detail/{id}")
     public String showDetail(
@@ -62,32 +56,37 @@ public class CustomerController {
         return "customer/detail";
     }
 
-    @GetMapping({"/create", "/edit/{id}"})
-    public String showForm(
-            @PathVariable(value = "id", required = false) Long id,
-            Model model) {
+    @GetMapping("/create")
+    public String showCreateForm(Model model) {
+        model.addAttribute("customerDTO", new CustomerRequestDTO());
+        model.addAttribute("currentRankName", "Thành viên");
+        model.addAttribute("genders", Gender.values());
+        return "customer/form";
+    }
 
+    @GetMapping("/edit/{id}")
+    public String showEditForm(@PathVariable Long id, Model model) {
+        Customer customer = customerService.getCustomerById(id);
         CustomerRequestDTO dto = new CustomerRequestDTO();
+        dto.setId(customer.getId());
+        dto.setFullName(customer.getFullName());
+        dto.setPhone(customer.getPhone());
+        dto.setEmail(customer.getEmail());
+        dto.setAddress(customer.getAddress());
+        dto.setGender(customer.getGender());
+        dto.setDob(customer.getDob());
+        dto.setNote(customer.getNote());
+        dto.setStatus(customer.getStatus());
 
-        if (id != null) {
-            Customer customer = customerService.getCustomerById(id);
-            dto.setId(customer.getId());
-            dto.setFullName(customer.getFullName());
-            dto.setPhone(customer.getPhone());
-            dto.setEmail(customer.getEmail());
-            dto.setAddress(customer.getAddress());
-            dto.setGender(customer.getGender());
-            dto.setDob(customer.getDob());
-            dto.setNote(customer.getNote());
-            if (customer.getCustomerRank() != null) {
-                dto.setCustomerRankId(customer.getCustomerRank().getId());
-            }
+        String currentRankName = "Thành viên";
+        if (customer.getCustomerRank() != null) {
+            dto.setCustomerRankId(customer.getCustomerRank().getId());
+            currentRankName = customer.getCustomerRank().getName();
         }
 
         model.addAttribute("customerDTO", dto);
-        model.addAttribute("ranks", customerRankService.getAllRanks());
+        model.addAttribute("currentRankName", currentRankName);
         model.addAttribute("genders", Gender.values());
-
         return "customer/form";
     }
 
@@ -108,9 +107,20 @@ public class CustomerController {
             }
         } catch (Exception e) {
 
+            String currentRankName = "Thành viên";
+            if (dto.getId() != null) {
+                try {
+                    Customer customer = customerService.getCustomerById(dto.getId());
+                    if (customer.getCustomerRank() != null) {
+                        currentRankName = customer.getCustomerRank().getName();
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+
             model.addAttribute("errorMessage", e.getMessage());
             model.addAttribute("customerDTO", dto);
-            model.addAttribute("ranks", customerRankService.getAllRanks());
+            model.addAttribute("currentRankName", currentRankName);
             model.addAttribute("genders", Gender.values());
             return "customer/form";
         }
@@ -118,37 +128,29 @@ public class CustomerController {
         return "redirect:/customers";
     }
 
+    @GetMapping("/popup-form")
+    public String popupForm(Model model) {
+        model.addAttribute("customerDTO", new CustomerRequestDTO());
+        model.addAttribute("genders", Gender.values());
+        return "customer/popup-form";
+    }
 
-
-
-
-
-
-
-
-
-
-
-//    @PostMapping("/save")
-//    public String saveCustomer(
-//            @ModelAttribute("customerDTO") CustomerRequestDTO dto,
-//            Model model,
-//            RedirectAttributes redirectAttributes) {
-//
-//        Long currentUserId = 1L;
-//        try {
-//            customerService.save(dto, currentUserId);
-//            redirectAttributes.addFlashAttribute("successMessage",
-//                    dto.getId() == null ? "Thêm mới thành công!" : "Cập nhật thành công!");
-//        } catch (Exception e) {
-//            model.addAttribute("errorMessage", e.getMessage());
-//            model.addAttribute("customerDTO", dto);
-//            model.addAttribute("ranks", customerRankService.getAllRanks());
-//            model.addAttribute("genders", Gender.values());
-//            return "customer/form";
-//        }
-//
-//        return "redirect:/customers";
-//    }
-
+    @PostMapping("/popup-form")
+    public String popupFormSubmit(@ModelAttribute("customerDTO") CustomerRequestDTO dto, Model model) {
+        Long currentUserId = 1L; // Fake auth
+        try {
+            Customer created = customerService.createCustomer(dto, currentUserId);
+            model.addAttribute("success", true);
+            model.addAttribute("newId", created.getId());
+            model.addAttribute("newName", created.getFullName());
+            model.addAttribute("customerPhone", created.getPhone());
+            model.addAttribute("type", "CUSTOMER_CREATED");
+        } catch (Exception e) {
+            model.addAttribute("success", false);
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("genders", Gender.values());
+            return "customer/popup-form";
+        }
+        return "common/popup-success";
+    }
 }

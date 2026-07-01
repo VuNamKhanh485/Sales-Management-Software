@@ -8,6 +8,8 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.g4fpt.sms.customer.entity.CustomerRank;
+
 @Entity
 @Table(name = "Voucher")
 @Getter
@@ -28,7 +30,7 @@ public class Voucher {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "discount_type", nullable = false)
+    @Column(name = "discount_type", nullable = false, columnDefinition = "varchar(255)")
     private DiscountType discountType;
 
     @Column(name = "discount_value", nullable = false, precision = 12, scale = 2)
@@ -46,7 +48,7 @@ public class Voucher {
     @Column(name = "end_at", nullable = false)
     private LocalDateTime endAt;
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 20, columnDefinition = "varchar(20)")
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private VoucherStatus status = VoucherStatus.ACTIVE;
@@ -56,6 +58,10 @@ public class Voucher {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "customer_rank_id")
+    private CustomerRank customerRank;
 
     @PrePersist
     protected void onCreate() {

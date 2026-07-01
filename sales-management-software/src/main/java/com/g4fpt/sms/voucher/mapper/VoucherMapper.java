@@ -47,6 +47,8 @@ public class VoucherMapper {
                 .status(voucher.getStatus())
                 .createdAt(voucher.getCreatedAt())
                 .updatedAt(voucher.getUpdatedAt())
+                .customerRankId(voucher.getCustomerRank() != null ? voucher.getCustomerRank().getId() : null)
+                .customerRankName(voucher.getCustomerRank() != null ? voucher.getCustomerRank().getName() : null)
                 .build();
     }
 }

@@ -21,7 +21,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http.authorizeHttpRequests(auth -> auth
+        http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
+            .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/branch", "/branch/detail/**").hasAnyRole("OWNER", "MANAGER")
                         .requestMatchers("/branch/**").hasAnyRole("OWNER")

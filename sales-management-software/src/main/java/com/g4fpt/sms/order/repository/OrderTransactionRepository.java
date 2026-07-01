@@ -17,12 +17,17 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
             Long customerId, Pageable pageable);
     long countByCustomerId(Long customerId);
 
+    boolean existsByVoucherId(Long voucherId);
+
+    @EntityGraph(attributePaths = {"customer"})
+    List<OrderTransaction> findByCreatedByAndCreatedAtBetweenOrderByCreatedAtDesc(
+            Long createdBy, LocalDateTime startDate, LocalDateTime endDate);
+
     @Query("SELECT o FROM OrderTransaction o LEFT JOIN FETCH o.customer WHERE o.createdBy = :createdBy AND o.createdAt BETWEEN :start AND :end ORDER BY o.createdAt DESC")
     List<OrderTransaction> findByCreatedByAndDateRange(
             @Param("createdBy") Long createdBy,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
-
     @Query("SELECT o FROM OrderTransaction o LEFT JOIN FETCH o.customer WHERE o.createdAt BETWEEN :start AND :end ORDER BY o.createdAt DESC")
     List<OrderTransaction> findByDateRange(
             @Param("start") LocalDateTime start,

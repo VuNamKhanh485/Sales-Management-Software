@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 public interface BrandService {
-    void create(BrandRequest brandRequest);
+    BrandResponse create(BrandRequest brandRequest);
     void deleteById(long id);
     void update(long id, BrandRequest brandRequest);
     Page<BrandResponse> findAll(String keyword, int page, int size, String sortField, String sortDirection);

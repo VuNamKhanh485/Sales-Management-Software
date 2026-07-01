@@ -1,5 +1,7 @@
 package com.g4fpt.sms.product.controller;
 
+import com.g4fpt.sms.common.exception.NotFoundException;
+import com.g4fpt.sms.common.exception.ResourceInUseException;
 import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
 import com.g4fpt.sms.product.dto.request.ProductRequest;
 import com.g4fpt.sms.product.dto.response.ProductResponse;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
 @Controller
@@ -44,12 +47,13 @@ public class ProductController {
         filter.setCategoryId(categoryId);
         filter.setStatus(status);
 
-        Page<ProductResponse> productPage = productService.findAll(filter, size, page, sortField, sortDir);
+        Page<ProductResponse> productPage = productService.findAll(filter, page, size, sortField, sortDir);
 
         model.addAttribute("productPage", productPage);
         model.addAttribute("filter", filter);
         model.addAttribute("size", size);
         model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", productPage.getTotalPages());
         model.addAttribute("sortField", sortField);
         model.addAttribute("sortDir", sortDir);
         model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
@@ -65,11 +69,17 @@ public class ProductController {
     @GetMapping({"/form", "/form/{id}"})
     public String form(Model model,
                        @PathVariable(required = false) Long id,
-                       @RequestParam(required = false) String from) {
+                       @RequestParam(required = false) String from,
+                       RedirectAttributes redirectAttributes) {
         ProductRequest productRequest = new ProductRequest();
         if(id != null) {
-            ProductResponse productResponse = productService.findById(id);
-            productRequest = productMapper.toRequest(productResponse);
+            try {
+                ProductResponse productResponse = productService.findById(id);
+                productRequest = productMapper.toRequest(productResponse);
+            }catch (NotFoundException e) {
+                redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                return "redirect:/product";
+            }
         }
 
         addAttributeToForm(model, id);
@@ -80,30 +90,41 @@ public class ProductController {
 
     @PostMapping({"/form", "/form/{id}"})
     public String form(@Valid @ModelAttribute ProductRequest productRequest,
-                         BindingResult result, Model model,
-                         @PathVariable(required = false) Long id,
-                         @RequestParam(required = false) String from) {
+                       BindingResult result, Model model,
+                       @PathVariable(required = false) Long id,
+                       @RequestParam(required = false) String from,
+                       RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             addAttributeToForm(model, id);
             model.addAttribute("from", from);
             return "product/form";
         }
-
-        try{
-            if(id == null){
+        String action;
+        try {
+            if (id == null) {
+                action = "Tạo";
                 productService.create(productRequest);
-            }else{
+            } else {
+                action = "Sửa";
                 productService.update(id, productRequest);
             }
 
-        }catch(ValidationException e){
+        } catch (ValidationException e) {
             addAttributeToForm(model, id);
             model.addAttribute("from", from);
             e.getErrors().forEach(err ->
                     result.rejectValue(err.getField(), "error", err.getMessage())
             );
             return "product/form";
+
+        }catch (NotFoundException | ResourceInUseException e){
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/product";
         }
+
+        redirectAttributes.addFlashAttribute(
+                "successMessage",
+                action + " sản phẩm thành công!");
 
         if (from != null && !from.trim().isEmpty()) {
             return "redirect:" + from;
@@ -121,8 +142,31 @@ public class ProductController {
         if(id != null) {
             model.addAttribute("id", id);
         }
-        model.addAttribute("categoryList", categoryService.findAll());
-        model.addAttribute("brandList", brandService.findAll());
+        
+        java.util.List<com.g4fpt.sms.product.dto.response.CategoryResponse> activeCategories = categoryService.findAll().stream()
+                .filter(c -> "ACTIVE".equals(c.getCategoryStatus().name()))
+                .toList();
+                
+        java.util.List<com.g4fpt.sms.product.dto.response.BrandResponse> activeBrands = brandService.findAll().stream()
+                .filter(b -> "ACTIVE".equals(b.getStatus().name()))
+                .toList();
+                
+        model.addAttribute("categoryList", activeCategories);
+        model.addAttribute("brandList", activeBrands);
         model.addAttribute("unitList", unitService.findAll());
     }
+
+    @PostMapping("/delete")
+    public String delete(@RequestParam("id") Long id,
+                         RedirectAttributes redirectAttributes) {
+        try {
+            categoryService.deleteById(id);
+        }catch (NotFoundException | ResourceInUseException e){
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/product";
+        }
+        redirectAttributes.addFlashAttribute("successMessage", "Xóa thành công");
+        return "redirect:/product";
+    }
+
 }

@@ -11,7 +11,7 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 public interface UnitService {
-    public void create(UnitRequest unitRequest);
+    public UnitResponse create(UnitRequest unitRequest);
     public void update(Long id, UnitRequest unitRequest);
     public void deleteById(Long id);
     public Page<UnitResponse> findAll(String keyword, int page, int size, String sortField, String sortDirection);

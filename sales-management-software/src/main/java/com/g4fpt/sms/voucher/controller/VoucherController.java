@@ -5,6 +5,7 @@ import com.g4fpt.sms.voucher.dto.request.VoucherRequest;
 import com.g4fpt.sms.voucher.dto.response.VoucherResponse;
 import com.g4fpt.sms.voucher.enums.VoucherStatus;
 import com.g4fpt.sms.voucher.service.VoucherService;
+import com.g4fpt.sms.customer.service.CustomerRankService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class VoucherController {
 
     private final VoucherService voucherService;
+    private final CustomerRankService customerRankService;
 
     @GetMapping("/vouchers")
     public String list(
@@ -50,6 +52,7 @@ public class VoucherController {
 
     @GetMapping({"/vouchers/create", "/vouchers/edit/{id}"})
     public String form(@PathVariable(required = false) Long id, Model model) {
+        model.addAttribute("ranks", customerRankService.getAllRanks());
         if (id != null) {
             VoucherResponse response = voucherService.getById(id);
             VoucherRequest request = VoucherRequest.builder()
@@ -62,6 +65,7 @@ public class VoucherController {
                     .startAt(response.getStartAt())
                     .endAt(response.getEndAt())
                     .status(response.getStatus())
+                    .customerRankId(response.getCustomerRankId())
                     .build();
             model.addAttribute("request", request);
             model.addAttribute("voucherId", id);
@@ -85,6 +89,7 @@ public class VoucherController {
             if (id != null) {
                 model.addAttribute("voucherId", id);
             }
+            model.addAttribute("ranks", customerRankService.getAllRanks());
             return "voucher/form";
         }
 
@@ -101,6 +106,7 @@ public class VoucherController {
             if (id != null) {
                 model.addAttribute("voucherId", id);
             }
+            model.addAttribute("ranks", customerRankService.getAllRanks());
             return "voucher/form";
         }
 
@@ -115,8 +121,12 @@ public class VoucherController {
 
     @PostMapping("/vouchers/delete/{id}")
     public String deleteMvc(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        voucherService.delete(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Xóa voucher thành công!");
+        try {
+            voucherService.delete(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Xóa voucher thành công!");
+        } catch (AppException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return "redirect:/vouchers";
     }
 

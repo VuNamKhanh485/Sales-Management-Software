@@ -1,5 +1,7 @@
 package com.g4fpt.sms.product.controller;
 
+import com.g4fpt.sms.common.exception.NotFoundException;
+import com.g4fpt.sms.common.exception.ResourceInUseException;
 import com.g4fpt.sms.product.dto.request.BrandRequest;
 import com.g4fpt.sms.product.dto.response.BrandResponse;
 import com.g4fpt.sms.common.exception.DuplicateException;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/brand")
@@ -30,7 +33,9 @@ public class BrandController {
                        @RequestParam(defaultValue = "10") int size,
                        @RequestParam(defaultValue = "name") String sortField,
                        @RequestParam(defaultValue = "asc") String sortDir) {
-        Page<BrandResponse> brandPage = brandService.findAll(keyword, size, page, sortField, sortDir);
+
+        String modifyKeyword = keyword.trim().replaceAll("\\s+", " ");
+        Page<BrandResponse> brandPage = brandService.findAll(modifyKeyword, page, size, sortField, sortDir);
 
         model.addAttribute("brandPage", brandPage);
         model.addAttribute("keyword", keyword);
@@ -44,38 +49,84 @@ public class BrandController {
     }
 
     @GetMapping("/form/{id}")
-    public String updatePage(@PathVariable Long id, Model model) {
-        if(id == 0){
-            model.addAttribute("brandRequest", new BrandRequest());
-        } else {
-            BrandResponse brandResponse = brandService.findById(id);
-            BrandRequest brandRequest = new BrandRequest();
-
-            brandRequest.setBrandName(brandResponse.getName());
-            brandRequest.setBrandStatus(brandResponse.getStatus());
-
-            model.addAttribute("brandRequest", brandRequest);
+    public String updatePage(@PathVariable Long id, Model model,
+                             RedirectAttributes redirectAttributes) {
+        BrandRequest brandRequest = new BrandRequest();
+        if(id != 0) {
+            try {
+                BrandResponse brandResponse = brandService.findById(id);
+                brandRequest.setBrandName(brandResponse.getName());
+                brandRequest.setBrandStatus(brandResponse.getStatus());
+            }catch (NotFoundException e){
+                redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                return "redirect:/brand";
+            }
         }
+        model.addAttribute("brandRequest", brandRequest);
         return "brand/form";
     }
 
     @PostMapping("/form/{id}")
     public String update(@PathVariable Long id,@Valid @ModelAttribute BrandRequest brandRequest,
                          BindingResult result,
-                         Model model) {
+                         RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             return "brand/form";
         }
+        String action;
         try {
-            if (id == 0){
+            if (id == 0) {
+                action = "Tạo";
                 brandService.create(brandRequest);
-          }else{
+            } else {
+                action = "Sửa";
                 brandService.update(id, brandRequest);
             }
-        } catch (DuplicateException e) {
+        } catch (DuplicateException | NotFoundException e) {
             result.rejectValue("brandName", "error.brandName", e.getMessage());
             return "brand/form";
         }
+
+        redirectAttributes.addFlashAttribute(
+                "successMessage",
+                action + " thương hiệu thành công!");
+
         return "redirect:/brand";
+    }
+
+    @PostMapping("/delete")
+    public String delete(@RequestParam("id") Long id,
+                         RedirectAttributes redirectAttributes) {
+        try {
+            brandService.deleteById(id);
+        }catch (NotFoundException | ResourceInUseException e){
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/brand";
+        }
+        redirectAttributes.addFlashAttribute("successMessage", "Xóa thành công");
+        return "redirect:/brand";
+    }
+
+    @GetMapping("/popup-form")
+    public String popupForm(Model model) {
+        model.addAttribute("brandRequest", new BrandRequest());
+        return "brand/popup-form";
+    }
+
+    @PostMapping("/popup-form")
+    public String submitPopupForm(@Valid @ModelAttribute BrandRequest brandRequest, BindingResult result, Model model) {
+        if (result.hasErrors()) {
+            return "brand/popup-form";
+        }
+        try {
+            BrandResponse response = brandService.create(brandRequest);
+            model.addAttribute("newId", response.getId());
+            model.addAttribute("newName", response.getName());
+            model.addAttribute("type", "BRAND");
+            return "common/popup-success";
+        } catch (DuplicateException e) {
+            result.rejectValue("brandName", "error.brandName", e.getMessage());
+            return "brand/popup-form";
+        }
     }
 }

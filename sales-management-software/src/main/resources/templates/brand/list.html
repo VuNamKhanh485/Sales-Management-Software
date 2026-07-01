@@ -1,80 +1,112 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
-    <meta charset="UTF-8"/>
-    <title>Danh sách Thương hiệu</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Thương hiệu — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
 </head>
 <body>
+    <!-- ── Global Nav ── -->
+    <div th:replace="~{component/navbar :: global-nav('product')}"></div>
 
-<h2>Danh sách Thương hiệu</h2>
+    <!-- ── Sub Nav ── -->
+    <div class="sub-nav">
+        <div style="max-width: 1200px; margin: 0 auto; width: 100%; display: flex; justify-content: space-between; align-items: center;">
+            <span class="sub-nav__title">Thương hiệu</span>
+            <div class="sub-nav__actions">
+                <a th:href="@{/brand/form/0}" class="btn-primary btn-primary--sm">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 1V11M1 6H11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                    </svg>
+                    Thêm thương hiệu
+                </a>
+            </div>
+        </div>
+    </div>
 
-<form th:action="@{/brand}" method="get">
-    <input type="text" name="keyword" placeholder="Nhập tên thương hiệu..." th:value="${keyword}">
+    <!-- ── Page Content ── -->
+    <main class="page-wrap">
+        
+        <!-- Search bar -->
+        <form method="get" th:action="@{/brand}" class="search-bar">
+            <div class="search-input-wrap">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M10 10L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+                <input type="text" name="keyword" class="search-input" placeholder="Tìm theo tên thương hiệu…" th:value="${keyword}" autocomplete="off">
+            </div>
+            <button type="submit" class="btn-primary btn-primary--sm">Tìm kiếm</button>
+            <a th:href="@{/brand}" class="btn-clear-link">Xóa lọc</a>
+        </form>
 
-    <button type="submit">Tìm kiếm</button>
-</form>
+        <!-- Table card -->
+        <div class="card-panel">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:44px">#</th>
+                        <th>
+                            <a class="sort-link" th:href="@{/brand(keyword=${keyword},page=${currentPage},size=${size},sortField='name',sortDir=${reverseSortDir})}">
+                                Tên thương hiệu
+                                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" th:if="${sortField == 'name'}">
+                                    <path th:if="${sortDir == 'asc'}" d="M5.5 8V3m0 0L3 5.5m2.5-2.5L8 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path th:if="${sortDir == 'desc'}" d="M5.5 3v5m0 0L3 5.5m2.5 2.5L8 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </a>
+                        </th>
+                        <th>
+                            <a class="sort-link" th:href="@{/brand(keyword=${keyword},page=${currentPage},size=${size},sortField='status',sortDir=${reverseSortDir})}">
+                                Trạng thái
+                            </a>
+                        </th>
+                        <th style="width:120px">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="b, stat : ${brandPage.content}">
+                        <td th:text="${currentPage * size + stat.index + 1}" style="color:var(--ink-muted-48);font-size:12px;"></td>
+                        <td><span style="font-weight: 600;" th:text="${b.name}"></span></td>
+                        <td>
+                            <span th:class="${b.status.name() == 'ACTIVE'} ? 'badge badge-active' : 'badge badge-inactive'"
+                                  th:text="${b.status.name() == 'ACTIVE'} ? 'Hoạt động' : 'Ngừng hoạt động'"></span>
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <a th:href="@{/brand/form/{id}(id=${b.id})}" class="action-edit">
+                                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                        <path d="M9.5 1.5L11.5 3.5L4.5 10.5H2.5V8.5L9.5 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+                                    </svg>
+                                    Sửa
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Empty state -->
+                    <tr th:if="${brandPage.content.isEmpty()}">
+                        <td colspan="4" style="padding:0;border:none;">
+                            <div class="empty-state">
+                                <div class="empty-state__icon">🏷️</div>
+                                <div class="empty-state__title">Không tìm thấy thương hiệu nào</div>
+                                <p class="empty-state__sub">Thử thay đổi bộ lọc hoặc thêm thương hiệu mới.</p>
+                                <a th:href="@{/brand/form/0}" class="btn-primary btn-primary--sm">Thêm thương hiệu</a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-<a th:href="@{/brand/form/{id}(id=0)}">+ Thêm thương hiệu</a>
-
-<table style="border: 1px solid black; border-collapse: collapse; border-spacing: 5px;">
-    <thead>
-    <tr>
-        <th>#</th>
-
-        <th>
-            <a th:href="@{/brand(
-                keyword=${keyword},
-                page=${currentPage},
-                size=${size},
-                sortField='name',
-                sortDir=${reverseSortDir})}">Tên thương hiệu</a>
-        </th>
-        <th>
-            <a th:href="@{/brand(
-                keyword=${keyword},
-                page=${currentPage},
-                size=${size},
-                sortField='status',
-                sortDir=${reverseSortDir})}">Trạng thái</a>
-        </th>
-        <th>Thao tác</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:if="${brandPage.content.isEmpty()}">
-        <td colspan="4">Chưa có thương hiệu nào.</td>
-    </tr>
-    <tr th:each="b, stat : ${brandPage.content}">
-        <td th:text="${currentPage * size + stat.index + 1}"></td>
-        <td th:text="${b.name}"></td>
-        <td th:text="${b.status}"></td>
-        <td>
-            <a th:href="@{/brand/form/{id}(id=${b.id})}">Chi tiết</a>
-        </td>
-    </tr>
-    </tbody>
-</table>
-
-<div th:if="${brandPage.totalPages > 1}">
-    <span th:each="i : ${#numbers.sequence(0, brandPage.totalPages - 1)}">
-
-        <a th:if="${i != currentPage}"
-           th:href="@{/brand(
-                keyword=${keyword},
-                page=${i},
-                size=${size},
-                sortField=${sortField},
-                sortDir=${sortDir})}"
-           th:text="${i + 1}">
-        </a>
-
-        <span th:if="${i == currentPage}"
-              th:text="${i + 1}">
-        </span>
-
-        &nbsp;
-    </span>
-</div>
-
+        <!-- Pagination -->
+        <div th:if="${brandPage.totalPages > 1}" style="display:flex; justify-content:center; margin-top: 24px;">
+            <ul class="pagination">
+                <li th:each="i : ${#numbers.sequence(0, brandPage.totalPages - 1)}" th:class="${i == currentPage} ? 'active' : ''">
+                    <a th:if="${i != currentPage}" th:href="@{/brand(keyword=${keyword},page=${i},size=${size},sortField=${sortField},sortDir=${sortDir})}" th:text="${i + 1}"></a>
+                    <strong th:if="${i == currentPage}" th:text="${i + 1}"></strong>
+                </li>
+            </ul>
+        </div>
+    </main>
 </body>
 </html>

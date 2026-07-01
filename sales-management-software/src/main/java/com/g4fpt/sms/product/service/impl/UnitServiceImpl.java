@@ -1,5 +1,6 @@
 package com.g4fpt.sms.product.service.impl;
 
+import com.g4fpt.sms.common.exception.ResourceInUseException;
 import com.g4fpt.sms.product.dto.request.UnitRequest;
 import com.g4fpt.sms.product.dto.response.UnitResponse;
 import com.g4fpt.sms.product.entity.Unit;
@@ -53,12 +54,13 @@ public class UnitServiceImpl implements UnitService {
     }
 
     @Override
-    public void create(UnitRequest unitRequest) {
+    public UnitResponse create(UnitRequest unitRequest) {
         if(unitRepository.existsByNameIgnoreCase(unitRequest.getName())){
             throw new DuplicateException("This name is already in use");
         }
         Unit unit = unitMapper.toEntity(unitRequest);
-        unitRepository.save(unit);
+        Unit savedUnit = unitRepository.save(unit);
+        return unitMapper.toResponse(savedUnit);
     }
 
     @Override
@@ -73,7 +75,13 @@ public class UnitServiceImpl implements UnitService {
 
     @Override
     public void deleteById(Long id) {
-        //cần có phần orderTranscation
+        Unit unit = getUnitById(id);
+
+        if(unitRepository.existInOrderTransaction(id)){
+            throw new ResourceInUseException("Đơn vị đã tồn tại trong giao dịch");
+        }
+
+        unitRepository.delete(unit);
     }
 
     @Override

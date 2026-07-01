@@ -2,6 +2,7 @@ package com.g4fpt.sms.order.service.impl;
 
 import com.g4fpt.sms.customer.entity.Customer;
 import com.g4fpt.sms.customer.repository.CustomerRepository;
+import com.g4fpt.sms.customer.service.CustomerService;
 import com.g4fpt.sms.order.dto.POSCartItemRequest;
 import com.g4fpt.sms.order.dto.POSCheckoutRequest;
 import com.g4fpt.sms.order.entity.OrderTransaction;
@@ -13,6 +14,7 @@ import com.g4fpt.sms.voucher.entity.Voucher;
 import com.g4fpt.sms.voucher.enums.DiscountType;
 import com.g4fpt.sms.voucher.enums.VoucherStatus;
 import com.g4fpt.sms.voucher.repository.VoucherRepository;
+import com.g4fpt.sms.inventory.repository.InventoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,6 +47,12 @@ class OrderTransactionServiceImplTest {
     @Mock
     private VoucherRepository voucherRepository;
 
+    @Mock
+    private CustomerService customerService;
+
+    @Mock
+    private InventoryRepository inventoryRepository;
+
     @InjectMocks
     private OrderTransactionServiceImpl orderService;
 
@@ -61,6 +69,12 @@ class OrderTransactionServiceImplTest {
         sampleProductUnit.setBarcodeUnit("1234567890123");
         sampleProductUnit.setConventionValue(1);
 
+        com.g4fpt.sms.product.entity.Product product = new com.g4fpt.sms.product.entity.Product();
+        product.setId(1L);
+        product.setName("Sample Product");
+        product.setStatus(com.g4fpt.sms.product.enums.ProductStatus.ACTIVE);
+        sampleProductUnit.setProduct(product);
+
         cartItemRequest = new POSCartItemRequest();
         cartItemRequest.setProductUnitId(1L);
         cartItemRequest.setQuantity(2); // Total = 200,000 VND
@@ -71,6 +85,13 @@ class OrderTransactionServiceImplTest {
         checkoutRequest.setPaymentMethodId(2L);
         checkoutRequest.setVatRate(new BigDecimal("0.08")); // 8% VAT
         checkoutRequest.setItems(Collections.singletonList(cartItemRequest));
+
+        lenient().when(inventoryRepository.findByBranchIdAndProductUnitId(anyLong(), anyLong()))
+                .thenAnswer(invocation -> {
+                    com.g4fpt.sms.inventory.entity.Inventory inv = new com.g4fpt.sms.inventory.entity.Inventory();
+                    inv.setStock(100);
+                    return Optional.of(inv);
+                });
     }
 
     @Test
@@ -111,8 +132,14 @@ class OrderTransactionServiceImplTest {
     @Test
     void processCheckout_success_withVoucherPercentage() {
         // Arrange
+        checkoutRequest.setCustomerId(1L);
         checkoutRequest.setVoucherCode("PERCENT10");
         checkoutRequest.setPaidAmount(new BigDecimal("250000")); // Given amount
+
+        Customer customer = new Customer();
+        customer.setId(1L);
+        customer.setTotalPoint(10);
+        customer.setTotalRevenue(new BigDecimal("500000"));
 
         Voucher voucher = Voucher.builder()
                 .id(1L)
@@ -128,6 +155,7 @@ class OrderTransactionServiceImplTest {
                 .build();
 
         when(productUnitRepository.findById(1L)).thenReturn(Optional.of(sampleProductUnit));
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
         when(voucherRepository.findByCode("PERCENT10")).thenReturn(Optional.of(voucher));
         when(orderTransactionRepository.save(any(OrderTransaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -154,7 +182,13 @@ class OrderTransactionServiceImplTest {
     @Test
     void processCheckout_success_withVoucherAmount() {
         // Arrange
+        checkoutRequest.setCustomerId(1L);
         checkoutRequest.setVoucherCode("FLAT30K");
+
+        Customer customer = new Customer();
+        customer.setId(1L);
+        customer.setTotalPoint(10);
+        customer.setTotalRevenue(new BigDecimal("500000"));
 
         Voucher voucher = Voucher.builder()
                 .id(2L)
@@ -169,6 +203,7 @@ class OrderTransactionServiceImplTest {
                 .build();
 
         when(productUnitRepository.findById(1L)).thenReturn(Optional.of(sampleProductUnit));
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
         when(voucherRepository.findByCode("FLAT30K")).thenReturn(Optional.of(voucher));
         when(orderTransactionRepository.save(any(OrderTransaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -234,7 +269,7 @@ class OrderTransactionServiceImplTest {
         when(voucherRepository.findByCode("INVALID")).thenReturn(Optional.empty());
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> orderService.validateVoucher("INVALID", new BigDecimal("200000")));
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> orderService.validateVoucher("INVALID", new BigDecimal("200000"), 1L));
         assertEquals("Mã voucher không tồn tại!", exception.getMessage());
     }
 
@@ -248,7 +283,7 @@ class OrderTransactionServiceImplTest {
         when(voucherRepository.findByCode("INACTIVE10")).thenReturn(Optional.of(voucher));
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> orderService.validateVoucher("INACTIVE10", new BigDecimal("200000")));
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> orderService.validateVoucher("INACTIVE10", new BigDecimal("200000"), 1L));
         assertEquals("Voucher đã bị vô hiệu hóa!", exception.getMessage());
     }
 
@@ -264,7 +299,7 @@ class OrderTransactionServiceImplTest {
         when(voucherRepository.findByCode("EXPIRED10")).thenReturn(Optional.of(voucher));
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> orderService.validateVoucher("EXPIRED10", new BigDecimal("200000")));
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> orderService.validateVoucher("EXPIRED10", new BigDecimal("200000"), 1L));
         assertEquals("Voucher đã hết hạn hoặc chưa đến ngày sử dụng!", exception.getMessage());
     }
 
@@ -281,7 +316,7 @@ class OrderTransactionServiceImplTest {
         when(voucherRepository.findByCode("MIN500K")).thenReturn(Optional.of(voucher));
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> orderService.validateVoucher("MIN500K", new BigDecimal("200000")));
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> orderService.validateVoucher("MIN500K", new BigDecimal("200000"), 1L));
         assertTrue(exception.getMessage().contains("Đơn hàng chưa đạt giá trị tối thiểu"));
     }
 }

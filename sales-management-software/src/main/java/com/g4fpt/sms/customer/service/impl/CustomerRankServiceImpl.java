@@ -18,10 +18,6 @@ public class CustomerRankServiceImpl implements CustomerRankService {
         return customerRankRepository.findAll();
     }
 
-    @Override
-    public CustomerRank createRank(CustomerRank customerRank) {
-        return customerRankRepository.save(customerRank);
-    }
 
     @Override
     public CustomerRank getRankById(Long id) {

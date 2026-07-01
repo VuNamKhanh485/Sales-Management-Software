@@ -1,5 +1,28 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
+<nav class="global-nav" th:fragment="global-nav(page)">
+    <a href="/dashboard" class="global-nav__brand">SMS</a>
+    <ul style="display:flex; gap:0; list-style:none; margin:0; padding:0; align-items:center; flex:1;">
+        <li><a th:href="@{/dashboard}" th:classappend="${page == 'dashboard' ? 'active' : ''}">Dashboard</a></li>
+        <li><a th:href="@{/pos}" th:classappend="${page == 'pos' ? 'active' : ''}">Bán hàng</a></li>
+        <li><a th:href="@{/customers}" th:classappend="${page == 'customer' ? 'active' : ''}">Khách hàng</a></li>
+        <li><a th:href="@{/product}" th:classappend="${page == 'product' ? 'active' : ''}">Sản phẩm</a></li>
+        <li><a th:href="@{/inventory}" th:classappend="${page == 'inventory' ? 'active' : ''}">Kho hàng</a></li>
+        <li><a th:href="@{/imports}" th:classappend="${page == 'imports' ? 'active' : ''}">Nhập hàng</a></li>
+        <li><a th:href="@{/vouchers}" th:classappend="${page == 'voucher' ? 'active' : ''}">Voucher</a></li>
+        <li sec:authorize="hasAnyRole('OWNER')"><a th:href="@{/employee}" th:classappend="${page == 'employee' ? 'active' : ''}">Nhân viên</a></li>
+        <li sec:authorize="hasAnyRole('OWNER', 'MANAGER')"><a th:href="@{/branch}" th:classappend="${page == 'branch' ? 'active' : ''}">Chi nhánh</a></li>
+    </ul>
+    <div style="display:flex; align-items:center; gap:12px; margin-left:auto;" sec:authorize="isAuthenticated()">
+        <span style="font-size:12px; color:rgba(245,245,247,0.8);" th:text="${#authentication.principal.employee.fullName}">Admin</span>
+        <form th:action="@{/logout}" method="post" style="margin:0;">
+            <button type="submit" style="background:transparent; border:none; color:rgba(245,245,247,0.8); cursor:pointer; font-size:12px; padding:4px 8px;">
+                Đăng xuất
+            </button>
+        </form>
+    </div>
+</nav>
+
 <aside class="d-flex flex-column flex-shrink-0 p-3 bg-light border-end" style="width: 250px; min-width: 250px; min-height: 100vh;" th:fragment="sidebar-component">
     <div class="mb-4">
         <h2 class="h4 mb-0 fw-bold text-primary">Sales Admin</h2>

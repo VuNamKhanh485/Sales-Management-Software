@@ -23,6 +23,9 @@ public interface ProductUnitRepository extends JpaRepository<ProductUnit, Long> 
 
     List<ProductUnit> findByProduct_Id(Long id);
 
+    @Query("SELECT pu FROM ProductUnit pu LEFT JOIN FETCH pu.unit WHERE pu.product.id = :productId")
+    List<ProductUnit> findByProductIdWithUnit(@Param("productId") Long productId);
+
     ProductUnit findByIdAndProduct_Id(Long id, Long productId);
 
     Optional<ProductUnit> findBySku(String sku);
@@ -37,6 +40,12 @@ public interface ProductUnitRepository extends JpaRepository<ProductUnit, Long> 
             Long categoryId, ProductStatus status);
 
     List<ProductUnit> findByProduct_Status(ProductStatus status);
+    @Query("""
+            SELECT CASE WHEN COUNT(otd) > 0 THEN true ELSE false END
+            FROM OrderTransactionDetail otd
+            WHERE otd.productUnit.id = :productUnitId
+    """)
+    boolean existInOrderTransaction(@Param("productUnitId") Long productUnitId);
 
     // Lấy danh sách ProductUnit theo lịch sử nhập hàng của Nhà cung cấp
     @Query("SELECT DISTINCT d.productUnit FROM OrderTransactionDetail d " +
