@@ -119,7 +119,7 @@ public class UnitController {
             model.addAttribute("type", "UNIT");
             return "common/popup-success";
         } catch (DuplicateException e) {
-            result.rejectValue("unitName", "error.unitName", e.getMessage());
+            result.rejectValue("name", "error.name", e.getMessage());
             return "unit/popup-form";
         }
     }
