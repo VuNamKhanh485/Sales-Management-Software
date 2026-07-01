@@ -188,7 +188,11 @@
                     <div class="form-group">
                         <label class="form-label">
                             Danh mục
-                            <select class="form-select select2-init" id="categoryId" name="categoryId" th:field="*{categoryId}" required>
+                            <select class="form-select select2-init"
+                                    id="categoryId"
+                                    name="categoryId"
+                                    th:field="*{categoryId}"
+                                    required>
                                 <option value="">-- Chọn danh mục --</option>
                                 <option th:each="c : ${categoryList}" th:value="${c.id}" th:text="${c.name}"></option>
                             </select>
@@ -218,21 +222,21 @@
                     <div class="form-group form-group--full">
                         <label class="form-label">
                             Ảnh (URL)
-                            <input type="text" class="form-input" name="imageUrl" th:value="*{imageUrl}" placeholder="https://..."/>
+                            <input type="text" class="form-input" name="imageUrl" th:field="*{imageUrl}" placeholder="https://..."/>
                         </label>
                     </div>
 
                     <div class="form-group form-group--full">
                         <label class="form-label">
                             Mô tả
-                            <textarea class="form-textarea" name="description" rows="3" th:text="*{description}"></textarea>
+                            <textarea class="form-textarea" name="description" rows="3" th:field="*{description}"></textarea>
                         </label>
                     </div>
 
                     <div class="form-group form-group--full">
                         <label class="form-label">
                             Ghi chú
-                            <textarea class="form-textarea" name="note" rows="2" th:text="*{note}"></textarea>
+                            <textarea class="form-textarea" name="note" rows="2" th:field="*{note}"></textarea>
                         </label>
                     </div>
 
@@ -270,8 +274,16 @@
                                     
                                     <td>
                                         <select class="form-select" th:field="*{productUnitsRequest[__${stat.index}__].unitId}" style="padding:4px 20px 4px 8px; font-size:13px; min-width:100px;">
-                                            <option th:each="unit : ${unitList}" th:value="${unit.id}" th:text="${unit.name}"></option>
+                                            <option th:each="unit : ${unitList}"
+                                                    th:value="${unit.id}"
+                                                    th:text="${unit.name}"></option>
                                         </select>
+
+                                        <button type="button"
+                                                class="btn-link"
+                                                onclick="openUnitModal(this)">
+                                            + Thêm
+                                        </button>
                                     </td>
                                     <td><input type="number" class="form-input" th:field="*{productUnitsRequest[__${stat.index}__].conventionValue}" style="padding:4px 8px; font-size:13px; width:70px;"></td>
                                     <td><input type="number" class="form-input" th:field="*{productUnitsRequest[__${stat.index}__].price}" style="padding:4px 8px; font-size:13px; width:100px;"></td>
@@ -340,6 +352,15 @@
         document.getElementById('modalBrand').style.display = 'flex';
     }
 
+    let currentUnitSelect = null;
+
+    function openUnitModal(button){
+        currentUnitSelect = $(button)
+            .closest("td")
+            .find("select");
+        $("#modalUnit").css("display","flex");
+    }
+
     function addUnitRow() {
         const noUnitRow = document.getElementById('no-unit-row');
         if (noUnitRow) noUnitRow.style.display = 'none';
@@ -352,32 +373,83 @@
         unitList.forEach(u => {
             options += `<option value="${u.id}">${u.name}</option>`;
         });
-        options += `<option value="NEW_UNIT" style="color:var(--primary); font-weight:bold;">+ Thêm mới...</option>`;
-
         const tr = document.createElement('tr');
+
         tr.innerHTML = `
-            <td class="row-index">${i + 1}</td>
-            <td>
-                <select class="form-select unit-select2" name="productUnitsRequest[${i}].unitId" style="width: 120px;">
+        <td class="row-index">${i + 1}</td>
+
+        <td>
+            <div class="select-with-action">
+                <select class="form-select unit-select2"
+                        name="productUnitsRequest[${i}].unitId"
+                        style="width:120px;">
                     ${options}
                 </select>
-            </td>
-            <td><input type="number" class="form-input" name="productUnitsRequest[${i}].conventionValue" value="1" style="padding:4px 8px; font-size:13px; width:70px;"></td>
-            <td><input type="number" class="form-input" name="productUnitsRequest[${i}].price" style="padding:4px 8px; font-size:13px; width:100px;"></td>
-            <td><input type="text" class="form-input" name="productUnitsRequest[${i}].barcodeUnit" style="padding:4px 8px; font-size:13px; width:100px;"></td>
-            <td><input type="text" class="form-input" name="productUnitsRequest[${i}].sku" style="padding:4px 8px; font-size:13px; width:100px;"></td>
-            <td style="text-align:center;"><input type="checkbox" name="productUnitsRequest[${i}].isBaseUnit"></td>
-            <td><button type="button" class="btn-icon" style="width:24px; height:24px; font-size:12px; color:var(--danger); background:transparent;" onclick="removeUnitRow(this)">✕</button></td>
-        `;
+
+                <button type="button"
+                        class="btn-link"
+                        onclick="openUnitModal(this)">
+                    + Thêm
+                </button>
+            </div>
+        </td>
+
+        <td>
+            <input type="number"
+                   class="form-input"
+                   name="productUnitsRequest[${i}].conventionValue"
+                   value="1"
+                   style="padding:4px 8px;font-size:13px;width:70px;">
+        </td>
+
+        <td>
+            <input type="number"
+                   class="form-input"
+                   name="productUnitsRequest[${i}].price"
+                   style="padding:4px 8px;font-size:13px;width:100px;">
+        </td>
+
+        <td>
+            <input type="text"
+                   class="form-input"
+                   name="productUnitsRequest[${i}].barcodeUnit"
+                   style="padding:4px 8px;font-size:13px;width:100px;">
+        </td>
+
+        <td>
+            <input type="text"
+                   class="form-input"
+                   name="productUnitsRequest[${i}].sku"
+                   style="padding:4px 8px;font-size:13px;width:100px;">
+        </td>
+
+        <td style="text-align:center;">
+            <input type="checkbox"
+                   name="productUnitsRequest[${i}].isBaseUnit">
+        </td>
+
+        <td>
+            <button type="button"
+                    class="btn-icon"
+                    style="width:24px;height:24px;font-size:12px;color:var(--danger);background:transparent;"
+                    onclick="removeUnitRow(this)">
+                ✕
+            </button>
+        </td>
+    `;
+
         tbody.appendChild(tr);
+
+        // Khởi tạo Select2 cho select vừa thêm
+        $(tr).find(".unit-select2").select2();
+
         reindexRows();
-        initSelect2ForUnits();
     }
 
     function removeUnitRow(btn) {
         btn.closest('tr').remove();
         reindexRows();
-        
+
         const tbody = document.getElementById('unitTable');
         if (tbody.querySelectorAll('tr').length === 1 && document.getElementById('no-unit-row')) {
             document.getElementById('no-unit-row').style.display = '';
@@ -399,52 +471,17 @@
         rowIndex = rows.length;
     }
 
-    /* Select2 & Modal Logic */
-    let currentUnitSelect = null; // Store which unit select triggered the modal
-
-    $(document).ready(function() {
-        // Initialize static select2
-        $('.select2-init').select2();
-        
-        // Listen to static changes
-        $('#categoryId').on('change', function() {
-            if ($(this).val() === 'NEW_CATEGORY') {
-                $(this).val('').trigger('change'); // reset
-                document.getElementById('modalCategory').style.display = 'flex';
-            }
-        });
-        
-        $('#brandId').on('change', function() {
-            if ($(this).val() === 'NEW_BRAND') {
-                $(this).val('').trigger('change'); // reset
-                document.getElementById('modalBrand').style.display = 'flex';
-            }
-        });
-
-        // Add 'NEW_UNIT' option to existing unit selects if missing
-        $('select[name^="productUnitsRequest"]').each(function() {
-            if ($(this).find('option[value="NEW_UNIT"]').length === 0) {
-                $(this).append('<option value="NEW_UNIT" style="color:var(--primary); font-weight:bold;">+ Thêm mới...</option>');
-            }
-        });
-        initSelect2ForUnits();
-    });
-
-    function initSelect2ForUnits() {
-        $('.unit-select2').select2().off('change').on('change', function() {
-            if ($(this).val() === 'NEW_UNIT') {
-                $(this).val('').trigger('change');
-                currentUnitSelect = this;
-                document.getElementById('modalUnit').style.display = 'flex';
-            }
-        });
-    }
-
     function closeModal(id) {
-        document.getElementById(id).style.display = 'none';
-        if(id === 'modalCategory') document.getElementById('formCategory').reset();
-        if(id === 'modalBrand') document.getElementById('formBrand').reset();
-        if(id === 'modalUnit') document.getElementById('formUnit').reset();
+        const modal = document.getElementById(id);
+        modal.style.display = "none";
+
+        const iframe = modal.querySelector("iframe");
+        if (iframe) {
+            iframe.contentWindow.location.reload();
+        }
+        if(id==="modalUnit"){
+            currentUnitSelect=null;
+        }
     }
 
     window.addEventListener('message', function(event) {
@@ -463,7 +500,7 @@
             unitList.push({id: data.id, name: data.name});
             $('select[name^="productUnitsRequest"], .unit-select2').each(function() {
                 const opt = new Option(data.name, data.id, false, false);
-                $(this).find('option[value="NEW_UNIT"]').before(opt);
+                $(this).append(opt);
             });
             if (currentUnitSelect) {
                 $(currentUnitSelect).val(data.id).trigger('change');
