@@ -36,7 +36,7 @@
     </div>
 
     <!-- Hóa đơn chính -->
-    <div id="receiptContent" class="invoice-card">
+    <div id="receiptContent" class="invoice-card" th:data-order-code="${order.code}">
         <!-- Header -->
         <div class="invoice-header row align-items-center">
             <div class="col-sm-6 mb-3 mb-sm-0">
@@ -134,7 +134,7 @@
                         <td class="text-end text-danger" th:text="'-' + ${#numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
                     </tr>
                     <tr>
-                        <td class="text-muted">Thuế VAT (8%):</td>
+                        <td class="text-muted">Thuế VAT (2%):</td>
                         <td class="text-end text-dark" th:text="${#numbers.formatDecimal(order.finalAmount.add(order.discountAmount).subtract(order.totalAmount), 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
                     </tr>
                     <tr class="total-row">
@@ -164,9 +164,6 @@
 
 <!-- Thư viện và JS điều khiển in/pdf riêng biệt -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script th:inline="javascript">
-    const orderCode = /*[[${order.code}]]*/ 'SMS';
-</script>
 <script th:src="@{/js/order-detail.js}"></script>
 </body>
 </html>
