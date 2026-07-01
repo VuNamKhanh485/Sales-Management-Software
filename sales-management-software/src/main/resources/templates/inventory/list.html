@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý kho theo chi nhánh</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <!-- Bootstrap CSS included since the requirement explicitly asks for it, though admin.css might cover it -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+<div class="admin-shell">
+    <div th:replace="~{component/navbar :: sidebar-component}"></div>
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <div>
+                <p class="admin-kicker">Admin Panel</p>
+                <h1>Quản lý kho</h1>
+            </div>
+        </header>
+        <section class="admin-content p-4">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0 text-gray-800">Danh sách kho theo chi nhánh</h2>
+                <a th:href="@{/inventory}" class="btn btn-primary">
+                    <i class="bi bi-arrow-clockwise"></i> Làm mới
+                </a>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Dữ liệu kho</h6>
+                </div>
+                <div class="card-body">
+                    <div th:if="${branches == null or branches.empty}" class="alert alert-warning text-center" role="alert">
+                        Không có dữ liệu kho chi nhánh.
+                    </div>
+                    
+                    <div class="table-responsive" th:if="${branches != null and !branches.empty}">
+                        <table class="table table-bordered table-hover w-100 align-middle">
+                            <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="width: 50px;">STT</th>
+                                <th>Mã kho</th>
+                                <th>Tên kho</th>
+                                <th class="text-center">Trạng thái</th>
+                                <th class="text-end">Số mặt hàng</th>
+                                <th class="text-center" style="width: 130px;">Hành động</th>
+                            </tr>
+                            </thead>
+                             <tbody>
+                             <tr th:each="branch, stat : ${branches}">
+                                 <td class="text-center" th:text="${(branchesPage.number * branchesPage.size) + stat.count}">1</td>
+                                 <td th:text="${branch.branchCode}">BR001</td>
+                                 <td th:text="${branch.branchName}">Chi nhánh trung tâm</td>
+                                 <td class="text-center">
+                                     <span th:if="${branch.status != null and branch.status.name() == 'ACTIVE'}" class="badge bg-success">ACTIVE</span>
+                                     <span th:if="${branch.status != null and branch.status.name() == 'INACTIVE'}" class="badge bg-danger">INACTIVE</span>
+                                     <span th:if="${branch.status == null}" class="badge bg-secondary">N/A</span>
+                                 </td>
+                                 <td class="text-end" th:text="${branch.totalProductCount}">150</td>
+                                 <td class="text-center">
+                                     <a th:href="@{/inventory/{id}(id=${branch.branchId})}" class="btn btn-sm btn-outline-info">
+                                         <i class="bi bi-eye"></i> Xem chi tiết
+                                     </a>
+                                 </td>
+                             </tr>
+                             </tbody>
+                         </table>
+                     </div>
+
+                     <!-- Thanh phân trang Bootstrap -->
+                     <div th:if="${branchesPage.totalPages > 0}" class="d-flex justify-content-center mt-3">
+                         <nav aria-label="Page navigation">
+                             <ul class="pagination">
+                                 <!-- Nút Trước -->
+                                 <li class="page-item" th:classappend="${branchesPage.first} ? 'disabled'">
+                                     <a class="page-link"
+                                        th:href="@{/inventory(page=${branchesPage.first ? 0 : branchesPage.number - 1}, size=${size})}"
+                                        aria-label="Previous">
+                                         <span aria-hidden="true">&laquo; Trước</span>
+                                     </a>
+                                 </li>
+
+                                 <!-- Các số trang -->
+                                 <li class="page-item"
+                                     th:each="pageIdx : ${#numbers.sequence(0, branchesPage.totalPages - 1)}"
+                                     th:classappend="${pageIdx == branchesPage.number} ? 'active'">
+                                     <a class="page-link"
+                                        th:href="@{/inventory(page=${pageIdx}, size=${size})}"
+                                        th:text="${pageIdx + 1}">1</a>
+                                 </li>
+
+                                 <!-- Nút Sau -->
+                                 <li class="page-item" th:classappend="${branchesPage.last} ? 'disabled'">
+                                     <a class="page-link"
+                                        th:href="@{/inventory(page=${branchesPage.last ? branchesPage.totalPages - 1 : branchesPage.number + 1}, size=${size})}"
+                                        aria-label="Next">
+                                         <span aria-hidden="true">Sau &raquo;</span>
+                                     </a>
+                                 </li>
+                             </ul>
+                         </nav>
+                     </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

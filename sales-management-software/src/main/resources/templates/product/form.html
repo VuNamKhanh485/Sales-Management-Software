@@ -12,7 +12,7 @@
 
 <br/><br/>
 
-<form th:action="@{/product/form/{id}(id=${id})}" method="post" th:object="${productRequest}">
+<form th:action="${id != null} ? @{/product/form/{id}(id=${id}, from=${from})} : @{/product/form(from=${from})}" method="post" th:object="${productRequest}">
     <label>Tên sản phẩm:</label><br/>
     <input type="text" name="name" th:field="*{name}"/>
 

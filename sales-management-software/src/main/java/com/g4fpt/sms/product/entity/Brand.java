@@ -32,14 +32,14 @@ public class Brand {
     @Column(nullable = false, unique = true)
     @ToString.Include
     private String name;
-
-    @Column(nullable = false)
-    @CreationTimestamp
-    private String createdAt;
-
+    
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private BrandStatus status;
+
+    @Column(name = "created_at")
+    @CreationTimestamp
+    private String createdAt;
 
     @Column(name = "updated_at")
     @UpdateTimestamp
