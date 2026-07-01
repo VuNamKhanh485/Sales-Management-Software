@@ -15,8 +15,6 @@ import com.g4fpt.sms.product.repository.CategoryRepository;
 import com.g4fpt.sms.product.repository.ProductUnitRepository;
 import com.g4fpt.sms.voucher.entity.Voucher;
 import com.g4fpt.sms.voucher.repository.VoucherRepository;
-import com.g4fpt.sms.inventory.entity.Inventory;
-import com.g4fpt.sms.inventory.repository.InventoryRepository;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -49,7 +47,6 @@ public class PosController {
     private final OrderTransactionRepository orderTransactionRepository;
     private final BranchRepository branchRepository;
     private final VoucherRepository voucherRepository;
-    private final InventoryRepository inventoryRepository;
 
     @ModelAttribute("posSession")
     public PosSessionData setupSession() {
@@ -87,9 +84,7 @@ public class PosController {
         model.addAttribute("posData", session);
         model.addAttribute("cart", session.getActiveCart());
 
-        List<Category> categories = categoryRepository.findAll().stream()
-                .filter(c -> c.getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE)
-                .collect(Collectors.toList());
+        List<Category> categories = categoryRepository.findAll();
         model.addAttribute("categories", categories);
 
         if (successOrderId != null) {
@@ -103,7 +98,6 @@ public class PosController {
             });
         }
 
-        populateDropdownUnits(session, model);
         return "order/pos";
     }
 
@@ -172,10 +166,10 @@ public class PosController {
         ProductUnit pu = productUnitRepo.findBySku(kw)
                 .orElseGet(() -> productUnitRepo.findByBarcodeUnit(kw).orElse(null));
 
-        if (pu != null && pu.getProduct() != null && pu.getProduct().getStatus() == ProductStatus.ACTIVE) {
+        if (pu != null) {
             addProductToCart(session.getActiveCart(), pu);
         } else {
-            ra.addFlashAttribute("error", "Không tìm thấy sản phẩm hoặc sản phẩm đã ngưng hoạt động: " + kw);
+            ra.addFlashAttribute("error", "Không tìm thấy sản phẩm: " + kw);
         }
         return "redirect:/pos";
     }
@@ -190,10 +184,10 @@ public class PosController {
             RedirectAttributes ra) {
 
         ProductUnit pu = productUnitRepo.findById(productUnitId).orElse(null);
-        if (pu != null && pu.getProduct() != null && pu.getProduct().getStatus() == ProductStatus.ACTIVE) {
+        if (pu != null) {
             addProductToCart(session.getActiveCart(), pu);
         } else {
-            ra.addFlashAttribute("error", "Không tìm thấy sản phẩm hoặc sản phẩm đã ngưng hoạt động!");
+            ra.addFlashAttribute("error", "Không tìm thấy sản phẩm");
         }
         return "redirect:/pos";
     }
@@ -213,26 +207,6 @@ public class PosController {
                 cart.getItems().remove(index);
             } else {
                 cart.getItems().get(index).setQuantity(quantity);
-            }
-        }
-        return "redirect:/pos";
-    }
-
-    @GetMapping("/update-unit")
-    public String updateUnit(
-            @RequestParam int index,
-            @RequestParam Long productUnitId,
-            @ModelAttribute("posSession") PosSessionData session) {
-
-        PosCart cart = session.getActiveCart();
-        if (index >= 0 && index < cart.getItems().size()) {
-            ProductUnit pu = productUnitRepo.findById(productUnitId).orElse(null);
-            if (pu != null) {
-                PosCartItem item = cart.getItems().get(index);
-                item.setProductUnitId(pu.getId());
-                item.setSku(pu.getSku());
-                item.setPrice(pu.getPrice());
-                item.setUnitName(pu.getUnit() != null ? pu.getUnit().getName() : "");
             }
         }
         return "redirect:/pos";
@@ -318,12 +292,8 @@ public class PosController {
         }
         model.addAttribute("posData", session);
         model.addAttribute("cart", session.getActiveCart());
-        List<Category> categories = categoryRepository.findAll().stream()
-                .filter(c -> c.getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE)
-                .collect(Collectors.toList());
-        model.addAttribute("categories", categories);
+        model.addAttribute("categories", categoryRepository.findAll());
 
-        populateDropdownUnits(session, model);
         return "order/pos";
     }
 
@@ -349,7 +319,7 @@ public class PosController {
         if (isOwner) {
             orders = orderTransactionRepository.findByDateRange(startOfDay, endOfDay);
         } else {
-            orders = orderTransactionRepository.findByCreatedByAndCreatedAtBetweenOrderByCreatedAtDesc(
+            orders = orderTransactionRepository.findByCreatedByAndDateRange(
                     userDetails.getEmployee().getId(), startOfDay, endOfDay);
         }
 
@@ -478,16 +448,13 @@ public class PosController {
     // =============================================
     @GetMapping("/product-list")
     public String getProductList(
-            @ModelAttribute("posSession") PosSessionData session,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String keyword,
             Model model) {
 
         List<ProductUnit> all = productUnitRepo.findAll().stream()
                 .filter(pu -> pu.getProduct() != null
-                        && pu.getProduct().getStatus() == ProductStatus.ACTIVE
-                        && pu.getProduct().getCategory() != null
-                        && pu.getProduct().getCategory().getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE)
+                        && pu.getProduct().getStatus() == ProductStatus.ACTIVE)
                 .collect(Collectors.toList());
 
         if (keyword != null && !keyword.isBlank()) {
@@ -503,25 +470,8 @@ public class PosController {
                     .collect(Collectors.toList());
         }
 
-        // Lấy tồn kho thực tế cho từng sản phẩm tại chi nhánh đang chọn
-        Long branchId = session.getActiveBranchId();
-        Map<Long, Integer> stockMap = new HashMap<>();
-        if (branchId != null) {
-            for (ProductUnit pu : all) {
-                int stock = inventoryRepository.findByBranchIdAndProductUnitId(branchId, pu.getId())
-                        .map(Inventory::getStock)
-                        .orElse(0);
-                stockMap.put(pu.getId(), stock);
-            }
-        }
-
         model.addAttribute("products", all);
-        model.addAttribute("stockMap", stockMap);
-        
-        List<Category> categories = categoryRepository.findAll().stream()
-                .filter(c -> c.getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE)
-                .collect(Collectors.toList());
-        model.addAttribute("categories", categories);
+        model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("keyword", keyword);
         model.addAttribute("categoryId", categoryId);
 
@@ -646,18 +596,5 @@ public class PosController {
             newItem.setImageUrl(pu.getProduct().getImageUrl());
             cart.getItems().add(newItem);
         }
-    }
-
-    private void populateDropdownUnits(PosSessionData session, Model model) {
-        Map<Long, List<ProductUnit>> cartItemUnitsMap = new HashMap<>();
-        for (PosCartItem item : session.getActiveCart().getItems()) {
-            productUnitRepo.findById(item.getProductUnitId()).ifPresent(pu -> {
-                if (pu.getProduct() != null) {
-                    List<ProductUnit> units = productUnitRepo.findByProductIdWithUnit(pu.getProduct().getId());
-                    cartItemUnitsMap.put(item.getProductUnitId(), units);
-                }
-            });
-        }
-        model.addAttribute("cartItemUnitsMap", cartItemUnitsMap);
     }
 }

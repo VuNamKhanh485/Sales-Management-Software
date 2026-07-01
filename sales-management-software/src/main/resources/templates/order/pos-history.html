@@ -5,8 +5,9 @@
     <title>Lịch sử bán hàng</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>body { padding: 10px; background-color: #fff; font-size: 13px;}</style>
 </head>
-<body style="padding: 10px; background-color: #fff; font-size: 13px;">
+<body>
     <form th:action="@{/pos/sales-history}" method="GET" class="d-flex gap-2 align-items-center mb-3">
         <label class="small fw-semibold text-muted mb-0">Chọn ngày:</label>
         <input type="date" name="date" class="form-control form-control-sm" style="max-width: 180px;" th:value="${filterDate}" onchange="this.form.submit()">
