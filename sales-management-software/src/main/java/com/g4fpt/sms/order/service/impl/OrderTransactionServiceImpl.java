@@ -2,6 +2,8 @@ package com.g4fpt.sms.order.service.impl;
 
 import com.g4fpt.sms.customer.entity.Customer;
 import com.g4fpt.sms.customer.repository.CustomerRepository;
+import com.g4fpt.sms.inventory.entity.Inventory;
+import com.g4fpt.sms.inventory.repository.InventoryRepository;
 import com.g4fpt.sms.order.dto.POSCartItemRequest;
 import com.g4fpt.sms.order.dto.POSCheckoutRequest;
 import com.g4fpt.sms.order.entity.OrderTransaction;
@@ -15,6 +17,7 @@ import com.g4fpt.sms.voucher.repository.VoucherRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.g4fpt.sms.customer.service.CustomerService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -28,6 +31,8 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
     private final ProductUnitRepository productUnitRepository;
     private final CustomerRepository customerRepository;
     private final VoucherRepository voucherRepository;
+    private final CustomerService customerService;
+    private final InventoryRepository inventoryRepository;
 
     @Override
     @Transactional
@@ -46,7 +51,7 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         // 2. Tính VAT
         BigDecimal vatRate = request.getVatRate() != null
                 ? request.getVatRate()
-                : new BigDecimal("0.08");
+                : new BigDecimal("0.02");
         BigDecimal vatAmount = totalAmount.multiply(vatRate)
                 .setScale(0, RoundingMode.HALF_UP);
 
@@ -89,6 +94,9 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             Customer customer = customerRepository.findById(request.getCustomerId())
                     .orElse(null);
             if (customer != null) {
+                if (customer.getStatus() != com.g4fpt.sms.customer.enums.CustomerStatus.ACTIVE) {
+                    throw new RuntimeException("Khách hàng này hiện đang ngừng hoạt động hoặc không tồn tại!");
+                }
                 order.setCustomer(customer);
                 // Cộng điểm: 10,000đ = 1 điểm
                 int pointEarned = finalAmount.divide(
@@ -103,10 +111,31 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             order.setVoucher(voucher);
         }
 
-        // 9. Tạo OrderTransactionDetail
+        // 9. Tạo OrderTransactionDetail và trừ tồn kho
         for (POSCartItemRequest item : request.getItems()) {
             ProductUnit pu = productUnitRepository.findById(item.getProductUnitId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+
+            if (pu.getProduct() == null || pu.getProduct().getStatus() != com.g4fpt.sms.product.enums.ProductStatus.ACTIVE) {
+                throw new RuntimeException("Sản phẩm '" + (pu.getProduct() != null ? pu.getProduct().getName() : "Không tên") + "' đã ngưng hoạt động hoặc không tồn tại!");
+            }
+
+            // Trừ tồn kho tại chi nhánh tương ứng
+            Long branchId = request.getBranchId();
+            Inventory inventory = inventoryRepository.findByBranchIdAndProductUnitId(branchId, pu.getId())
+                    .orElseThrow(() -> new RuntimeException("Sản phẩm '" + pu.getProduct().getName() 
+                            + "' [" + (pu.getUnit() != null ? pu.getUnit().getName() : "") 
+                            + "] chưa được khai báo tồn kho tại chi nhánh này!"));
+
+            if (inventory.getStock() < item.getQuantity()) {
+                throw new RuntimeException("Sản phẩm '" + pu.getProduct().getName() 
+                        + "' [" + (pu.getUnit() != null ? pu.getUnit().getName() : "") 
+                        + "] không đủ tồn kho! (Yêu cầu: " + item.getQuantity() 
+                        + ", Hiện có: " + inventory.getStock() + ")");
+            }
+
+            inventory.setStock(inventory.getStock() - item.getQuantity());
+            inventoryRepository.save(inventory);
 
             OrderTransactionDetail detail = OrderTransactionDetail.builder()
                     .orderTransaction(order)
@@ -120,11 +149,19 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             order.getDetails().add(detail);
         }
 
-        return orderTransactionRepository.save(order);
+        OrderTransaction savedOrder = orderTransactionRepository.save(order);
+        if (request.getCustomerId() != null) {
+            customerService.updateCustomerRank(request.getCustomerId());
+        }
+        return savedOrder;
     }
 
     @Override
     public Voucher validateVoucher(String code, BigDecimal totalAmount, Long customerId) {
+        if (customerId == null) {
+            throw new RuntimeException("Voucher chỉ áp dụng cho khách hàng thành viên. Vui lòng chọn khách hàng!");
+        }
+
         Voucher voucher = voucherRepository.findByCode(code)
                 .orElseThrow(() -> new RuntimeException("Mã voucher không tồn tại!"));
 
