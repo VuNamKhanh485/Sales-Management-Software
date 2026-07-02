@@ -1,12 +1,14 @@
 package com.g4fpt.sms.product.service.impl;
 
 import com.g4fpt.sms.common.exception.ResourceInUseException;
+import com.g4fpt.sms.inventory.repository.InventoryRepository;
 import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
 import com.g4fpt.sms.product.dto.request.ProductRequest;
 import com.g4fpt.sms.product.dto.response.ProductResponse;
 import com.g4fpt.sms.product.entity.Product;
 import com.g4fpt.sms.common.exception.NotFoundException;
 import com.g4fpt.sms.common.exception.ValidationException;
+import com.g4fpt.sms.product.entity.ProductUnit;
 import com.g4fpt.sms.product.mapper.ProductMapper;
 import com.g4fpt.sms.product.repository.*;
 import com.g4fpt.sms.product.service.ProductService;
@@ -32,6 +34,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
+    private final InventoryRepository inventoryRepository;
     private final ProductMapper productMapper;
     private final ProductUnitService productUnitService;
 
@@ -94,6 +97,14 @@ public class ProductServiceImpl implements ProductService {
 
         if(productRepository.existInOrderTransaction(id)){
             throw new ResourceInUseException("Sản phẩm đã nằm trong giao dịch");
+        }
+
+        for (ProductUnit unit : product.getProductUnits()) {
+            if (inventoryRepository.existsByProductUnitId(unit.getId())) {
+                throw new ResourceInUseException(
+                        "Không thể xóa sản phẩm vì đã có dữ liệu tồn kho."
+                );
+            }
         }
 
         productRepository.delete(product);

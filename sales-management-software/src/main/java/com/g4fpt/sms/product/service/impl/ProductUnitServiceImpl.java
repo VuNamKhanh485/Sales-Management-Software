@@ -80,7 +80,7 @@ public class ProductUnitServiceImpl implements ProductUnitService {
             }
         }
 
-        for(int i = 0; i < product.getProductUnits().size(); i++){
+        for(int i = 0; i < productUnitRequests.size(); i++){
             ProductUnitRequest productUnitRequest = productUnitRequests.get(i);
             try{
             if(productUnitRequest.getId() == null){

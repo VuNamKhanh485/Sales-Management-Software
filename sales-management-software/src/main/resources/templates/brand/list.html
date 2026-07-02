@@ -80,6 +80,9 @@
                                     </svg>
                                     Sửa
                                 </a>
+                                <form th:action="@{/brand/delete/{id}(id=${b.id})}" method="post" onsubmit="return confirm('Xác nhận xóa nhãn hàng này?')" style="margin:0;">
+                                    <button type="submit" class="action-delete" style="background:transparent; border:none; cursor:pointer;">Xóa</button>
+                                </form>
                             </div>
                         </td>
                     </tr>
