@@ -115,6 +115,10 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         }
 
         OrderTransaction order = req.getOrder();
+        if ("RETURNED".equals(order.getStatus())) {
+            throw new RuntimeException("Đơn hàng này đã được duyệt trả hàng ở một yêu cầu khác");
+        }
+
         Long branchId = order.getBranchId();
 
         for (ReturnRequestItem item : req.getItems()) {
@@ -132,12 +136,13 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
                 BigDecimal refundAmount = item.getSalePrice()
                         .multiply(BigDecimal.valueOf(item.getQuantity()));
 
-                customer.setTotalRevenue(customer.getTotalRevenue()
-                        .subtract(refundAmount).max(BigDecimal.ZERO));
+                BigDecimal currentRevenue = customer.getTotalRevenue() != null ? customer.getTotalRevenue() : BigDecimal.ZERO;
+                customer.setTotalRevenue(currentRevenue.subtract(refundAmount).max(BigDecimal.ZERO));
 
+                int currentPoint = customer.getTotalPoint() != null ? customer.getTotalPoint() : 0;
                 int pointToReverse = refundAmount
                         .divide(new BigDecimal("10000"), 0, RoundingMode.FLOOR).intValue();
-                customer.setTotalPoint(Math.max(0, customer.getTotalPoint() - pointToReverse));
+                customer.setTotalPoint(Math.max(0, currentPoint - pointToReverse));
             }
         }
 
@@ -145,8 +150,47 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         req.setReviewedBy(reviewerId);
         req.setReviewedAt(LocalDateTime.now());
 
-        // Đánh dấu đơn hàng là RETURNED
+        // Đánh dấu đơn hàng gốc là RETURNED
         order.setStatus("RETURNED");
+
+        // --- TẠO GIAO DỊCH TRẢ HÀNG VÀO LỊCH SỬ ---
+        BigDecimal totalRefund = BigDecimal.ZERO;
+        for (ReturnRequestItem item : req.getItems()) {
+            totalRefund = totalRefund.add(item.getSalePrice().multiply(BigDecimal.valueOf(item.getQuantity())));
+        }
+
+        OrderTransaction returnTx = OrderTransaction.builder()
+                .branchId(branchId)
+                .createdBy(reviewerId)
+                .originalOrderId(order.getId())
+                .customer(order.getCustomer())
+                .code("RET-" + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")))
+                .totalAmount(totalRefund)
+                .finalAmount(totalRefund)
+                .paidAmount(totalRefund)
+                .changeAmount(BigDecimal.ZERO)
+                .discountAmount(BigDecimal.ZERO)
+                .status("COMPLETED")
+                .transactionType("RETURN")
+                .paymentMethodId(order.getPaymentMethodId())
+                .note("Giao dịch trả hàng từ mã đơn: " + order.getCode())
+                .build();
+
+        List<OrderTransactionDetail> detailList = new java.util.ArrayList<>();
+        for (ReturnRequestItem item : req.getItems()) {
+            OrderTransactionDetail detail = OrderTransactionDetail.builder()
+                    .orderTransaction(returnTx)
+                    .productUnit(item.getProductUnit())
+                    .quantity(item.getQuantity())
+                    .salePrice(item.getSalePrice())
+                    .discountAmount(BigDecimal.ZERO)
+                    .totalAmount(item.getSalePrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                    .build();
+            detailList.add(detail);
+        }
+        returnTx.setDetails(detailList);
+        
+        orderTransactionRepository.save(returnTx);
     }
 
     @Override

@@ -38,11 +38,14 @@
                     </td>
                     <td th:text="${#temporals.format(order.createdAt, 'HH:mm dd/MM')}"></td>
                     <td th:text="${order.customer != null ? order.customer.fullName : 'Khách lẻ'}"></td>
-                    <td class="text-end fw-semibold" th:text="${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                    <td class="text-end fw-semibold" th:text="${order.transactionType == 'RETURN' ? '-' : ''} + ${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
                     <td class="text-center">
-                        <span th:if="${order.status == 'COMPLETED'}" class="badge bg-success">Hoàn thành</span>
+                        <span th:if="${order.transactionType == 'RETURN'}" class="badge bg-warning text-dark">Trả hàng</span>
+                        <span th:if="${order.transactionType == 'IMPORT'}" class="badge bg-info text-dark">Nhập hàng</span>
+                        <span th:if="${order.transactionType == 'SALE' and order.status == 'COMPLETED'}" class="badge bg-success">Hoàn thành</span>
+                        <span th:if="${order.transactionType == 'SALE' and order.status == 'RETURNED'}" class="badge bg-secondary">Đã bị hoàn</span>
                         <span th:if="${order.status == 'CANCELLED'}" class="badge bg-danger">Đã hủy</span>
-                        <span th:if="${order.status != 'COMPLETED' and order.status != 'CANCELLED'}" class="badge bg-secondary" th:text="${order.status}"></span>
+                        <span th:if="${order.transactionType == 'SALE' and order.status != 'COMPLETED' and order.status != 'CANCELLED' and order.status != 'RETURNED'}" class="badge bg-secondary" th:text="${order.status}"></span>
                     </td>
                     <td class="text-center">
                         <a th:href="@{/pos/sales-history/{id}(id=${order.id})}" class="btn btn-sm btn-outline-primary py-0" style="font-size: 11px;">

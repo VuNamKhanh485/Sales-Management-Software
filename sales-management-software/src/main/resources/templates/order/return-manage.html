@@ -7,29 +7,14 @@
     <meta name="description" content="Quản lý và duyệt yêu cầu trả/đổi hàng.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/return.css}">
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-    <style>
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', system-ui, sans-serif; }
-        .main-container { display: flex; min-height: 100vh; }
-        .content { flex: 1; padding: 24px; }
-        .card { border: none; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); background: #fff; }
-        .table th { font-weight: 600; color: #6b7280; font-size: 13px; text-transform: uppercase; letter-spacing: 0.03em; }
-        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-        .status-pending { background: #fff3cd; color: #856404; }
-        .status-approved { background: #d4edda; color: #155724; }
-        .status-rejected { background: #f8d7da; color: #721c24; }
-        .modal-detail .row { margin-bottom: 8px; }
-        .detail-label { font-weight: 600; color: #6b7280; font-size: 13px; }
-        .detail-value { font-size: 14px; }
-        .item-table { font-size: 14px; }
-        .item-table th { background: #f8f9fd; }
-        .return-image { max-width: 200px; max-height: 200px; border-radius: 8px; object-fit: cover; margin: 4px; cursor: pointer; border: 1px solid #dee2e6; }
-    </style>
 </head>
 <body>
+<div th:replace="~{component/navbar :: global-nav('returns')}"></div>
 <div class="main-container">
-    <div th:replace="~{component/navbar :: sidebar-component('returns')}"></div>
     <div class="content">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
@@ -101,6 +86,28 @@
                 <button type="button" class="btn btn-success" onclick="approveRequest()">
                     <i class="bi bi-check-circle me-1"></i>Duyệt
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal duyệt -->
+<div class="modal fade" id="approveModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h6 class="modal-title fw-bold"><i class="bi bi-check-circle me-1"></i>Duyệt yêu cầu</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <p class="mb-0 fs-6">Bạn có chắc chắn muốn <strong>duyệt</strong> yêu cầu trả hàng này?</p>
+                    <p class="text-muted small mt-2 mb-0"><i class="bi bi-info-circle me-1"></i> Hàng hóa sẽ được hoàn lại vào kho tự động.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" onclick="confirmApprove()">Xác nhận Duyệt</button>
             </div>
         </div>
     </div>
@@ -193,12 +200,24 @@
                 }
 
                 document.getElementById('detailContent').innerHTML = html;
-                new bootstrap.Modal(document.getElementById('detailModal')).show();
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('detailModal')).show();
             });
     }
 
     function approveRequest() {
-        if (!confirm('Xác nhận duyệt yêu cầu này? Hàng sẽ được nhập lại kho.')) return;
+        const detailModalEl = document.getElementById('detailModal');
+        const detailModal = bootstrap.Modal.getOrCreateInstance(detailModalEl);
+        
+        // Chờ modal chi tiết đóng hẳn mới mở modal xác nhận duyệt
+        detailModalEl.addEventListener('hidden.bs.modal', function onHidden() {
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('approveModal')).show();
+            detailModalEl.removeEventListener('hidden.bs.modal', onHidden);
+        }, { once: true });
+        
+        detailModal.hide();
+    }
+
+    function confirmApprove() {
         fetch('/return/api/requests/' + currentRequestId + '/approve', { method: 'POST', headers: { [csrfHeader]: csrfToken } })
             .then(r => r.json())
             .then(data => {
@@ -206,11 +225,20 @@
                 alert('Đã duyệt yêu cầu thành công!');
                 location.reload();
             })
-            .catch(() => alert('Lỗi'));
+            .catch(() => alert('Lỗi hệ thống khi duyệt yêu cầu.'));
     }
 
     function rejectRequest() {
-        new bootstrap.Modal(document.getElementById('rejectModal')).show();
+        const detailModalEl = document.getElementById('detailModal');
+        const detailModal = bootstrap.Modal.getOrCreateInstance(detailModalEl);
+        
+        // Chờ modal chi tiết đóng hẳn mới mở modal từ chối
+        detailModalEl.addEventListener('hidden.bs.modal', function onHidden() {
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('rejectModal')).show();
+            detailModalEl.removeEventListener('hidden.bs.modal', onHidden);
+        }, { once: true });
+        
+        detailModal.hide();
     }
 
     function confirmReject() {

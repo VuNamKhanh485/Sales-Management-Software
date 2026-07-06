@@ -10,6 +10,7 @@
         <li><a th:href="@{/inventory}" th:classappend="${page == 'inventory' ? 'active' : ''}">Kho hàng</a></li>
         <li><a th:href="@{/imports}" th:classappend="${page == 'imports' ? 'active' : ''}">Nhập hàng</a></li>
         <li><a th:href="@{/vouchers}" th:classappend="${page == 'voucher' ? 'active' : ''}">Voucher</a></li>
+        <li sec:authorize="hasAnyRole('OWNER', 'MANAGER')"><a th:href="@{/return/manage}" th:classappend="${page == 'returns' ? 'active' : ''}">Xử lý yêu cầu</a></li>
         <li sec:authorize="hasAnyRole('OWNER')"><a th:href="@{/employee}" th:classappend="${page == 'employee' ? 'active' : ''}">Nhân viên</a></li>
         <li sec:authorize="hasAnyRole('OWNER', 'MANAGER')"><a th:href="@{/branch}" th:classappend="${page == 'branch' ? 'active' : ''}">Chi nhánh</a></li>
     </ul>
@@ -23,7 +24,7 @@
     </div>
 </nav>
 
-<aside class="d-flex flex-column flex-shrink-0 p-3 bg-light border-end" style="width: 250px; min-width: 250px; min-height: 100vh;" th:fragment="sidebar-component">
+<aside class="d-flex flex-column flex-shrink-0 p-3 bg-light border-end" style="width: 250px; min-width: 250px; min-height: 100vh;" th:fragment="sidebar-component(page)">
     <div class="mb-4">
         <h2 class="h4 mb-0 fw-bold text-primary">Sales Admin</h2>
         <small class="text-muted">Management</small>
@@ -46,11 +47,15 @@
             <span>Kho hàng</span>
         </a>
         <a th:href="@{/return/manage}" th:class="${page == 'returns' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}" sec:authorize="hasAnyRole('OWNER', 'MANAGER')">
-            <span>Yêu cầu trả hàng</span>
+            <span>Xử lý yêu cầu</span>
         </a>
 
         <a th:href="@{/imports}" th:class="${page == 'imports' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Nhập hàng</span>
+        </a>
+
+        <a th:href="@{/vouchers}" th:class="${page == 'voucher' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
+            <span>Voucher</span>
         </a>
 
         <a sec:authorize="hasAnyRole('OWNER')" th:href="@{/employee}"

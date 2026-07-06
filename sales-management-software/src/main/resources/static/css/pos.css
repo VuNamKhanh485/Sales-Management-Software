@@ -353,4 +353,30 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+}/* --- Receipt Print Layout --- */
+.receipt-container {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    line-height: 1.4;
+}
+.receipt-container h5, .receipt-container h6 {
+    font-family: inherit;
+}
+.receipt-subtitle {
+    font-size: 11px;
+}
+.receipt-divider {
+    border-top: 1px dashed #ccc;
+}
+.receipt-table {
+    font-size: 12px;
+    border-collapse: collapse;
+}
+.receipt-table thead tr {
+    border-bottom: 1px solid #ddd;
+}
+.receipt-col-qty { width: 40px; }
+.receipt-col-price { width: 80px; }
+.receipt-total-highlight {
+    font-size: 14px;
 }
