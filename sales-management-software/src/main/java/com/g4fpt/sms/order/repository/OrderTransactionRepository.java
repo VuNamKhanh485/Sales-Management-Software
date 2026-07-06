@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Optional;
 @Repository
 public interface OrderTransactionRepository extends JpaRepository<OrderTransaction, Long> {
  
@@ -36,4 +36,10 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
            "AND (:keyword IS NULL OR :keyword = '' OR LOWER(code) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
            "ORDER BY created_at DESC", nativeQuery = true)
     List<OrderTransaction> searchImports(@Param("status") String status, @Param("keyword") String keyword);
+
+    @Query("SELECT o FROM OrderTransaction o LEFT JOIN FETCH o.details d LEFT JOIN FETCH d.productUnit pu LEFT JOIN FETCH pu.product WHERE o.code = :code")
+    Optional<OrderTransaction> findByCodeWithDetails(@Param("code") String code);
+
+    @Query("SELECT o FROM OrderTransaction o LEFT JOIN FETCH o.details d LEFT JOIN FETCH d.productUnit pu LEFT JOIN FETCH pu.product WHERE o.id = :id")
+    Optional<OrderTransaction> findByIdWithDetails(@Param("id") Long id);
 }

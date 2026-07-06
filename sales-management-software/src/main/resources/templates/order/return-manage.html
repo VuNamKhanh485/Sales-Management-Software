@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý yêu cầu trả hàng — SMS</title>
+    <meta name="description" content="Quản lý và duyệt yêu cầu trả/đổi hàng.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', system-ui, sans-serif; }
+        .main-container { display: flex; min-height: 100vh; }
+        .content { flex: 1; padding: 24px; }
+        .card { border: none; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); background: #fff; }
+        .table th { font-weight: 600; color: #6b7280; font-size: 13px; text-transform: uppercase; letter-spacing: 0.03em; }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-approved { background: #d4edda; color: #155724; }
+        .status-rejected { background: #f8d7da; color: #721c24; }
+        .modal-detail .row { margin-bottom: 8px; }
+        .detail-label { font-weight: 600; color: #6b7280; font-size: 13px; }
+        .detail-value { font-size: 14px; }
+        .item-table { font-size: 14px; }
+        .item-table th { background: #f8f9fd; }
+        .return-image { max-width: 200px; max-height: 200px; border-radius: 8px; object-fit: cover; margin: 4px; cursor: pointer; border: 1px solid #dee2e6; }
+    </style>
+</head>
+<body>
+<div class="main-container">
+    <div th:replace="~{component/navbar :: sidebar-component('returns')}"></div>
+    <div class="content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold mb-1"><i class="bi bi-arrow-return-left me-2"></i>Quản lý yêu cầu trả hàng</h4>
+                <p class="text-muted mb-0">Tổng cộng <span th:text="${#lists.size(requests)}">0</span> yêu cầu</p>
+            </div>
+            <span class="badge bg-warning text-dark fs-6 px-3 py-2" th:if="${pendingCount > 0}">
+                <i class="bi bi-clock me-1"></i><span th:text="${pendingCount}">0</span> yêu cầu chờ duyệt
+            </span>
+        </div>
+
+        <div class="card p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Mã yêu cầu</th>
+                            <th>Đơn hàng</th>
+                            <th>Người tạo</th>
+                            <th>Lý do</th>
+                            <th>Ngày tạo</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="req, i : ${requests}">
+                            <td th:text="${i.index + 1}"></td>
+                            <td><strong>#<span th:text="${req.id}"></span></strong></td>
+                            <td th:text="${req.order.code}"></td>
+                            <td th:text="${req.requestedBy}"></td>
+                            <td class="text-truncate" style="max-width: 200px;" th:text="${req.reason}"></td>
+                            <td th:text="${#temporals.format(req.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td>
+                                <span th:class="'status-badge status-' + ${#strings.toLowerCase(req.status)}" th:text="${req.status}"></span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" th:onclick="'viewDetail(' + ${req.id} + ')'">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(requests)}">
+                            <td colspan="8" class="text-center text-muted py-4">Chưa có yêu cầu trả hàng nào</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal chi tiết -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h6 class="modal-title fw-bold"><i class="bi bi-info-circle me-1"></i>Chi tiết yêu cầu</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="detailContent"></div>
+            </div>
+            <div class="modal-footer" id="actionFooter">
+                <button type="button" class="btn btn-danger" onclick="rejectRequest()">
+                    <i class="bi bi-x-circle me-1"></i>Từ chối
+                </button>
+                <button type="button" class="btn btn-success" onclick="approveRequest()">
+                    <i class="bi bi-check-circle me-1"></i>Duyệt
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal từ chối -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h6 class="modal-title fw-bold"><i class="bi bi-x-circle me-1"></i>Từ chối yêu cầu</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="fw-semibold mb-1">Lý do từ chối <span class="text-danger">*</span></label>
+                    <textarea id="rejectReason" class="form-control" rows="3" placeholder="Nhập lý do..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" onclick="confirmReject()">Xác nhận từ chối</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let currentRequestId = null;
+
+    function viewDetail(id) {
+        currentRequestId = id;
+        fetch('/return/api/requests/' + id)
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) { alert(data.error); return; }
+
+                const isPending = data.status === 'PENDING';
+                document.getElementById('actionFooter').style.display = isPending ? '' : 'none';
+
+                let html = `
+                    <div class="row mb-2">
+                        <div class="col-4 detail-label">Mã yêu cầu</div>
+                        <div class="col-8 detail-value fw-bold">#` + data.id + `</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 detail-label">Đơn hàng</div>
+                        <div class="col-8 detail-value">` + data.orderCode + `</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 detail-label">Khách hàng</div>
+                        <div class="col-8 detail-value">` + data.customerName + `</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 detail-label">Ngày tạo</div>
+                        <div class="col-8 detail-value">` + data.createdAt + `</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 detail-label">Lý do</div>
+                        <div class="col-8 detail-value">` + data.reason + `</div>
+                    </div>
+                    <hr>
+                    <h6 class="fw-bold mb-2">Sản phẩm trả lại</h6>
+                    <table class="table table-sm item-table">
+                        <thead><tr><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead>
+                        <tbody>
+                `;
+                data.items.forEach(i => {
+                    html += `<tr><td>` + i.productName + `</td><td>` + i.quantity + `</td><td>` + i.salePrice.toLocaleString() + `đ</td><td>` + (i.salePrice * i.quantity).toLocaleString() + `đ</td></tr>`;
+                });
+                html += `</tbody></table>`;
+
+                if (data.images && data.images.length > 0) {
+                    html += `<h6 class="fw-bold mb-2">Hình ảnh</h6><div class="d-flex flex-wrap gap-2 mb-2">`;
+                    data.images.forEach(img => {
+                        html += `<img src="` + img + `" class="return-image" onclick="window.open(this.src)">`;
+                    });
+                    html += `</div>`;
+                }
+
+                if (data.status !== 'PENDING') {
+                    html += `<hr><div class="row mb-2"><div class="col-4 detail-label">Xử lý bởi</div><div class="col-8 detail-value">` + (data.reviewedBy || '') + `</div></div>`;
+                    html += `<div class="row mb-2"><div class="col-4 detail-label">Thời gian</div><div class="col-8 detail-value">` + (data.reviewedAt || '') + `</div></div>`;
+                    if (data.rejectReason) {
+                        html += `<div class="row mb-2"><div class="col-4 detail-label">Lý do từ chối</div><div class="col-8 detail-value text-danger">` + data.rejectReason + `</div></div>`;
+                    }
+                }
+
+                document.getElementById('detailContent').innerHTML = html;
+                new bootstrap.Modal(document.getElementById('detailModal')).show();
+            });
+    }
+
+    function approveRequest() {
+        if (!confirm('Xác nhận duyệt yêu cầu này? Hàng sẽ được nhập lại kho.')) return;
+        fetch('/return/api/requests/' + currentRequestId + '/approve', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) { alert(data.error); return; }
+                alert('Đã duyệt yêu cầu thành công!');
+                location.reload();
+            })
+            .catch(() => alert('Lỗi'));
+    }
+
+    function rejectRequest() {
+        new bootstrap.Modal(document.getElementById('rejectModal')).show();
+    }
+
+    function confirmReject() {
+        const reason = document.getElementById('rejectReason').value.trim();
+        if (!reason) { alert('Nhập lý do từ chối'); return; }
+        fetch('/return/api/requests/' + currentRequestId + '/reject', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'reason=' + encodeURIComponent(reason)
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) { alert(data.error); return; }
+            alert('Đã từ chối yêu cầu');
+            location.reload();
+        })
+        .catch(() => alert('Lỗi'));
+    }
+</script>
+</body>
+</html>

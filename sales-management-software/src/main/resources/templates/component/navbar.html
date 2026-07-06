@@ -45,6 +45,9 @@
         <a th:href="@{/inventory}" th:class="${page == 'inventory' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Kho hàng</span>
         </a>
+        <a th:href="@{/return/manage}" th:class="${page == 'returns' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}" sec:authorize="hasAnyRole('OWNER', 'MANAGER')">
+            <span>Yêu cầu trả hàng</span>
+        </a>
 
         <a th:href="@{/imports}" th:class="${page == 'imports' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Nhập hàng</span>
