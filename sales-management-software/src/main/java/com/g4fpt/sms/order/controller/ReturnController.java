@@ -19,6 +19,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import com.g4fpt.sms.auth.security.CustomUserDetails;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Controller
 @RequestMapping("/return")
@@ -26,6 +28,10 @@ import java.util.stream.Collectors;
 public class ReturnController {
 
     private final ReturnRequestService returnRequestService;
+
+    private CustomUserDetails getCurrentUser() {
+        return (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
 
     // ---------- Trang tạo yêu cầu trả hàng (cho nhân viên POS) ----------
     @GetMapping
@@ -77,11 +83,9 @@ public class ReturnController {
             HttpSession session) {
 
         try {
-            Long employeeId = (Long) session.getAttribute("employeeId");
-            Long branchId = (Long) session.getAttribute("branchId");
-            if (employeeId == null || branchId == null) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Vui lòng đăng nhập lại"));
-            }
+            CustomUserDetails user = getCurrentUser();
+            Long employeeId = user.getEmployee().getId();
+            Long branchId = user.getBranchId();
 
             // Parse detailIds và quantities
             List<ReturnRequestService.ReturnItemInput> items = new ArrayList<>();
@@ -182,10 +186,7 @@ public class ReturnController {
     @ResponseBody
     public ResponseEntity<?> approveRequest(@PathVariable Long id, HttpSession session) {
         try {
-            Long employeeId = (Long) session.getAttribute("employeeId");
-            if (employeeId == null) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Vui lòng đăng nhập lại"));
-            }
+            Long employeeId = getCurrentUser().getEmployee().getId();
             returnRequestService.approveRequest(id, employeeId);
             return ResponseEntity.ok(Map.of("success", true));
         } catch (RuntimeException e) {
@@ -200,10 +201,7 @@ public class ReturnController {
                                             @RequestParam("reason") String reason,
                                             HttpSession session) {
         try {
-            Long employeeId = (Long) session.getAttribute("employeeId");
-            if (employeeId == null) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Vui lòng đăng nhập lại"));
-            }
+            Long employeeId = getCurrentUser().getEmployee().getId();
             returnRequestService.rejectRequest(id, employeeId, reason);
             return ResponseEntity.ok(Map.of("success", true));
         } catch (RuntimeException e) {
