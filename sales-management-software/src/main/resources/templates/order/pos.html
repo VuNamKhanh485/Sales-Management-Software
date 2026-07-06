@@ -236,6 +236,34 @@
                             <i class="bi bi-x"></i>
                         </a>
                     </div>
+
+                    <!-- Điểm tích luỹ -->
+                    <div th:if="${cart.customerId != null and cart.customerAvailablePoints > 0}"
+                         class="points-row mt-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <span class="small">
+                                Điểm tích luỹ: <strong th:text="${cart.customerAvailablePoints}"></strong>
+                                (<span th:text="${cart.customerAvailablePoints * 200}"></span>đ)
+                            </span>
+                            <div class="form-check form-switch ms-auto">
+                                <input class="form-check-input" type="checkbox" role="switch"
+                                       id="usePointsSwitch"
+                                       th:checked="${cart.usePoints}"
+                                       onchange="window.location.href='/pos/toggle-points?enabled=' + this.checked">
+                                <label class="form-check-label small" for="usePointsSwitch">
+                                    Dùng điểm
+                                </label>
+                            </div>
+                        </div>
+                        <div th:if="${cart.usePoints and cart.pointsToUse > 0}"
+                             class="small text-success mt-1">
+                            <i class="bi bi-check-circle"></i>
+                            Giảm <span th:text="${#numbers.formatDecimal(cart.pointDiscount, 0, 'COMMA', 0, 'POINT')}"></span>đ
+                            (<span th:text="${cart.pointsToUse}"></span> điểm)
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- Footer thanh toán -->
@@ -277,6 +305,11 @@
                             <span>Giảm giá</span>
                             <span
                                 th:text="'- ' + ${#numbers.formatDecimal(cart.voucherDiscount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        </div>
+                        <div class="summary-row text-success" th:if="${cart.usePoints and cart.pointDiscount > 0}">
+                            <span>Khấu trừ điểm</span>
+                            <span
+                                th:text="'- ' + ${#numbers.formatDecimal(cart.pointDiscount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
                         </div>
                         <div class="summary-row">
                             <span>Thuế VAT (2%)</span>

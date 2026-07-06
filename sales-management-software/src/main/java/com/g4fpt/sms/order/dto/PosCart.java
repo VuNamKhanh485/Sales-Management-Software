@@ -17,6 +17,10 @@ public class PosCart {
     private Long customerId;
     private String customerName;
     private String customerPhone;
+    /** Điểm tích luỹ khả dụng của khách hàng */
+    private Integer customerAvailablePoints = 0;
+    /** Có áp dụng điểm không */
+    private boolean usePoints = false;
 
     private String voucherCode;
     private BigDecimal voucherDiscount = BigDecimal.ZERO;
@@ -24,6 +28,9 @@ public class PosCart {
     private BigDecimal vatRate = new BigDecimal("0.02"); // 2%
     private Long paymentMethodId;
     private BigDecimal givenAmount = BigDecimal.ZERO;
+
+    /** 1 điểm = 200đ */
+    public static final int POINT_VALUE = 200;
 
     // Tổng tiền hàng (chưa VAT, chưa giảm giá)
     public BigDecimal getTotalAmount() {
@@ -39,11 +46,30 @@ public class PosCart {
                 .setScale(0, RoundingMode.HALF_UP);
     }
 
-    // Khách phải trả
+    /** Số điểm sẽ dùng: min(available, finalAmount / 200) */
+    public int getPointsToUse() {
+        if (!usePoints || customerAvailablePoints == null || customerAvailablePoints <= 0)
+            return 0;
+        BigDecimal amountBeforePoints = getTotalAmount()
+                .add(getVatAmount())
+                .subtract(voucherDiscount)
+                .max(BigDecimal.ZERO);
+        int maxPointsCanUse = amountBeforePoints.divide(
+                BigDecimal.valueOf(POINT_VALUE), 0, RoundingMode.FLOOR).intValue();
+        return Math.min(customerAvailablePoints, maxPointsCanUse);
+    }
+
+    /** Số tiền giảm từ điểm */
+    public BigDecimal getPointDiscount() {
+        return BigDecimal.valueOf(getPointsToUse() * POINT_VALUE);
+    }
+
+    // Khách phải trả (sau voucher - điểm)
     public BigDecimal getFinalAmount() {
         return getTotalAmount()
                 .add(getVatAmount())
                 .subtract(voucherDiscount)
+                .subtract(getPointDiscount())
                 .max(BigDecimal.ZERO);
     }
 

@@ -17,5 +17,6 @@ public class POSCheckoutRequest {
     private BigDecimal paidAmount;
     private BigDecimal vatRate;
     private String note;
+    private boolean usePoints;
     private List<POSCartItemRequest> items;
 }

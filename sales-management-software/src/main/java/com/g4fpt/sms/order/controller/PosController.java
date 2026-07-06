@@ -38,18 +38,11 @@ public class PosController {
     private final com.g4fpt.sms.voucher.repository.VoucherRepository voucherRepository;
     private final InventoryRepository inventoryRepository;
 
-    /**
-     * Khởi tạo session POS mới (mặc định) khi người dùng chưa có session.
-     */
     @ModelAttribute("posSession")
     public PosSessionData setupSession() {
         return new PosSessionData();
     }
 
-    /**
-     * Trang POS chính: hiển thị giỏ hàng, danh sách sản phẩm, thanh toán v.v.
-     * Nếu successOrderId != null thì hiển thị modal hóa đơn thành công.
-     */
     // ============== Main ==============
     @GetMapping
     public String showPosScreen(@ModelAttribute("posSession") PosSessionData session,
@@ -67,10 +60,6 @@ public class PosController {
     }
 
     // ---------- Order tabs ----------
-
-    /**
-     * Tạo đơn hàng mới (tối đa 5 đơn cùng lúc).
-     */
     @GetMapping("/new-order")
     public String newOrder(@ModelAttribute("posSession") PosSessionData s, RedirectAttributes ra) {
         if (!s.canAddOrder())
@@ -80,27 +69,18 @@ public class PosController {
         return "redirect:/pos";
     }
 
-    /**
-     * Chuyển qua đơn hàng khác (theo index).
-     */
     @GetMapping("/switch/{index}")
     public String switchOrder(@PathVariable int index, @ModelAttribute("posSession") PosSessionData s) {
         s.switchOrder(index);
         return "redirect:/pos";
     }
 
-    /**
-     * Đóng (xóa) đơn hàng theo index.
-     */
     @GetMapping("/close/{index}")
     public String closeOrder(@PathVariable int index, @ModelAttribute("posSession") PosSessionData s) {
         s.removeOrder(index);
         return "redirect:/pos";
     }
 
-    /**
-     * Xóa toàn bộ giỏ hàng hiện tại (sản phẩm, khách hàng, voucher, tiền).
-     */
     @GetMapping("/clear")
     public String clearCart(@ModelAttribute("posSession") PosSessionData s) {
         var cart = s.getActiveCart();
@@ -108,6 +88,8 @@ public class PosController {
         cart.setCustomerId(null);
         cart.setCustomerName(null);
         cart.setCustomerPhone(null);
+        cart.setCustomerAvailablePoints(0);
+        cart.setUsePoints(false);
         cart.setVoucherCode(null);
         cart.setVoucherDiscount(BigDecimal.ZERO);
         cart.setGivenAmount(BigDecimal.ZERO);
@@ -115,10 +97,6 @@ public class PosController {
     }
 
     // ---------- Cart (add/update/remove items) ----------
-
-    /**
-     * Thêm sản phẩm vào giỏ hàng bằng SKU hoặc Barcode (qua tham số k).
-     */
     @GetMapping("/add")
     public String addToCart(@RequestParam String k, @ModelAttribute("posSession") PosSessionData s,
             RedirectAttributes ra) {
@@ -132,10 +110,6 @@ public class PosController {
         return "redirect:/pos";
     }
 
-    /**
-     * Thêm sản phẩm vào giỏ hàng bằng ID sản phẩm (từ danh sách sản phẩm trong
-     * iframe).
-     */
     @GetMapping("/add-by-id")
     public String addToCartById(@RequestParam Long productUnitId,
             @ModelAttribute("posSession") PosSessionData s, RedirectAttributes ra) {
@@ -148,10 +122,6 @@ public class PosController {
         return "redirect:/pos";
     }
 
-    /**
-     * Cập nhật số lượng của item trong giỏ hàng.
-     * Nếu quantity <= 0 thì xóa item đó.
-     */
     @GetMapping("/update-qty")
     public String updateQuantity(@RequestParam int index, @RequestParam int quantity,
             @ModelAttribute("posSession") PosSessionData s) {
@@ -165,9 +135,6 @@ public class PosController {
         return "redirect:/pos";
     }
 
-    /**
-     * Đổi đơn vị tính (ĐVT) cho item trong giỏ hàng.
-     */
     @GetMapping("/update-unit")
     public String updateUnit(@RequestParam int index, @RequestParam Long productUnitId,
             @ModelAttribute("posSession") PosSessionData s) {
@@ -183,9 +150,6 @@ public class PosController {
         return "redirect:/pos";
     }
 
-    /**
-     * Xóa một item khỏi giỏ hàng theo index.
-     */
     @GetMapping("/remove")
     public String removeCartItem(@RequestParam int index, @ModelAttribute("posSession") PosSessionData s) {
         var items = s.getActiveCart().getItems();
@@ -195,10 +159,6 @@ public class PosController {
     }
 
     // ---------- Customer ----------
-
-    /**
-     * Tìm kiếm khách hàng theo số điện thoại (chứa kết quả trong model).
-     */
     @GetMapping("/search-customer")
     public String findCustomers(@RequestParam String phone, @ModelAttribute("posSession") PosSessionData session,
             @AuthenticationPrincipal CustomUserDetails user, Model model) {
@@ -217,9 +177,6 @@ public class PosController {
         return "order/pos";
     }
 
-    /**
-     * Chọn khách hàng cho đơn hàng đang active.
-     */
     @GetMapping("/set-customer")
     public String setCustomer(@RequestParam Long customerId, @RequestParam String customerName,
             @RequestParam String customerPhone, @ModelAttribute("posSession") PosSessionData s,
@@ -233,26 +190,25 @@ public class PosController {
         cart.setCustomerId(customerId);
         cart.setCustomerName(customerName);
         cart.setCustomerPhone(customerPhone);
+        // Tổng điểm khả dụng = totalPoint - usedPoint
+        int availablePoints = c.getTotalPoint() - c.getUsedPoint();
+        cart.setCustomerAvailablePoints(Math.max(0, availablePoints));
+        cart.setUsePoints(false);
         return "redirect:/pos";
     }
 
-    /**
-     * Bỏ chọn khách hàng khỏi đơn hàng đang active.
-     */
     @GetMapping("/remove-customer")
     public String removeCustomer(@ModelAttribute("posSession") PosSessionData s) {
         var cart = s.getActiveCart();
         cart.setCustomerId(null);
         cart.setCustomerName(null);
         cart.setCustomerPhone(null);
+        cart.setCustomerAvailablePoints(0);
+        cart.setUsePoints(false);
         return "redirect:/pos";
     }
 
     // ---------- Voucher ----------
-
-    /**
-     * Áp dụng mã giảm giá cho đơn hàng. Ủy thác tính toán cho service.
-     */
     @GetMapping("/apply-voucher")
     public String applyVoucher(@RequestParam String code, @ModelAttribute("posSession") PosSessionData s,
             RedirectAttributes ra) {
@@ -268,9 +224,6 @@ public class PosController {
         return "redirect:/pos";
     }
 
-    /**
-     * Bỏ mã giảm giá khỏi đơn hàng đang active.
-     */
     @GetMapping("/remove-voucher")
     public String removeVoucher(@ModelAttribute("posSession") PosSessionData s) {
         var cart = s.getActiveCart();
@@ -279,11 +232,20 @@ public class PosController {
         return "redirect:/pos";
     }
 
-    // ---------- Branch ----------
+    // ---------- Points ----------
+    @GetMapping("/toggle-points")
+    public String togglePoints(@ModelAttribute("posSession") PosSessionData s,
+            @RequestParam boolean enabled, RedirectAttributes ra) {
+        var cart = s.getActiveCart();
+        if (cart.getCustomerId() == null) {
+            ra.addFlashAttribute("error", "Vui lòng chọn khách hàng trước khi áp dụng điểm!");
+            return "redirect:/pos";
+        }
+        cart.setUsePoints(enabled);
+        return "redirect:/pos";
+    }
 
-    /**
-     * Đổi chi nhánh (chỉ OWNER mới có quyền).
-     */
+    // ---------- Branch ----------
     @GetMapping("/change-branch")
     public String changeBranch(@RequestParam Long branchId, @ModelAttribute("posSession") PosSessionData s,
             @AuthenticationPrincipal CustomUserDetails user) {
@@ -293,10 +255,6 @@ public class PosController {
     }
 
     // ---------- Product list (iframe modal) ----------
-
-    /**
-     * Trả về danh sách sản phẩm (dùng trong iframe cho modal chọn sản phẩm).
-     */
     @GetMapping("/product-list")
     public String getProductList(@ModelAttribute("posSession") PosSessionData s,
             @RequestParam(required = false) Long categoryId,
@@ -309,7 +267,6 @@ public class PosController {
                     .map(com.g4fpt.sms.branch.entity.Branch::getId).orElse(null);
             s.setActiveBranchId(branchId);
         }
-
         Map<Long, Integer> stockMap = new HashMap<>();
         if (branchId != null) {
             final Long bId = branchId;
@@ -327,10 +284,6 @@ public class PosController {
     }
 
     // ---------- Voucher list (iframe modal) ----------
-
-    /**
-     * Trả về danh sách voucher khả dụng (dùng trong iframe cho modal chọn voucher).
-     */
     @GetMapping("/voucher-list")
     public String getAvailableVouchers(@ModelAttribute("posSession") PosSessionData s, Model model) {
         Long customerId = s.getActiveCart().getCustomerId();
@@ -353,11 +306,6 @@ public class PosController {
     }
 
     // ---------- Sales history ----------
-
-    /**
-     * Lịch sử bán hàng: OWNER xem tất cả, staff xem đơn của mình.
-     * Có thể lọc theo ngày.
-     */
     @GetMapping("/sales-history")
     public String getSalesHistory(@AuthenticationPrincipal CustomUserDetails user,
             @RequestParam(required = false) String date, Model model) {
@@ -369,7 +317,6 @@ public class PosController {
                 ? orderRepo.findByDateRange(ld.atStartOfDay(), ld.atTime(java.time.LocalTime.MAX))
                 : orderRepo.findByCreatedByAndDateRange(
                         user.getEmployee().getId(), ld.atStartOfDay(), ld.atTime(java.time.LocalTime.MAX));
-
         var branchIds = orders.stream().map(com.g4fpt.sms.order.entity.OrderTransaction::getBranchId)
                 .filter(Objects::nonNull).collect(Collectors.toSet());
         var branchNames = branchRepo.findAllById(branchIds).stream()
@@ -382,9 +329,6 @@ public class PosController {
         return "order/pos-history";
     }
 
-    /**
-     * Chi tiết đơn hàng: load branch từ DB, fallback là chuỗi rỗng.
-     */
     @GetMapping("/sales-history/{id}")
     public String getOrderDetail(@PathVariable Long id, Model model) {
         var order = orderRepo.findById(id)
@@ -393,7 +337,6 @@ public class PosController {
         var branch = order.getBranchId() != null
                 ? branchRepo.findById(order.getBranchId()).orElse(null)
                 : null;
-
         model.addAttribute("branchName", branch != null ? branch.getName() : "");
         model.addAttribute("branchAddress", branch != null ? branch.getAddress() : "");
         model.addAttribute("branchPhone", branch != null ? branch.getPhone() : "");
@@ -401,11 +344,6 @@ public class PosController {
     }
 
     // ---------- Checkout ----------
-
-    /**
-     * Xử lý thanh toán: build request → gọi service → xóa đơn khỏi session →
-     * redirect.
-     */
     @PostMapping("/checkout")
     public String checkout(@ModelAttribute("posSession") PosSessionData s,
             @RequestParam(required = false) String note,
@@ -431,11 +369,6 @@ public class PosController {
     }
 
     // ============== Private helpers ==============
-
-    /**
-     * Khởi tạo branch cho session nếu chưa có (dùng branch của user hoặc branch đầu
-     * tiên).
-     */
     private void initSessionBranch(PosSessionData s, CustomUserDetails user) {
         if (s.getActiveBranchId() == null) {
             if (user != null && user.getBranchId() != null)
@@ -445,10 +378,6 @@ public class PosController {
         }
     }
 
-    /**
-     * Đổ toàn bộ dữ liệu cần thiết (branch, cart, categories, dropdown units) vào
-     * model.
-     */
     private void buildPosModel(PosSessionData s, CustomUserDetails user, Model model) {
         if (s.getActiveBranchId() != null)
             branchRepo.findById(s.getActiveBranchId()).ifPresent(b -> model.addAttribute("activeBranch", b));
@@ -463,10 +392,6 @@ public class PosController {
         populateDropdownUnits(s, model);
     }
 
-    /**
-     * Thêm sản phẩm vào cart. Nếu đã có trong cart → tăng số lượng; nếu chưa → tạo
-     * item mới.
-     */
     private void addProductToCart(PosCart cart, ProductUnit pu) {
         cart.getItems().stream()
                 .filter(i -> i.getProductUnitId().equals(pu.getId()))
@@ -486,10 +411,6 @@ public class PosController {
                         });
     }
 
-    /**
-     * Đổ danh sách ĐVT có thể chọn cho từng item trong cart vào model (cho
-     * dropdown).
-     */
     private void populateDropdownUnits(PosSessionData s, Model model) {
         Map<Long, List<ProductUnit>> map = new HashMap<>();
         s.getActiveCart().getItems().forEach(item -> productUnitRepo.findById(item.getProductUnitId()).ifPresent(pu -> {
@@ -499,7 +420,6 @@ public class PosController {
         model.addAttribute("cartItemUnitsMap", map);
     }
 
-    /** Build POSCheckoutRequest từ session data + form params. */
     private POSCheckoutRequest buildCheckoutRequest(PosSessionData s, Long paymentMethodId,
             BigDecimal givenAmount, String note,
             CustomUserDetails user) {
@@ -517,6 +437,7 @@ public class PosController {
         req.setPaidAmount(givenAmount);
         req.setVatRate(cart.getVatRate());
         req.setNote(note);
+        req.setUsePoints(cart.isUsePoints());
         req.setItems(cart.getItems().stream().map(item -> {
             var r = new POSCartItemRequest();
             r.setProductUnitId(item.getProductUnitId());

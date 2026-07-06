@@ -34,5 +34,4 @@ public interface VoucherRepository extends JpaRepository<Voucher, Long> {
     Page<Voucher> findByStatusAndStartAtLessThanEqualAndEndAtGreaterThanEqual(
             VoucherStatus status, LocalDateTime startAt, LocalDateTime endAt, Pageable pageable);
 
-
 }
