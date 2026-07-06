@@ -74,10 +74,24 @@ body {
     border-color: var(--primary);
     box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3);
 }
+.order-tab-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+}
+.order-tab-link:hover {
+    color: inherit;
+    text-decoration: none;
+}
 .order-tab .close-btn { 
     font-size: 11px; 
     opacity: 0.5; 
     transition: opacity 0.2s;
+    text-decoration: none;
+    color: inherit;
+    margin-left: 4px;
 }
 .order-tab:hover .close-btn { opacity: 1; }
 .order-tab.active .close-btn { color: white; opacity: 0.8; }

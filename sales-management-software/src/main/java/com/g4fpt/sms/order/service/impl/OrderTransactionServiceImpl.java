@@ -34,6 +34,10 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
     private final CustomerService customerService;
     private final InventoryRepository inventoryRepository;
 
+    /**
+     * Xử lý thanh toán đơn hàng: tính tiền, VAT, voucher, trừ tồn kho, tạo OrderTransaction + details.
+     * Đây là method chính, chạy trong 1 transaction.
+     */
     @Override
     @Transactional
     public OrderTransaction processCheckout(POSCheckoutRequest request) {
@@ -74,10 +78,12 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         BigDecimal changeAmount = paidAmount.subtract(finalAmount).max(BigDecimal.ZERO);
 
         // 6. Tạo OrderTransaction
+        String orderCode = "ORD-" + java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
         OrderTransaction order = OrderTransaction.builder()
                 .branchId(request.getBranchId())
                 .createdBy(request.getEmployeeId())
-                .code("ORD-" + System.currentTimeMillis())
+                .code(orderCode)
                 .totalAmount(totalAmount)
                 .discountAmount(discountAmount)
                 .finalAmount(finalAmount)
@@ -156,6 +162,11 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         return savedOrder;
     }
 
+    /**
+     * Kiểm tra mã giảm giá còn hiệu lực: tồn tại, active, trong thời gian,
+     * đạt giá trị tối thiểu, đúng hạng khách hàng.
+     * Ném RuntimeException nếu không hợp lệ.
+     */
     @Override
     public Voucher validateVoucher(String code, BigDecimal totalAmount, Long customerId) {
         if (customerId == null) {
@@ -208,21 +219,29 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         return voucher;
     }
 
+    /**
+     * Kiểm tra voucher + tính số tiền giảm (dùng cho Controller apply-voucher).
+     */
+    @Override
+    public BigDecimal calculateVoucherDiscount(String code, BigDecimal totalAmount, Long customerId) {
+        Voucher v = validateVoucher(code, totalAmount, customerId);
+        return calculateVoucherDiscount(v, totalAmount);
+    }
+
+    /** Tính discount: PERCENT → % * tổng (có max), AMOUNT → giá trị cố định. */
     private BigDecimal calculateVoucherDiscount(Voucher voucher, BigDecimal totalAmount) {
         BigDecimal discount;
 
         if (voucher.getDiscountType().name().equals("PERCENT")) {
             discount = totalAmount.multiply(voucher.getDiscountValue())
                     .divide(new BigDecimal("100"), 0, RoundingMode.HALF_UP);
-            // Giới hạn max discount nếu có
             if (voucher.getMaxDiscountAmount() != null) {
                 discount = discount.min(voucher.getMaxDiscountAmount());
             }
         } else {
-            // AMOUNT
             discount = voucher.getDiscountValue();
         }
 
-        return discount.min(totalAmount); // không giảm quá tổng tiền
+        return discount.min(totalAmount);
     }
 }

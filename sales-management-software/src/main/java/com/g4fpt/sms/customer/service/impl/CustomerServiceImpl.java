@@ -6,6 +6,7 @@ import com.g4fpt.sms.customer.entity.CustomerRank;
 import com.g4fpt.sms.customer.enums.CustomerStatus;
 import com.g4fpt.sms.customer.repository.CustomerRankRepository;
 import com.g4fpt.sms.customer.repository.CustomerRepository;
+import com.g4fpt.sms.customer.repository.CustomerProjection;
 import com.g4fpt.sms.customer.service.CustomerService;
 import com.g4fpt.sms.employee.entity.Employee;
 import com.g4fpt.sms.employee.repository.EmployeeRepository;
@@ -28,12 +29,33 @@ public class CustomerServiceImpl implements CustomerService {
     private final EmployeeRepository employeeRepository;
     private final OrderTransactionRepository orderTransactionRepository;
 
+    private void validateCustomerUniqueness(CustomerRequestDTO dto, Long id) {
+        String phone = dto.getPhone();
+        String email = dto.getEmail();
+
+        if (phone != null && !phone.trim().isEmpty()) {
+            boolean phoneExists = (id == null) 
+                ? customerRepository.existsByPhone(phone.trim()) 
+                : customerRepository.existsByPhoneAndIdNot(phone.trim(), id);
+            if (phoneExists) {
+                throw new RuntimeException("Số điện thoại đã tồn tại trong hệ thống!");
+            }
+        }
+
+        if (email != null && !email.trim().isEmpty()) {
+            boolean emailExists = (id == null) 
+                ? customerRepository.existsByEmail(email.trim()) 
+                : customerRepository.existsByEmailAndIdNot(email.trim(), id);
+            if (emailExists) {
+                throw new RuntimeException("Email đã tồn tại trong hệ thống!");
+            }
+        }
+    }
+
     @Override
     @Transactional
     public Customer createCustomer(CustomerRequestDTO dto, Long createdById) {
-        if (customerRepository.existsByPhone(dto.getPhone())) {
-            throw new RuntimeException("Số điện thoại đã tồn tại trong hệ thống!");
-        }
+        validateCustomerUniqueness(dto, null);
 
         Customer customer = new Customer();
         customer.setFullName(dto.getFullName());
@@ -61,10 +83,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     public Customer updateCustomer(Long id, CustomerRequestDTO dto, Long updatedById) {
         Customer customer = getCustomerById(id);
-
-        if (!customer.getPhone().equals(dto.getPhone()) && customerRepository.existsByPhone(dto.getPhone())) {
-            throw new RuntimeException("Số điện thoại mới đã được sử dụng bởi khách hàng khác!");
-        }
+        validateCustomerUniqueness(dto, id);
 
         customer.setFullName(dto.getFullName());
         customer.setPhone(dto.getPhone());
@@ -92,16 +111,16 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Page<Customer> getCustomers(String keyword, int page, int size) {
+    public Page<CustomerProjection> getCustomers(String keyword, int page, int size) {
 
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("id").descending());
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            String cleanKeyword = keyword.trim();
+            String cleanKeyword = keyword.trim().replaceAll("\\s+", " ");
             return customerRepository.searchByPhoneOrName(cleanKeyword, pageable);
         }
 
-        return customerRepository.findAll(pageable);
+        return customerRepository.findAllProjectedBy(pageable);
     }
 
     @Override
@@ -139,65 +158,4 @@ public class CustomerServiceImpl implements CustomerService {
                 });
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*public Customer saveCustomer(CustomerRequestDTO dto, Long operatorId) {
-    boolean isCreating = (dto.getId() == null);
-
-    Customer customer;
-    if (isCreating) {
-
-        if (customerRepository.existsByPhone(dto.getPhone())) {
-            throw new RuntimeException("Số điện thoại đã tồn tại trong hệ thống!");
-        }
-        customer = new Customer();
-        customer.setCustomerCode("CUS-" + System.currentTimeMillis());
-        if (operatorId != null) {
-            Employee creator = employeeRepository.findById(operatorId).orElse(null);
-            customer.setCreatedBy(creator);
-        }
-    } else {
-
-        customer = customerRepository.findById(dto.getId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
-
-        if (!customer.getPhone().equals(dto.getPhone())
-                && customerRepository.existsByPhone(dto.getPhone())) {
-            throw new RuntimeException("Số điện thoại mới đã được sử dụng bởi khách hàng khác!");
-        }
-        Employee updater = new Employee();
-        updater.setId(operatorId);
-        customer.setUpdatedBy(updater);
-    }
-
-    customer.setFullName(dto.getFullName());
-    customer.setPhone(dto.getPhone());
-    customer.setEmail(dto.getEmail());
-    customer.setAddress(dto.getAddress());
-    customer.setGender(dto.getGender());
-    customer.setDob(dto.getDob());
-    customer.setNote(dto.getNote());
-    customer.setStatus(dto.getStatus() != null ? dto.getStatus() : CustomerStatus.ACTIVE);
-
-    BigDecimal revenue = isCreating ? BigDecimal.ZERO : customer.getTotalRevenue();
-    long orderCount    = isCreating ? 0L : orderTransactionRepository.countByCustomerId(customer.getId());
-    customer.setCustomerRank(determineRank(revenue, orderCount));
-    return customerRepository.save(customer);
-}*/
 }

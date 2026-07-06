@@ -34,7 +34,7 @@
                 <tr th:each="order : ${orders}">
                     <td class="fw-semibold text-primary" th:text="${order.code}"></td>
                     <td th:if="${isOwner}">
-                        <span class="badge bg-light text-dark border" th:text="${branchNames.get(order.branchId) != null ? branchNames.get(order.branchId) : 'SMS STORE'}"></span>
+                        <span class="badge bg-light text-dark border" th:text="${branchNames.get(order.branchId) != null ? branchNames.get(order.branchId) : '—'}"></span>
                     </td>
                     <td th:text="${#temporals.format(order.createdAt, 'HH:mm dd/MM')}"></td>
                     <td th:text="${order.customer != null ? order.customer.fullName : 'Khách lẻ'}"></td>

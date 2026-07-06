@@ -19,23 +19,21 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
 
     boolean existsByVoucherId(Long voucherId);
 
-    @EntityGraph(attributePaths = {"customer"})
-    List<OrderTransaction> findByCreatedByAndCreatedAtBetweenOrderByCreatedAtDesc(
-            Long createdBy, LocalDateTime startDate, LocalDateTime endDate);
 
-    @Query("SELECT o FROM OrderTransaction o LEFT JOIN FETCH o.customer WHERE o.createdBy = :createdBy AND o.createdAt BETWEEN :start AND :end ORDER BY o.createdAt DESC")
+    @Query(value = "SELECT * FROM OrderTransaction WHERE created_by = :createdBy AND created_at BETWEEN :start AND :end ORDER BY created_at DESC", nativeQuery = true)
     List<OrderTransaction> findByCreatedByAndDateRange(
             @Param("createdBy") Long createdBy,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
-    @Query("SELECT o FROM OrderTransaction o LEFT JOIN FETCH o.customer WHERE o.createdAt BETWEEN :start AND :end ORDER BY o.createdAt DESC")
+
+    @Query(value = "SELECT * FROM OrderTransaction WHERE created_at BETWEEN :start AND :end ORDER BY created_at DESC", nativeQuery = true)
     List<OrderTransaction> findByDateRange(
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
 
-    @Query("SELECT o FROM OrderTransaction o WHERE o.transactionType = 'IMPORT' " +
-           "AND (:status IS NULL OR :status = '' OR o.status = :status) " +
-           "AND (:keyword IS NULL OR :keyword = '' OR LOWER(o.code) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-           "ORDER BY o.createdAt DESC")
+    @Query(value = "SELECT * FROM OrderTransaction WHERE transaction_type = 'IMPORT' " +
+           "AND (:status IS NULL OR :status = '' OR status = :status) " +
+           "AND (:keyword IS NULL OR :keyword = '' OR LOWER(code) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "ORDER BY created_at DESC", nativeQuery = true)
     List<OrderTransaction> searchImports(@Param("status") String status, @Param("keyword") String keyword);
 }
