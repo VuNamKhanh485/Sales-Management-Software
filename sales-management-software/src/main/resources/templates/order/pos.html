@@ -301,8 +301,8 @@
                             <span
                                 th:text="${#numbers.formatDecimal(cart.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
                         </div>
-                        <div class="summary-row text-danger">
-                            <span>Giảm giá</span>
+                        <div class="summary-row text-danger" th:if="${cart.voucherDiscount.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                            <span>Giảm giá voucher</span>
                             <span
                                 th:text="'- ' + ${#numbers.formatDecimal(cart.voucherDiscount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
                         </div>
@@ -314,7 +314,7 @@
                         <div class="summary-row">
                             <span>Thuế VAT (2%)</span>
                             <span
-                                th:text="${#numbers.formatDecimal(cart.vatAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                th:text="${#numbers.formatDecimal(cart.totalAmount.multiply(T(java.math.BigDecimal).valueOf(0.02)), 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
                         </div>
                         <div class="summary-row total">
                             <span>Khách phải trả</span>
