@@ -7,6 +7,8 @@
     <meta name="description" content="Tạo yêu cầu trả/đổi hàng trong hệ thống SMS.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', system-ui, sans-serif; }
         .container { max-width: 800px; margin: 40px auto; }
@@ -86,6 +88,8 @@
     </div>
 
     <script>
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
         let selectedOrder = null;
 
         function searchOrder() {
@@ -201,6 +205,7 @@
             const formData = new FormData(this);
             fetch('/return/api/create', {
                 method: 'POST',
+                headers: { [csrfHeader]: csrfToken },
                 body: formData
             })
             .then(r => r.json())
