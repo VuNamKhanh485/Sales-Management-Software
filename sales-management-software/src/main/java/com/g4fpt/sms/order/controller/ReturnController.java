@@ -28,6 +28,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class ReturnController {
 
     private final ReturnRequestService returnRequestService;
+    private final OrderTransactionRepository orderTransactionRepository;
 
     private CustomUserDetails getCurrentUser() {
         return (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -85,7 +86,6 @@ public class ReturnController {
         try {
             CustomUserDetails user = getCurrentUser();
             Long employeeId = user.getEmployee().getId();
-            Long branchId = user.getBranchId();
 
             // Parse detailIds và quantities
             List<ReturnRequestService.ReturnItemInput> items = new ArrayList<>();
@@ -101,6 +101,11 @@ public class ReturnController {
             if (items.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Chọn ít nhất 1 sản phẩm để trả"));
             }
+
+            // Get branchId from order
+            OrderTransaction order = orderTransactionRepository.findByIdWithDetails(orderId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+            Long branchId = order.getBranchId();
 
             // Upload ảnh
             List<String> imageUrls = new ArrayList<>();
