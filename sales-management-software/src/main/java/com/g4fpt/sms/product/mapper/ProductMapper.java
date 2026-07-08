@@ -30,7 +30,7 @@ public class ProductMapper {
         request.setBrandId(productResponse.getBrand().getId());
 
         request.setName(productResponse.getName());
-        request.setImageUrl(productResponse.getImageUrl());
+        request.setImageName(productResponse.getImageName());
         request.setDescription(productResponse.getDescription());
         request.setStatus(productResponse.getStatus());
         request.setNote(productResponse.getNote());
@@ -66,7 +66,7 @@ public class ProductMapper {
                         product.getBrand()));
 
         response.setName(product.getName());
-        response.setImageUrl(product.getImageName());
+        response.setImageName(product.getImageName());
         response.setDescription(product.getDescription());
         response.setStatus(product.getStatus());
         response.setNote(product.getNote());
