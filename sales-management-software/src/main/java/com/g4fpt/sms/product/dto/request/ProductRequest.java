@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -24,7 +25,7 @@ public class ProductRequest {
     @Size(message = "Name must be at least 3 chars")
     private String name;
     @NotBlank(message = "Image in required")
-    private String imageUrl;
+    private MultipartFile imageFile;
     private String description;
     @NotNull(message = "Status is required")
     private ProductStatus status;

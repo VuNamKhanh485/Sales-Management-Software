@@ -169,7 +169,10 @@
                 <h1 class="form-card__title" th:text="${id != null} ? 'Cập nhật Sản phẩm' : 'Thêm Sản phẩm mới'"></h1>
             </div>
 
-            <form th:action="${id != null} ? @{/product/form/{id}(id=${id}, from=${from})} : @{/product/form(from=${from})}" method="post" th:object="${productRequest}">
+            <form th:action="${id != null} ? @{/product/form/{id}(id=${id}, from=${from})} : @{/product/form(from=${from})}"
+                  method="post"
+                  th:object="${productRequest}"
+                  enctype="multipart/form-data">
                 <div class="form-grid">
                     
                     <div class="section-title">Thông tin cơ bản</div>
@@ -190,7 +193,6 @@
                             Danh mục
                             <select class="form-select select2-init"
                                     id="categoryId"
-                                    name="categoryId"
                                     th:field="*{categoryId}"
                                     required>
                                 <option value="">-- Chọn danh mục --</option>
@@ -207,7 +209,9 @@
                     <div class="form-group">
                         <label class="form-label">
                             Thương hiệu
-                            <select class="form-select select2-init" id="brandId" name="brandId" th:field="*{brandId}">
+                            <select class="form-select select2-init"
+                                    id="brandId"
+                                    th:field="*{brandId}">
                                 <option value="">-- Chọn thương hiệu --</option>
                                 <option th:each="b : ${brandList}" th:value="${b.id}" th:text="${b.name}"></option>
                             </select>
@@ -221,30 +225,34 @@
 
                     <div class="form-group form-group--full">
                         <label class="form-label">
-                            Ảnh (URL)
-                            <input type="text" class="form-input" name="imageUrl" th:field="*{imageUrl}" placeholder="https://..."/>
+                            Ảnh
+                            <input type="file"
+                                   class="form-input"
+                                   th:field="*{imageFile}"
+                                   accept="image/*"/>
                         </label>
                     </div>
 
                     <div class="form-group form-group--full">
                         <label class="form-label">
                             Mô tả
-                            <textarea class="form-textarea" name="description" rows="3" th:field="*{description}"></textarea>
+                            <textarea class="form-textarea" rows="3" th:field="*{description}"></textarea>
                         </label>
                     </div>
 
                     <div class="form-group form-group--full">
                         <label class="form-label">
                             Ghi chú
-                            <textarea class="form-textarea" name="note" rows="2" th:field="*{note}"></textarea>
+                            <textarea class="form-textarea" rows="2" th:field="*{note}"></textarea>
                         </label>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">
                             Trạng thái
-                            <select class="form-select" name="status" th:field="*{status}">
-                                <option th:each="s : ${T(com.g4fpt.sms.product.enums.ProductStatus).values()}" th:value="${s}" th:text="${s}"></option>
+                            <select class="form-select" th:field="*{status}">
+                                <option th:each="s : ${T(com.g4fpt.sms.product.enums.ProductStatus).values()}"
+                                        th:value="${s}" th:text="${s}"></option>
                             </select>
                         </label>
                     </div>

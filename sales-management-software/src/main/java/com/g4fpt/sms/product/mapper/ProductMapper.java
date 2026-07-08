@@ -6,7 +6,6 @@ import com.g4fpt.sms.product.dto.request.ProductRequest;
 import com.g4fpt.sms.product.dto.response.ProductResponse;
 import com.g4fpt.sms.product.entity.Product;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -67,7 +66,7 @@ public class ProductMapper {
                         product.getBrand()));
 
         response.setName(product.getName());
-        response.setImageUrl(product.getImageUrl());
+        response.setImageUrl(product.getImageName());
         response.setDescription(product.getDescription());
         response.setStatus(product.getStatus());
         response.setNote(product.getNote());
