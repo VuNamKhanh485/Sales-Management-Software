@@ -26,6 +26,7 @@ public class ProductRequest {
     private String name;
     @NotBlank(message = "Image in required")
     private MultipartFile imageFile;
+    private String imageName;
     private String description;
     @NotNull(message = "Status is required")
     private ProductStatus status;
