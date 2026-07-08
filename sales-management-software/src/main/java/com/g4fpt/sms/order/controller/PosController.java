@@ -19,8 +19,6 @@ import com.g4fpt.sms.inventory.entity.Inventory;
 import com.g4fpt.sms.inventory.repository.InventoryRepository;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -643,7 +641,7 @@ public class PosController {
             newItem.setPrice(pu.getPrice());
             newItem.setQuantity(1);
             newItem.setUnitName(pu.getUnit() != null ? pu.getUnit().getName() : "");
-            newItem.setImageUrl(pu.getProduct().getImageUrl());
+            newItem.setImageUrl(pu.getProduct().getImageName());
             cart.getItems().add(newItem);
         }
     }

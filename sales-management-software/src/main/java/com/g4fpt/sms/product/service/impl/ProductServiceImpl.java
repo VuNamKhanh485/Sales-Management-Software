@@ -44,14 +44,15 @@ public class ProductServiceImpl implements ProductService {
 
     @Transactional
     @Override
-    public void create(ProductRequest productRequest, MultipartFile imageFile) throws IOException {
+    public void create(ProductRequest productRequest) throws IOException {
         validate(productRequest, null);
         Product product = new Product();
         requestToProduct(productRequest, product);
 
+        MultipartFile imageFile = productRequest.getImageFile();
         if (!imageFile.isEmpty()) {
             String fileName = fileStorageService.saveFile(imageFile);
-            product.setImageUrl(fileName);
+            product.setImageName(fileName);
         }
 
         product.setProductUnits(
@@ -62,18 +63,19 @@ public class ProductServiceImpl implements ProductService {
 
     @Transactional
     @Override
-    public void update(long id, ProductRequest productRequest, MultipartFile imageFile) throws IOException {
+    public void update(long id, ProductRequest productRequest) throws IOException {
         validate(productRequest, id);
         Product product = getProductById(id);
         requestToProduct(productRequest, product);
-
+        
+        MultipartFile imageFile = productRequest.getImageFile();
         if (!imageFile.isEmpty()) {
 
-            fileStorageService.deleteFile(product.getImageUrl());
+            fileStorageService.deleteFile(product.getImageName());
 
             String fileName = fileStorageService.saveFile(imageFile);
 
-            product.setImageUrl(fileName);
+            product.setImageName(fileName);
         }
 
         product.setProductUnits(

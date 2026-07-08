@@ -16,7 +16,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.io.IOException;
 
 
 @Controller
@@ -93,7 +96,8 @@ public class ProductController {
                        BindingResult result, Model model,
                        @PathVariable(required = false) Long id,
                        @RequestParam(required = false) String from,
-                       RedirectAttributes redirectAttributes) {
+                       @RequestParam("ImageFile") MultipartFile imageFile,
+                       RedirectAttributes redirectAttributes) throws IOException {
         if (result.hasErrors()) {
             addAttributeToForm(model, id);
             model.addAttribute("from", from);

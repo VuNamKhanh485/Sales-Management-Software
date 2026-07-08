@@ -226,8 +226,10 @@
                                 </td>
                                 <td th:text="${currentPage * size + stat.index + 1}"></td>
                                 <td>
-                                    <img th:if="${p.imageUrl != null and !#strings.isEmpty(p.imageUrl)}" th:src="${p.imageUrl}" class="product-img" alt=""/>
-                                    <div th:unless="${p.imageUrl != null and !#strings.isEmpty(p.imageUrl)}" class="product-img-placeholder">
+                                    <img th:if="${p.imageName != null and !#strings.isEmpty(p.imageName)}"
+                                         th:src="@{'/images/' + ${p.imageName}}"
+                                         class="product-img" alt=""/>
+                                    <div th:unless="${p.imageName != null and !#strings.isEmpty(p.imageName)}" class="product-img-placeholder">
                                         IMG
                                     </div>
                                 </td>
