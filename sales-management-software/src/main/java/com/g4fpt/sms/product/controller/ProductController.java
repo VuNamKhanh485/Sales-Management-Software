@@ -96,7 +96,6 @@ public class ProductController {
                        BindingResult result, Model model,
                        @PathVariable(required = false) Long id,
                        @RequestParam(required = false) String from,
-                       @RequestParam("ImageFile") MultipartFile imageFile,
                        RedirectAttributes redirectAttributes) throws IOException {
         if (result.hasErrors()) {
             addAttributeToForm(model, id);

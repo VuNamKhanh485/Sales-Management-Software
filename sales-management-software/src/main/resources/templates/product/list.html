@@ -128,6 +128,23 @@
         .modal-close {
             background: none; border: none; font-size: 20px; cursor: pointer; color: var(--ink-muted-48);
         }
+        .icon-eye-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            color: var(--ink-muted-48);
+            display: inline-flex;
+            line-height: 0; /* tránh khoảng trắng thừa quanh icon */
+        }
+        .icon-eye {
+            width: 15px;
+            height: 15px;
+            color: var(--ink-muted-48);
+            transition: color 0.15s;
+        }
+        .icon-eye-btn:hover svg { color: var(--primary); }
     </style>
 </head>
 <body>
@@ -207,16 +224,76 @@
                             <th style="width:40px;">#</th>
                             <th style="width:52px;"></th>
                             <th>
-                                <a class="sort-link" th:href="@{/product(page=0,size=${size},keyword=${filter.keyword},brandId=${filter.brandId},categoryId=${filter.categoryId},status=${filter.status},sortField='name',sortDir=${sortField=='name'?reverseSortDir:'asc'})}">
+                                <a class="sort-link"
+                                   th:href="@{/product(
+                                   page=0,
+                                   size=${size},
+                                   keyword=${filter.keyword},
+                                   brandId=${filter.brandId},
+                                   categoryId=${filter.categoryId},
+                                   status=${filter.status},
+                                   sortField='name',
+                                   sortDir=${sortField=='name'?reverseSortDir:'asc'})}">
                                     Tên sản phẩm
                                     <span th:if="${sortField=='name'}" th:text="${sortDir=='asc'?'↑':'↓'}"></span>
                                 </a>
                             </th>
-                            <th>SKU cơ bản</th>
-                            <th>Danh mục</th>
-                            <th>Thương hiệu</th>
                             <th>
-                                <a class="sort-link" th:href="@{/product(page=0,size=${size},keyword=${filter.keyword},brandId=${filter.brandId},categoryId=${filter.categoryId},status=${filter.status},sortField='status',sortDir=${sortField=='status'?reverseSortDir:'asc'})}">
+                                <a class="sort-link"
+                                   th:href="@{/product(
+                                   page=0,
+                                   size=${size},
+                                   keyword=${filter.keyword},
+                                   brandId=${filter.brandId},
+                                   categoryId=${filter.categoryId},
+                                   status=${filter.status},
+                                   sortField='baseSku',
+                                   sortDir=${sortField=='baseSku'?reverseSortDir:'asc'})}">
+                                    SKU cơ bản
+                                    <span th:if="${sortField=='baseSku'}" th:text="${sortDir=='asc'?'↑':'↓'}"></span>
+                                </a>
+                            </th>
+                            <th>
+                                <a class="sort-link"
+                                   th:href="@{/product(
+                                   page=0,
+                                   size=${size},
+                                   keyword=${filter.keyword},
+                                   brandId=${filter.brandId},
+                                   categoryId=${filter.categoryId},
+                                   status=${filter.status},
+                                   sortField='category',
+                                   sortDir=${sortField=='category'?reverseSortDir:'asc'})}">
+                                    Danh mục
+                                    <span th:if="${sortField=='category'}" th:text="${sortDir=='asc'?'↑':'↓'}"></span>
+                                </a>
+                            </th>
+                            <th>
+                                <a class="sort-link"
+                                   th:href="@{/product(
+                                   page=0,
+                                   size=${size},
+                                   keyword=${filter.keyword},
+                                   brandId=${filter.brandId},
+                                   categoryId=${filter.categoryId},
+                                   status=${filter.status},
+                                   sortField='brand',
+                                   sortDir=${sortField=='brand'?reverseSortDir:'asc'})}">
+                                    Thương hiệu
+                                    <span th:if="${sortField=='brand'}" th:text="${sortDir=='asc'?'↑':'↓'}"></span>
+                                </a>
+                            </th>
+                            <th>
+                                <a class="sort-link"
+                                   th:href="@{/product(
+                                   page=0,
+                                   size=${size},
+                                   keyword=${filter.keyword},
+                                   brandId=${filter.brandId},
+                                   categoryId=${filter.categoryId},
+                                   status=${filter.status},
+                                   sortField='status',
+                                   sortDir=${sortField=='status'?reverseSortDir:'asc'})}">
                                     Trạng thái
                                     <span th:if="${sortField=='status'}" th:text="${sortDir=='asc'?'↑':'↓'}"></span>
                                 </a>
@@ -306,11 +383,12 @@
                                                     <td th:text="${pu.conventionValue}"></td>
                                                     <td th:text="${#numbers.formatDecimal(pu.price, 0, 'COMMA', 0, 'POINT') + ' đ'}"></td>
                                                     <td style="font-family: monospace;">
-                                                        <div class="barcode-value" th:text="${pu.barcodeUnit}"></div>
-                                                        <button
-                                                                type="button"
-                                                                onclick="showBarcode(this)">
-                                                            👁
+                                                        <span class="barcode-value" th:text="${pu.barcodeUnit}"></span>
+                                                        <button type="button" class="icon-eye-btn" onclick="showBarcode(this)" title="Xem barcode">
+                                                            <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/>
+                                                                <circle cx="12" cy="12" r="3"/>
+                                                            </svg>
                                                         </button>
                                                     </td>
                                                     <td style="font-family: monospace;" th:text="${pu.sku}"></td>
@@ -356,7 +434,7 @@
 
 
     <!-- Model barcode -->
-    <div id="barcodeModal" class="modal-overlay">
+    <div id="barcodeModal" class="modal-overlay" onclick="closeOnOverlay(event, 'barcodeModal')">
         <div class="modal-box" style="width:420px">
             <div class="modal-header">
                 <span>Barcode</span>
@@ -396,6 +474,14 @@
         }
         if(id==="modalUnit"){
             currentUnitSelect=null;
+        }
+    }
+
+    function closeOnOverlay(event, modalId) {
+        // Chỉ đóng nếu bấm đúng vào lớp nền (overlay),
+        // không đóng khi bấm vào nội dung modal-box bên trong
+        if (event.target.id === modalId) {
+            closeModal(modalId);
         }
     }
 

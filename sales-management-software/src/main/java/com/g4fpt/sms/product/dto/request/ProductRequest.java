@@ -24,7 +24,6 @@ public class ProductRequest {
     @NotBlank(message = "Name is required")
     @Size(message = "Name must be at least 3 chars")
     private String name;
-    @NotBlank(message = "Image in required")
     private MultipartFile imageFile;
     private String imageName;
     private String description;
