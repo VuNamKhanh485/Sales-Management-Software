@@ -149,6 +149,19 @@
         .modal-close {
             background: none; border: none; font-size: 20px; cursor: pointer; color: var(--ink-muted-48);
         }
+        .barcode-preview-box{
+            margin-top:8px;
+            text-align:center;
+        }
+        .barcode-svg{
+            width:180px;
+            height:60px;
+        }
+        .barcode-text{
+            margin-top:5px;
+            font-size:12px;
+            color:#666;
+        }
     </style>
 </head>
 <body>
@@ -266,8 +279,8 @@
                                     <th>Đơn vị</th>
                                     <th>Quy đổi</th>
                                     <th>Giá bán</th>
-                                    <th>Barcode</th>
                                     <th>SKU</th>
+                                    <th>Barcode</th>
                                     <th>Cơ bản</th>
                                     <th></th>
                                 </tr>
@@ -281,7 +294,8 @@
                                     <input type="hidden" th:field="*{productUnitsRequest[__${stat.index}__].id}">
                                     
                                     <td>
-                                        <select class="form-select" th:field="*{productUnitsRequest[__${stat.index}__].unitId}" style="padding:4px 20px 4px 8px; font-size:13px; min-width:100px;">
+                                        <select class="form-select" th:field="*{productUnitsRequest[__${stat.index}__].unitId}"
+                                                style="padding:4px 20px 4px 8px; font-size:13px; min-width:100px;">
                                             <option th:each="unit : ${unitList}"
                                                     th:value="${unit.id}"
                                                     th:text="${unit.name}"></option>
@@ -293,16 +307,59 @@
                                             + Thêm
                                         </button>
                                     </td>
-                                    <td><input type="number" class="form-input" th:field="*{productUnitsRequest[__${stat.index}__].conventionValue}" style="padding:4px 8px; font-size:13px; width:70px;"></td>
-                                    <td><input type="number" class="form-input" th:field="*{productUnitsRequest[__${stat.index}__].price}" style="padding:4px 8px; font-size:13px; width:100px;"></td>
-                                    <td><input type="text" class="form-input" th:field="*{productUnitsRequest[__${stat.index}__].barcodeUnit}" style="padding:4px 8px; font-size:13px; width:100px;"></td>
-                                    <td><input type="text" class="form-input" th:field="*{productUnitsRequest[__${stat.index}__].sku}" style="padding:4px 8px; font-size:13px; width:100px;"></td>
-                                    <td style="text-align:center;"><input type="checkbox" th:field="*{productUnitsRequest[__${stat.index}__].isBaseUnit}"></td>
-                                    <td><button type="button" class="btn-icon" style="width:24px; height:24px; font-size:12px; color:var(--danger); background:transparent;" onclick="removeUnitRow(this)">✕</button></td>
+                                    <td>
+                                        <input
+                                                type="number"
+                                                class="form-input"
+                                                th:field="*{productUnitsRequest[__${stat.index}__].conventionValue}"
+                                                style="padding:4px 8px; font-size:13px; width:70px;">
+                                    </td>
+                                    <td>
+                                        <input type="number"
+                                               class="form-input"
+                                               th:field="*{productUnitsRequest[__${stat.index}__].price}"
+                                               style="padding:4px 8px; font-size:13px; width:100px;">
+                                    </td>
+
+                                    <td>
+                                        <input type="text"
+                                               class="form-input sku-input"
+                                               th:field="*{productUnitsRequest[__${stat.index}__].sku}"
+                                               style="padding:4px 8px; font-size:13px; width:100px;">
+                                    </td>
+
+                                    <td>
+                                        <input type="text"
+                                               class="form-input barcode-input"
+                                               th:field="*{productUnitsRequest[__${stat.index}__].barcodeUnit}"
+                                               style="padding:4px 8px; font-size:13px; width:100px;">
+
+                                        <div class="barcode-preview-box">
+                                            <svg class="barcode-svg" ></svg>
+                                            <div class="barcode-text"></div>
+                                        </div>
+                                    </td>
+
+                                    <td style="text-align:center;">
+                                        <input type="checkbox"
+                                               th:field="*{productUnitsRequest[__${stat.index}__].isBaseUnit}">
+                                    </td>
+                                    <td>
+                                        <button type="button"
+                                                class="btn-icon"
+                                                style="width:24px; height:24px; font-size:12px; color:var(--danger); background:transparent;"
+                                                onclick="removeUnitRow(this)">
+                                            ✕
+                                        </button>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
-                        <button type="button" class="btn-secondary btn-secondary--sm" style="margin-top:12px;" onclick="addUnitRow()">+ Thêm đơn vị tính</button>
+                        <button type="button"
+                                class="btn-secondary btn-secondary--sm"
+                                style="margin-top:12px;" onclick="addUnitRow()">
+                            + Thêm đơn vị tính
+                        </button>
                     </div>
 
                 </div>
@@ -319,7 +376,7 @@
     <div id="modalCategory" class="modal-overlay">
         <div class="modal-box" style="padding:0; overflow:hidden;">
             <div class="modal-header" style="padding: 20px 20px 0; margin-bottom: 0;">
-                <span>Thêm Danh mục mới</span>
+                <span>Thêm danh mục mới</span>
                 <button class="modal-close" onclick="closeModal('modalCategory')">×</button>
             </div>
             <iframe src="/category/popup-form" style="width:100%; border:none; height:320px;"></iframe>
@@ -348,11 +405,20 @@
         </div>
     </div>
 
+
+
+<script th:src="@{/js/JsBarcode.all.min.js}"></script>
 <script th:inline="javascript">
     const unitList = /*[[${unitList}]]*/ [];
     let rowIndex = document.querySelectorAll('#unitTable tr:not(#no-unit-row)').length;
     let currentUnitSelect = null;
 
+    /*
+     * mở modal để tạo danh mục, nhãn hàng, đơn vị
+     * ở ngay trong trang tạo sản phẩm
+     * @param id
+     * @param button
+     */
     function openModal(id, button = null) {
         if (id === "modalUnit" && button) {
             currentUnitSelect = $(button)
@@ -363,6 +429,63 @@
         document.getElementById(id).style.display = "flex";
     }
 
+    function updateBarcodePreview(row){
+        const preview = row.querySelector(".barcode-preview-box");
+        const barcodeInput = row.querySelector(".barcode-input");
+        const barcodeValue = barcodeInput.value.trim();
+
+        if(barcodeValue === ""){
+            preview.style.display = "none";
+        }else {
+            preview.style.display = "";
+            const svg = row.querySelector(".barcode-svg");
+            const text = row.querySelector(".barcode-text");
+
+            if (barcodeValue === "") {
+                svg.innerHTML = "";
+                text.innerHTML = "";
+                return;
+            }
+            JsBarcode(svg, barcodeValue, {
+                format: "CODE128",
+                width: 2,
+                height: 50,
+                displayValue: false
+            });
+            text.innerText = barcodeValue;
+        }
+    }
+
+    /*
+     * hiển thị ảnh barcode
+     * @param row
+     */
+    function initBarcode(row) {
+        const sku = row.querySelector(".sku-input");
+        const barcode = row.querySelector(".barcode-input");
+
+        if (!sku || !barcode) return;
+        let edited = false;
+        barcode.addEventListener("input", function () {
+            edited = true;
+            updateBarcodePreview(row);
+        });
+        sku.addEventListener("input", function () {
+            if (!edited) {
+                barcode.value = sku.value;
+            }
+            updateBarcodePreview(row);
+        });
+
+        updateBarcodePreview(row);
+    }
+
+    /*
+     * Thêm dòng đơn vị khi bấm thêm đơn vị tính,
+     * append vào table
+     * update barcode preview
+     * tạo select cho phần đơn vị để phục vụ việc tạo mới đơn vị tính ngay
+     */
     function addUnitRow() {
         const noUnitRow = document.getElementById('no-unit-row');
         if (noUnitRow) noUnitRow.style.display = 'none';
@@ -413,16 +536,21 @@
 
         <td>
             <input type="text"
-                   class="form-input"
-                   name="productUnitsRequest[${i}].barcodeUnit"
+                   class="form-input sku-input"
+                   name="productUnitsRequest[${i}].sku"
                    style="padding:4px 8px;font-size:13px;width:100px;">
         </td>
 
         <td>
             <input type="text"
-                   class="form-input"
-                   name="productUnitsRequest[${i}].sku"
+                   class="form-input barcode-input"
+                   name="productUnitsRequest[${i}].barcodeUnit"
                    style="padding:4px 8px;font-size:13px;width:100px;">
+
+            <div class="barcode-preview-box">
+                <svg class="barcode-svg"></svg>
+                <div class="barcode-text"></div>
+            </div>
         </td>
 
         <td style="text-align:center;">
@@ -441,6 +569,9 @@
     `;
 
         tbody.appendChild(tr);
+
+        initBarcode(tr);
+        updateBarcodePreview(tr);
 
         // Khởi tạo Select2 cho select vừa thêm
         $(tr).find(".unit-select2").select2();
@@ -510,6 +641,14 @@
             closeModal('modalUnit');
         }
     });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("#unitTable tr:not(#no-unit-row)")
+            .forEach(function (row) {
+                initBarcode(row);
+            });
+    });
+
 </script>
 </body>
 </html>

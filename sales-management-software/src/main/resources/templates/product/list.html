@@ -107,6 +107,27 @@
             opacity: 0.4;
             pointer-events: none;
         }
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            background: var(--canvas);
+            border-radius: var(--r-lg);
+            width: 100%; max-width: 400px;
+            padding: var(--sp-xl);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .modal-header {
+            font-size: 18px; font-weight: 600; margin-bottom: var(--sp-md);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-close {
+            background: none; border: none; font-size: 20px; cursor: pointer; color: var(--ink-muted-48);
+        }
     </style>
 </head>
 <body>
@@ -284,7 +305,14 @@
                                                     <td th:text="${pu.unit != null ? pu.unit.name : '-'}"></td>
                                                     <td th:text="${pu.conventionValue}"></td>
                                                     <td th:text="${#numbers.formatDecimal(pu.price, 0, 'COMMA', 0, 'POINT') + ' đ'}"></td>
-                                                    <td style="font-family: monospace;" th:text="${pu.barcodeUnit}"></td>
+                                                    <td style="font-family: monospace;">
+                                                        <div class="barcode-value" th:text="${pu.barcodeUnit}"></div>
+                                                        <button
+                                                                type="button"
+                                                                onclick="showBarcode(this)">
+                                                            👁
+                                                        </button>
+                                                    </td>
                                                     <td style="font-family: monospace;" th:text="${pu.sku}"></td>
                                                     <td>
                                                         <span th:if="${pu.isBaseUnit}" style="color:var(--success);">★ Có</span>
@@ -326,6 +354,25 @@
         </div>
     </main>
 
+
+    <!-- Model barcode -->
+    <div id="barcodeModal" class="modal-overlay">
+        <div class="modal-box" style="width:420px">
+            <div class="modal-header">
+                <span>Barcode</span>
+                <button onclick="closeModal('barcodeModal')">×</button>
+            </div>
+
+            <div style="text-align:center;padding:20px">
+                <svg id="barcodeSvg"></svg>
+                <div id="barcodeText"
+                     style="margin-top:15px;font-weight:bold">
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script th:src="@{/js/JsBarcode.all.min.js}"></script>
 <script th:inline="javascript">
     function toggleUnits(productId) {
         const row = document.getElementById('units-' + productId);
@@ -337,6 +384,48 @@
             row.style.display = 'none';
             btn.classList.remove('expanded');
         }
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        modal.style.display = "none";
+
+        const iframe = modal.querySelector("iframe");
+        if (iframe) {
+            iframe.contentWindow.location.reload();
+        }
+        if(id==="modalUnit"){
+            currentUnitSelect=null;
+        }
+    }
+
+    function showBarcode(button){
+        const row = button.closest("tr");
+        const barcode = row
+            .querySelector(".barcode-value")
+            .innerText
+            .trim();
+        if(barcode===""){
+            alert("Chưa có Barcode");
+            return;
+        }
+        JsBarcode(
+            "#barcodeSvg",
+            barcode,
+            {
+                format:"CODE128",
+                width:2,
+                height:80,
+                displayValue:false
+            }
+        );
+        document
+            .getElementById("barcodeText")
+            .innerText = barcode;
+        document
+            .getElementById("barcodeModal")
+            .style.display="flex";
+
     }
 
     function changeSize(newSize) {
