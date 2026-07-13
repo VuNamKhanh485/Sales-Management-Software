@@ -17,9 +17,9 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
     Page<Category> findByNameContainingIgnoreCase(String name, Pageable pageable);
     @Query("""
-            SELECT CASE WHEN COUNT(otd) > 0 THEN true ELSE false END
-            FROM OrderTransactionDetail otd
-            WHERE otd.productUnit.product.category.id = :categoryId
+            SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END
+            FROM Product p
+            WHERE p.category.id = :categoryId
     """)
     boolean existInOrderTransaction(@Param("categoryId") Long categoryId);
 
