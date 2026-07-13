@@ -6,6 +6,7 @@ import com.g4fpt.sms.product.dto.response.CategoryResponse;
 import com.g4fpt.sms.product.entity.Category;
 import com.g4fpt.sms.common.exception.DuplicateException;
 import com.g4fpt.sms.common.exception.NotFoundException;
+import com.g4fpt.sms.product.enums.CategoryStatus;
 import com.g4fpt.sms.product.mapper.CategoryMapper;
 import com.g4fpt.sms.product.repository.CategoryRepository;
 import com.g4fpt.sms.product.service.CategoryService;
@@ -58,6 +59,14 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public List<CategoryResponse> findAll() {
         return categoryRepository.findAll()
+                .stream()
+                .map(categoryMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    public List<CategoryResponse> findAllActive() {
+        return categoryRepository.findAllActive(CategoryStatus.ACTIVE)
                 .stream()
                 .map(categoryMapper::toResponse)
                 .toList();
