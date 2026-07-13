@@ -20,9 +20,9 @@ public interface BrandRepository extends JpaRepository<Brand, Long> {
     Page<Brand> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
     @Query("""
-            SELECT CASE WHEN COUNT(otd) > 0 THEN true ELSE false END
-            FROM OrderTransactionDetail otd
-            WHERE otd.productUnit.product.brand.id = :brandId
+            SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END
+            FROM Product p
+            WHERE p.brand.id = :brandId
     """)
     boolean existInOrderTransaction(@Param("brandId") Long brandId);
 
