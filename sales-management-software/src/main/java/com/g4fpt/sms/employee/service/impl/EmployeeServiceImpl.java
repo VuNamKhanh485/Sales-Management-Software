@@ -1,92 +1,248 @@
 package com.g4fpt.sms.employee.service.impl;
 
-import com.g4fpt.sms.auth.security.CustomUserDetails;
+import com.g4fpt.sms.auth.dto.SessionUser;
+import com.g4fpt.sms.auth.security.PasswordUtil;
+import com.g4fpt.sms.branch.entity.Branch;
+import com.g4fpt.sms.branch.repository.BranchRepository;
+import com.g4fpt.sms.employee.dto.EmployeeForm;
 import com.g4fpt.sms.employee.entity.Employee;
+import com.g4fpt.sms.employee.entity.Role;
 import com.g4fpt.sms.employee.repository.EmployeeRepository;
+import com.g4fpt.sms.employee.repository.RoleRepository;
 import com.g4fpt.sms.employee.service.EmployeeService;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import com.g4fpt.sms.employee.utils.WorkStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class EmployeeServiceImpl implements EmployeeService {
 
-    private final EmployeeRepository repository;
-    private final PasswordEncoder passwordEncoder;
+    private final EmployeeRepository employeeRepository;
+    private final RoleRepository roleRepository;
+    private final BranchRepository branchRepository;
+    private final PasswordUtil passwordUtil;
 
-    public EmployeeServiceImpl(EmployeeRepository repository, PasswordEncoder passwordEncoder) {
-        this.repository = repository;
-        this.passwordEncoder = passwordEncoder;
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository,
+                               RoleRepository roleRepository,
+                               BranchRepository branchRepository,
+                               PasswordUtil passwordUtil) {
+        this.employeeRepository = employeeRepository;
+        this.roleRepository = roleRepository;
+        this.branchRepository = branchRepository;
+        this.passwordUtil = passwordUtil;
     }
 
     @Override
-    public Optional<Employee> findEmployeeByEmail(String email) {
-        return repository.findEmployeeByEmail(email);
-    }
+    @Transactional(readOnly = true)
+    public Page<Employee> searchEmployees(String keyword,
+                                          Long branchId,
+                                          Long roleId,
+                                          WorkStatus status,
+                                          Pageable pageable,
+                                          SessionUser currentUser) {
 
-    @Override
-    public List<Employee> getAll(CustomUserDetails Userdetails) {
-        if(Userdetails.getBranchId() == null){
-            return repository.findAll();
+        checkCanAccessEmployeeModule(currentUser);
+
+        if ("BRANCH_MANAGER".equals(currentUser.getRoleCode())) {
+            branchId = currentUser.getBranchId();
         }
-        return repository.findByBranchId(Userdetails.getBranchId());
+
+        return employeeRepository.searchEmployees(keyword, branchId, roleId, status, pageable);
     }
 
     @Override
-    public Employee getById(Long id) {
-        return repository.findById(id).orElse(null);
+    @Transactional(readOnly = true)
+    public Employee findById(Long id) {
+        return employeeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
     }
 
     @Override
-    public Employee save(Employee employee) {
-        if (employee.getId() == null) {
-            employee.setCreatedAt(LocalDateTime.now());
-            if (employee.getPasswordHash() != null && !employee.getPasswordHash().startsWith("$2a$")) {
-                employee.setPasswordHash(passwordEncoder.encode(employee.getPasswordHash()));
-            }
+    @Transactional(readOnly = true)
+    public EmployeeForm getFormById(Long id, SessionUser currentUser) {
+        Employee employee = findById(id);
+        checkCanManageEmployee(employee, currentUser);
+
+        EmployeeForm form = new EmployeeForm();
+        form.setId(employee.getId());
+        form.setEmployeeCode(employee.getEmployeeCode());
+        form.setFullName(employee.getFullName());
+        form.setEmail(employee.getEmail());
+        form.setPhone(employee.getPhone());
+        form.setAddress(employee.getAddress());
+        form.setGender(employee.getGender());
+        form.setDob(employee.getDob());
+        form.setHiredDate(employee.getHiredDate());
+        form.setBaseSalary(employee.getBaseSalary());
+        form.setWorkStatus(employee.getWorkStatus());
+        form.setNote(employee.getNote());
+
+        if (employee.getBranch() != null) {
+            form.setBranchId(employee.getBranch().getId());
+        }
+
+        if (employee.getRole() != null) {
+            form.setRoleId(employee.getRole().getId());
+        }
+
+        return form;
+    }
+
+    @Override
+    public void create(EmployeeForm form, SessionUser currentUser) {
+        checkCanAccessEmployeeModule(currentUser);
+
+        if (employeeRepository.existsByEmployeeCode(form.getEmployeeCode())) {
+            throw new RuntimeException("Mã nhân viên đã tồn tại");
+        }
+
+        if (employeeRepository.existsByEmail(form.getEmail())) {
+            throw new RuntimeException("Email đã tồn tại");
+        }
+
+        Role role = roleRepository.findById(form.getRoleId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy vai trò"));
+
+        if ("BRANCH_MANAGER".equals(currentUser.getRoleCode())
+                && "OWNER".equals(role.getCode())) {
+            throw new RuntimeException("BRANCH_MANAGER không được tạo nhân viên OWNER");
+        }
+
+        Branch branch;
+
+        if ("OWNER".equals(currentUser.getRoleCode())) {
+            branch = branchRepository.findById(form.getBranchId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy chi nhánh"));
         } else {
-            employee.setUpdatedAt(LocalDateTime.now());
-            Employee existing = repository.findById(employee.getId()).orElse(null);
-            if (existing != null) {
-                if (employee.getPasswordHash() != null && !employee.getPasswordHash().isEmpty() && !employee.getPasswordHash().equals(existing.getPasswordHash())) {
-                    employee.setPasswordHash(passwordEncoder.encode(employee.getPasswordHash()));
-                } else {
-                    employee.setPasswordHash(existing.getPasswordHash());
-                }
-                if (employee.getCreatedAt() == null) {
-                    employee.setCreatedAt(existing.getCreatedAt());
-                }
-            }
+            branch = branchRepository.findById(currentUser.getBranchId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy chi nhánh của bạn"));
         }
-        return repository.save(employee);
+
+        if (form.getPassword() == null || form.getPassword().isBlank()) {
+            throw new RuntimeException("Mật khẩu không được để trống khi thêm nhân viên");
+        }
+
+        Employee employee = new Employee();
+        employee.setEmployeeCode(form.getEmployeeCode());
+        employee.setFullName(form.getFullName());
+        employee.setEmail(form.getEmail());
+        employee.setPasswordHash(passwordUtil.hash(form.getPassword()));
+        employee.setPhone(form.getPhone());
+        employee.setAddress(form.getAddress());
+        employee.setGender(form.getGender());
+        employee.setDob(form.getDob());
+        employee.setHiredDate(form.getHiredDate());
+        employee.setBaseSalary(form.getBaseSalary());
+        employee.setWorkStatus(form.getWorkStatus());
+        employee.setNote(form.getNote());
+        employee.setBranch(branch);
+        employee.setRole(role);
+
+        employeeRepository.save(employee);
     }
 
     @Override
-    public void delete(Long id) {
-        repository.deleteById(id);
-    }
+    public void update(Long id, EmployeeForm form, SessionUser currentUser) {
+        Employee employee = findById(id);
+        checkCanManageEmployee(employee, currentUser);
 
-    @Override
-    public List<Employee> search(String keyword,CustomUserDetails currentUser){
-        if (keyword == null || keyword.trim().isEmpty()) {
-            if (currentUser.getBranchId() == null) {
-                return repository.findAll(); // Owner: xem tất cả
-            } else {
-                return repository.findByBranchId(currentUser.getBranchId()); // Branch Manager: chỉ xem chi nhánh của mình
-            }
+        if (employeeRepository.existsByEmployeeCodeAndIdNot(form.getEmployeeCode(), id)) {
+            throw new RuntimeException("Mã nhân viên đã tồn tại");
         }
 
+        if (employeeRepository.existsByEmailAndIdNot(form.getEmail(), id)) {
+            throw new RuntimeException("Email đã tồn tại");
+        }
 
-        String cleanKeyword = keyword.trim();
-        if (currentUser.getBranchId() != null) {
-            return repository.findEmployeesContainingIgnoreCase(cleanKeyword, currentUser.getBranchId());
+        Role role = roleRepository.findById(form.getRoleId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy vai trò"));
+
+        if ("BRANCH_MANAGER".equals(currentUser.getRoleCode())
+                && "OWNER".equals(role.getCode())) {
+            throw new RuntimeException("BRANCH_MANAGER không được sửa nhân viên thành OWNER");
+        }
+
+        Branch branch;
+
+        if ("OWNER".equals(currentUser.getRoleCode())) {
+            branch = branchRepository.findById(form.getBranchId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy chi nhánh"));
         } else {
-            return repository.findAllByKeyword(cleanKeyword);
+            branch = branchRepository.findById(currentUser.getBranchId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy chi nhánh của bạn"));
+        }
+
+        employee.setEmployeeCode(form.getEmployeeCode());
+        employee.setFullName(form.getFullName());
+        employee.setEmail(form.getEmail());
+        employee.setPhone(form.getPhone());
+        employee.setAddress(form.getAddress());
+        employee.setGender(form.getGender());
+        employee.setDob(form.getDob());
+        employee.setHiredDate(form.getHiredDate());
+        employee.setBaseSalary(form.getBaseSalary());
+        employee.setWorkStatus(form.getWorkStatus());
+        employee.setNote(form.getNote());
+        employee.setBranch(branch);
+        employee.setRole(role);
+
+        if (form.getPassword() != null && !form.getPassword().isBlank()) {
+            employee.setPasswordHash(passwordUtil.hash(form.getPassword()));
+        }
+
+        employeeRepository.save(employee);
+    }
+
+    @Override
+    public void toggleStatus(Long id, SessionUser currentUser) {
+        Employee employee = findById(id);
+        checkCanManageEmployee(employee, currentUser);
+
+        if (employee.getWorkStatus() == WorkStatus.ACTIVE) {
+            employee.setWorkStatus(WorkStatus.INACTIVE);
+        } else {
+            employee.setWorkStatus(WorkStatus.ACTIVE);
+        }
+
+        employeeRepository.save(employee);
+    }
+
+    @Override
+    public void delete(Long id, SessionUser currentUser) {
+        Employee employee = findById(id);
+        checkCanManageEmployee(employee, currentUser);
+
+        employeeRepository.delete(employee);
+    }
+
+    private void checkCanAccessEmployeeModule(SessionUser user) {
+        if (user == null) {
+            throw new RuntimeException("Bạn chưa đăng nhập");
+        }
+
+        String roleCode = user.getRoleCode();
+
+        if (!"OWNER".equals(roleCode) && !"BRANCH_MANAGER".equals(roleCode)) {
+            throw new RuntimeException("Bạn không có quyền truy cập quản lý nhân viên");
+        }
+    }
+
+    private void checkCanManageEmployee(Employee employee, SessionUser user) {
+        checkCanAccessEmployeeModule(user);
+
+        if ("BRANCH_MANAGER".equals(user.getRoleCode())) {
+            if (employee.getBranch() == null
+                    || !employee.getBranch().getId().equals(user.getBranchId())) {
+                throw new RuntimeException("Bạn không được quản lý nhân viên khác chi nhánh");
+            }
+
+            if (employee.getRole() != null
+                    && "OWNER".equals(employee.getRole().getCode())) {
+                throw new RuntimeException("BRANCH_MANAGER không được quản lý OWNER");
+            }
         }
     }
 }

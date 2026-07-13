@@ -1,4 +1,4 @@
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 
 <aside class="sidebar" th:fragment="sidebar-component">
     <div class="logo">
@@ -12,31 +12,47 @@
         <a href="#" class="menu-item">
             <span>Khách hàng</span>
         </a>
-        <a th:href="@{/product}" th:class="${page == 'product' ? 'menu-item active' : 'menu-item'}">
+
+        <a th:href="@{/product}"
+           th:class="${page == 'product' ? 'menu-item active' : 'menu-item'}">
             <span>Sản phẩm</span>
         </a>
-        <a href="#" class="menu-item">
+
+        <a th:href="@{/inventory}"
+           th:class="${page == 'inventory' ? 'menu-item active' : 'menu-item'}">
             <span>Kho hàng</span>
         </a>
 
-        <a sec:authorize="hasAnyRole('OWNER', 'BRANCH_MANAGER')" th:href="@{/employee}"
+        <a th:if="${session.loggedInUser != null
+                   and (session.loggedInUser.roleCode == 'OWNER'
+                        or session.loggedInUser.roleCode == 'BRANCH_MANAGER')}"
+           th:href="@{/employee}"
            th:class="${page == 'employee' ? 'menu-item active' : 'menu-item'}">
             <span>Quản lý nhân viên</span>
         </a>
 
-        <a sec:authorize="hasAnyRole('OWNER')" th:href="@{/branch}" 
+        <a th:if="${session.loggedInUser != null
+                   and session.loggedInUser.roleCode == 'OWNER'}"
+           th:href="@{/branch}"
            th:class="${page == 'branch' ? 'menu-item active' : 'menu-item'}">
             <span>Quản lý chi nhánh</span>
         </a>
     </nav>
 
-    <div class="user-profile" sec:authorize="isAuthenticated()">
+    <div class="user-profile" th:if="${session.loggedInUser != null}">
         <div class="user-details">
-            <h4 class="user-name" th:text="${#authentication.principal.employee.fullName}">Admin</h4>
+            <h4 class="user-name"
+                th:text="${session.loggedInUser.fullName}">
+                Admin
+            </h4>
+
             <span class="user-role"
-                  th:text="${#authentication.principal.employee.role != null ? #authentication.principal.employee.role.name : 'Quản trị viên'}">Quản trị viên</span>
+                  th:text="${session.loggedInUser.roleName}">
+                Quản trị viên
+            </span>
         </div>
-        <form th:action="@{/logout}" method="post" class="logout-form">
+
+        <form th:action="@{/auth/logout}" method="get" class="logout-form">
             <button type="submit" class="logout-btn" title="Đăng xuất">
                 Đăng xuất
             </button>
