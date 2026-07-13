@@ -13,4 +13,6 @@ public interface BrandService {
     Page<BrandResponse> findAll(String keyword, int page, int size, String sortField, String sortDirection);
     BrandResponse findById(long id);
     List<BrandResponse> findAll();
+    List<BrandResponse> findAllActive();
+
 }
