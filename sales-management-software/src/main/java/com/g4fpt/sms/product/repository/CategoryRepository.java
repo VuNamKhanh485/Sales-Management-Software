@@ -23,5 +23,5 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     """)
     boolean existInOrderTransaction(@Param("categoryId") Long categoryId);
 
-    List<Category> findAllActive(CategoryStatus status);
+    List<Category> findByStatus(CategoryStatus status);
 }
