@@ -19,13 +19,17 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(
-                        "/",
-                        "/auth/**",
-                        "/error/**",
+                        "/auth/login",
+                        "/auth/logout",
+                        "/auth/forgot-password",
+                        "/auth/verify-otp",
+                        "/auth/reset-password",
                         "/css/**",
                         "/js/**",
                         "/images/**",
-                        "/webjars/**"
+                        "/webjars/**",
+                        "/favicon.ico",
+                        "/error"
                 );
     }
 }
