@@ -37,7 +37,8 @@ public class ReturnController {
 
     // ---------- Trang tạo yêu cầu trả hàng (cho nhân viên POS) ----------
     @GetMapping
-    public String returnPage() {
+    public String returnPage(@RequestParam(required = false) String orderCode, Model model) {
+        model.addAttribute("autoOrderCode", orderCode != null && !orderCode.isBlank() ? orderCode : "");
         return "order/return-request";
     }
 

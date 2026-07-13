@@ -265,3 +265,7 @@
 .action-view {
     color: var(--ink-muted-80);
 }
+.action-return {
+    color: #d97706;
+}
+

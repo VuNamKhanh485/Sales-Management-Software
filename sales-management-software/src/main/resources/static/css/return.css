@@ -90,6 +90,55 @@ body {
     margin-top: 8px;
 }
 
+/* --- Upload Drop Zone --- */
+.upload-drop-zone {
+    border: 2px dashed #c3c9d6;
+    border-radius: 12px;
+    padding: 32px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fafbfc;
+}
+.upload-drop-zone:hover,
+.upload-drop-zone.drag-over {
+    border-color: #0d6efd;
+    background: #eef3ff;
+}
+.upload-drop-zone .drop-icon {
+    font-size: 36px;
+    color: #0d6efd;
+    opacity: 0.6;
+    display: block;
+    margin-bottom: 8px;
+}
+
+/* --- Preview wraps --- */
+.preview-wrap {
+    position: relative;
+    display: inline-block;
+}
+.preview-remove {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #dc3545;
+    color: #fff;
+    border: 2px solid #fff;
+    font-size: 14px;
+    line-height: 18px;
+    text-align: center;
+    cursor: pointer;
+    padding: 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.preview-remove:hover {
+    background: #a71d2a;
+}
+
 /* --- Trang Xử lý Yêu cầu (return-manage.html) --- */
 .main-container {
     display: flex;

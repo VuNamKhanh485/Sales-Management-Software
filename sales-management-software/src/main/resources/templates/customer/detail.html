@@ -130,6 +130,7 @@
                             <td>
                                 <div class="actions" style="justify-content:flex-end;">
                                     <a th:href="@{/orders/{id}(id=${order.id})}" class="action-edit">Chi tiết</a>
+                                    <a th:href="@{/return(orderCode=${order.code})}" class="action-return">Trả hàng</a>
                                 </div>
                             </td>
                         </tr>

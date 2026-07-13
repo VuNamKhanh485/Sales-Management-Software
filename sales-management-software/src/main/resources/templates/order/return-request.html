@@ -19,7 +19,7 @@
                     <i class="bi bi-arrow-return-left fs-4"></i>
                     <div>
                         <h5 class="mb-0 fw-bold">Yêu cầu trả / đổi hàng</h5>
-                        <small class="opacity-75">Nhập mã đơn hàng để bắt đầu</small>
+                        <small class="opacity-75" th:text="${autoOrderCode != null ? 'Tự động tìm đơn hàng...' : 'Nhập mã đơn hàng để bắt đầu'}"></small>
                     </div>
                 </div>
             </div>
@@ -58,8 +58,14 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="fw-semibold mb-1"><i class="bi bi-camera me-1"></i>Hình ảnh sản phẩm lỗi <span class="text-muted">(không bắt buộc)</span></label>
-                        <input type="file" name="images" id="imageInput" class="form-control" multiple accept="image/*">
+                        <label class="fw-semibold mb-2"><i class="bi bi-camera me-1"></i>Hình ảnh sản phẩm lỗi <span class="text-muted">(không bắt buộc)</span></label>
+                        <div class="upload-drop-zone" id="dropZone">
+                            <i class="bi bi-cloud-arrow-up-fill drop-icon"></i>
+                            <p class="mb-1 fw-semibold">Kéo thả ảnh vào đây</p>
+                            <p class="small text-muted mb-2">hoặc nhấn để chọn file</p>
+                            <span class="badge bg-primary" id="imageCount">0 ảnh đã chọn</span>
+                            <input type="file" name="images" id="imageInput" multiple accept="image/*" class="d-none">
+                        </div>
                         <div class="image-preview-area" id="imagePreview"></div>
                     </div>
 
@@ -90,6 +96,13 @@
         const csrfToken = document.querySelector('meta[name="_csrf"]').content;
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
         let selectedOrder = null;
+
+        // ← Auto search if orderCode is provided
+        const autoCode = '[[${autoOrderCode}]]';
+        if (autoCode && autoCode !== 'null' && autoCode !== '') {
+            document.getElementById('orderCode').value = autoCode;
+            searchOrder();
+        }
 
         function searchOrder() {
             const code = document.getElementById('orderCode').value.trim();
@@ -165,23 +178,53 @@
             });
         }
 
-        // Preview ảnh
-        document.getElementById('imageInput').addEventListener('change', function() {
-            const preview = document.getElementById('imagePreview');
-            preview.innerHTML = '';
-            Array.from(this.files).forEach(file => {
+        // ===== Drag-and-drop + click upload =====
+        const dropZone = document.getElementById('dropZone');
+        const imageInput = document.getElementById('imageInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const imageCount = document.getElementById('imageCount');
+        let selectedFiles = [];
+
+        dropZone.addEventListener('click', () => imageInput.click());
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            addFiles(e.dataTransfer.files);
+        });
+        imageInput.addEventListener('change', function() { addFiles(this.files); this.value = ''; });
+
+        function addFiles(files) {
+            Array.from(files).forEach(f => {
+                if (f.type.startsWith('image/') && selectedFiles.length < 10)
+                    selectedFiles.push(f);
+            });
+            renderPreviews();
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            renderPreviews();
+        }
+
+        function renderPreviews() {
+            imagePreview.innerHTML = '';
+            imageCount.textContent = selectedFiles.length + ' ảnh đã chọn';
+            selectedFiles.forEach((file, i) => {
+                const wrap = document.createElement('div');
+                wrap.className = 'preview-wrap';
                 const reader = new FileReader();
                 reader.onload = e => {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.className = 'preview-img';
-                    preview.appendChild(img);
+                    wrap.innerHTML = '<img src="' + e.target.result + '" class="preview-img">'
+                        + '<button type="button" class="preview-remove" onclick="removeFile(' + i + ')">×</button>';
                 };
                 reader.readAsDataURL(file);
+                imagePreview.appendChild(wrap);
             });
-        });
+        }
 
-        // Submit
+        // ===== Submit =====
         document.getElementById('returnForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -201,7 +244,12 @@
             document.getElementById('detailIds').value = ids.join(',');
             document.getElementById('quantities').value = qtys.join(',');
 
-            const formData = new FormData(this);
+            const formData = new FormData();
+            formData.append('orderId', document.getElementById('orderId').value);
+            formData.append('reason', reason);
+            formData.append('detailIds', document.getElementById('detailIds').value);
+            formData.append('quantities', document.getElementById('quantities').value);
+            selectedFiles.forEach(f => formData.append('images', f));
             fetch('/return/api/create', {
                 method: 'POST',
                 headers: { [csrfHeader]: csrfToken },
