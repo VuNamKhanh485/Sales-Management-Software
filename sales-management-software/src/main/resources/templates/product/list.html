@@ -167,7 +167,26 @@
 
     <main class="page-content">
         <!-- Error/Success alerts could go here -->
+        <!-- Error/Success alerts -->
+        <div th:if="${errorMessage}"
+             style="display:flex; justify-content:space-between; align-items:center;
+                background:#fdecea; border:1px solid #f5c2c0; border-left:4px solid #d93025;
+                color:#7a1f16; padding:12px var(--sp-lg); border-radius:var(--r-sm);
+                margin-bottom:var(--sp-md); font-size:14px;">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" onclick="this.closest('div').remove()"
+                    style="background:none;border:none;cursor:pointer;color:inherit;font-size:18px;line-height:1;">×</button>
+        </div>
 
+        <div th:if="${successMessage}"
+             style="display:flex; justify-content:space-between; align-items:center;
+                background:#eafaf1; border:1px solid #b7e4c7; border-left:4px solid var(--success);
+                color:#166534; padding:12px var(--sp-lg); border-radius:var(--r-sm);
+                margin-bottom:var(--sp-md); font-size:14px;">
+            <span th:text="${successMessage}"></span>
+            <button type="button" onclick="this.closest('div').remove()"
+                    style="background:none;border:none;cursor:pointer;color:inherit;font-size:18px;line-height:1;">×</button>
+        </div>
         <!-- Filter Bar -->
         <form th:action="@{/product}" method="get" id="filterForm" class="search-bar">
             <!-- Keyword -->
@@ -434,7 +453,7 @@
 
 
     <!-- Model barcode -->
-    <div id="barcodeModal" class="modal-overlay" onclick="closeOnOverlay(event, 'barcodeModal')">
+    <div id="barcodeModal" class="modal-overlay">
         <div class="modal-box" style="width:420px">
             <div class="modal-header">
                 <span>Barcode</span>
@@ -477,13 +496,13 @@
         }
     }
 
-    function closeOnOverlay(event, modalId) {
-        // Chỉ đóng nếu bấm đúng vào lớp nền (overlay),
-        // không đóng khi bấm vào nội dung modal-box bên trong
-        if (event.target.id === modalId) {
-            closeModal(modalId);
+    const barcodeModal = document.getElementById("barcodeModal");
+
+    barcodeModal.addEventListener("click", function (e) {
+        if (e.target === this) {
+            closeModal("barcodeModal");
         }
-    }
+    });
 
     function showBarcode(button){
         const row = button.closest("tr");
@@ -491,10 +510,7 @@
             .querySelector(".barcode-value")
             .innerText
             .trim();
-        if(barcode===""){
-            alert("Chưa có Barcode");
-            return;
-        }
+
         JsBarcode(
             "#barcodeSvg",
             barcode,
@@ -520,6 +536,12 @@
         form.querySelector('[name=page]').value = 0;
         form.submit();
     }
+
+        setTimeout(() => {
+        document.querySelectorAll('.page-content > div[style*="border-left"]')
+            .forEach(el => el.remove());
+    }, 4000);
+
 </script>
 </body>
 </html>
