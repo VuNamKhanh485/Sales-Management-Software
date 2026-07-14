@@ -81,6 +81,7 @@ public class ProductUnitServiceImpl implements ProductUnitService {
         }
 
         for(int i = 0; i < productUnitRequests.size(); i++){
+            ProductUnitRequest r = productUnitRequests.get(i);
             ProductUnitRequest productUnitRequest = productUnitRequests.get(i);
             try{
             if(productUnitRequest.getId() == null){
