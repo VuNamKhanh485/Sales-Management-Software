@@ -199,7 +199,7 @@
                         </label>
                         <button type="button"
                            class="add-link"
-                           onclick="openCategoryModal(); return false;">
+                           onclick="openModal('modalCategory'); return false;">
                             + Thêm danh mục mới
                         </button>
                     </div>
@@ -214,7 +214,7 @@
                         </label>
                         <button type="button"
                                 class="add-link"
-                                onclick="openBrandModal(); return false;">
+                                onclick="openModal('modalBrand'); return false;">
                             + Thêm thương hiệu mới
                         </button>
                     </div>
@@ -281,7 +281,7 @@
 
                                         <button type="button"
                                                 class="btn-link"
-                                                onclick="openUnitModal(this)">
+                                                onclick="openModal('modalUnit',this)">
                                             + Thêm
                                         </button>
                                     </td>
@@ -343,22 +343,16 @@
 <script th:inline="javascript">
     const unitList = /*[[${unitList}]]*/ [];
     let rowIndex = document.querySelectorAll('#unitTable tr:not(#no-unit-row)').length;
-
-    function openCategoryModal() {
-        document.getElementById('modalCategory').style.display = 'flex';
-    }
-
-    function openBrandModal() {
-        document.getElementById('modalBrand').style.display = 'flex';
-    }
-
     let currentUnitSelect = null;
 
-    function openUnitModal(button){
-        currentUnitSelect = $(button)
-            .closest("td")
-            .find("select");
-        $("#modalUnit").css("display","flex");
+    function openModal(id, button = null) {
+        if (id === "modalUnit" && button) {
+            currentUnitSelect = $(button)
+                .closest("td")
+                .find("select");
+        }
+
+        document.getElementById(id).style.display = "flex";
     }
 
     function addUnitRow() {
@@ -388,7 +382,7 @@
 
                 <button type="button"
                         class="btn-link"
-                        onclick="openUnitModal(this)">
+                        onclick="openModal('modalUnit',this)">
                     + Thêm
                 </button>
             </div>

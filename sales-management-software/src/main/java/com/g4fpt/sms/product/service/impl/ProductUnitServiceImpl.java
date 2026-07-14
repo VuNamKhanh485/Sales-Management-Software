@@ -73,17 +73,29 @@ public class ProductUnitServiceImpl implements ProductUnitService {
                 .map(ProductUnitRequest::getId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
+
         for(ProductUnit unit : product.getProductUnits()){
             if(!requestIds.contains(unit.getId())){
                 deleteById(unit.getId(), product.getId());
             }
         }
 
-        for (ProductUnitRequest productUnitRequest : productUnitRequests) {
+        for(int i = 0; i < productUnitRequests.size(); i++){
+            ProductUnitRequest productUnitRequest = productUnitRequests.get(i);
+            try{
             if(productUnitRequest.getId() == null){
                 productUnitList.add(create(productUnitRequest, product));
             }else{
                 productUnitList.add(update(productUnitRequest, product));
+            }
+        }catch(ValidationException e){
+                for (ValidationError error : e.getErrors()) {
+                    error.setField(
+                            "productUnitsRequest[" + i + "]." + error.getField()
+                    );
+                }
+
+                throw e;
             }
         }
         return productUnitList;
@@ -107,17 +119,17 @@ public class ProductUnitServiceImpl implements ProductUnitService {
         List<ValidationError> errors = new ArrayList<>();
         if(excludeId != null) {
             if(productUnitRepository.existsByBarcodeUnitIgnoreCaseAndIdNot(productUnitRequest.getBarcodeUnit(), excludeId)) {
-                errors.add(new ValidationError("Barcode","Barcode is existed"));
+                errors.add(new ValidationError("barcodeUnit","Barcode is existed"));
             }
             if (productUnitRepository.existsBySkuIgnoreCaseAndIdNot(productUnitRequest.getSku(), excludeId)) {
-                errors.add(new ValidationError("Sku","Sku is existed"));
+                errors.add(new ValidationError("sku","Sku is existed"));
             }
         }else {
             if (productUnitRepository.existsByBarcodeUnitIgnoreCase(productUnitRequest.getBarcodeUnit())) {
-                errors.add(new ValidationError("Barcode", "Barcode is existed"));
+                errors.add(new ValidationError("barcodeUnit", "Barcode is existed"));
             }
             if (productUnitRepository.existsBySkuIgnoreCase(productUnitRequest.getSku())) {
-                errors.add(new ValidationError("Sku", "Sku is existed"));
+                errors.add(new ValidationError("sku", "Sku is existed"));
             }
         }
         if (!errors.isEmpty()) {
