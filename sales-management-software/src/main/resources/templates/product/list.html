@@ -117,7 +117,10 @@
         .modal-box {
             background: var(--canvas);
             border-radius: var(--r-lg);
-            width: 100%; max-width: 400px;
+            width: auto;
+            min-width: 320px;
+            max-width: 90vw;
+            display: inline-block;
             padding: var(--sp-xl);
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
@@ -194,22 +197,31 @@
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                     <path fill-rule="evenodd" d="M11.742 10.342a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
                 </svg>
-                <input type="text" name="keyword" class="search-input" placeholder="Tìm theo tên sản phẩm..." th:value="${filter.keyword}"/>
+                <input type="text" name="keyword" class="search-input" placeholder="Tìm theo tên sản phẩm, barcode, sku..." th:value="${filter.keyword}"/>
             </div>
             <!-- Brand -->
             <select name="brandId" class="filter-select">
                 <option value="">Thương hiệu</option>
-                <option th:each="b : ${brandList}" th:value="${b.id}" th:text="${b.name}" th:selected="${b.id == filter.brandId}"></option>
+                <option th:each="b : ${brandList}"
+                        th:value="${b.id}"
+                        th:text="${b.name}"
+                        th:selected="${b.id == filter.brandId}"></option>
             </select>
             <!-- Category -->
             <select name="categoryId" class="filter-select">
                 <option value="">Danh mục</option>
-                <option th:each="c : ${categoryList}" th:value="${c.id}" th:text="${c.name}" th:selected="${c.id == filter.categoryId}"></option>
+                <option th:each="c : ${categoryList}"
+                        th:value="${c.id}"
+                        th:text="${c.name}"
+                        th:selected="${c.id == filter.categoryId}"></option>
             </select>
             <!-- Status -->
             <select name="status" class="filter-select">
                 <option value="">Trạng thái</option>
-                <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == filter.status}"></option>
+                <option th:each="s : ${statuses}"
+                        th:value="${s}"
+                        th:text="${s}"
+                        th:selected="${s == filter.status}"></option>
             </select>
             
             <input type="hidden" name="page" value="0"/>
@@ -454,7 +466,7 @@
 
     <!-- Model barcode -->
     <div id="barcodeModal" class="modal-overlay">
-        <div class="modal-box" style="width:420px">
+        <div class="modal-box" style="width:450px">
             <div class="modal-header">
                 <span>Barcode</span>
                 <button onclick="closeModal('barcodeModal')">×</button>
@@ -516,8 +528,8 @@
             barcode,
             {
                 format:"CODE128",
-                width:2,
-                height:80,
+                width:1,
+                height:45,
                 displayValue:false
             }
         );

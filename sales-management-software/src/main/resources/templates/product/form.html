@@ -351,6 +351,8 @@
                     </div>
 
                     <div class="section-title">Quy đổi Đơn vị tính</div>
+                    <span class="field-error" th:if="${#fields.hasErrors('productUnitsRequest')}"
+                         th:errors="*{productUnitsRequest}"></span>
                     <div class="form-group--full" style="overflow-x:auto;">
                         <table class="unit-table">
                             <thead>

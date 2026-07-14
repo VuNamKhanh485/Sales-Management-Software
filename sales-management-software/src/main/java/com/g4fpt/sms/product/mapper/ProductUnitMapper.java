@@ -21,6 +21,7 @@ public class ProductUnitMapper {
 
         ProductUnitRequest request = new ProductUnitRequest();
 
+        request.setId(response.getId());
         request.setUnitId(response.getUnit().getId());
         request.setSku(response.getSku());
         request.setPrice(response.getPrice());
