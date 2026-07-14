@@ -98,9 +98,9 @@ public class PosController {
 
     // ---------- Cart (add/update/remove items) ----------
     @GetMapping("/add")
-    public String addToCart(@RequestParam String k, @ModelAttribute("posSession") PosSessionData s,
+    public String addToCart(@RequestParam("keyword") String keyword, @ModelAttribute("posSession") PosSessionData s,
             RedirectAttributes ra) {
-        String kw = k.trim();
+        String kw = keyword.trim();
         ProductUnit pu = productUnitRepo.findBySku(kw)
                 .orElseGet(() -> productUnitRepo.findByBarcodeUnit(kw).orElse(null));
         if (pu != null && pu.getProduct() != null && pu.getProduct().getStatus() == ProductStatus.ACTIVE)

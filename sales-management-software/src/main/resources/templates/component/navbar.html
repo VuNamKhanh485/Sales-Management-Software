@@ -8,7 +8,6 @@
         <li><a th:href="@{/customers}" th:classappend="${page == 'customer' ? 'active' : ''}">Khách hàng</a></li>
         <li><a th:href="@{/product}" th:classappend="${page == 'product' ? 'active' : ''}">Sản phẩm</a></li>
         <li><a th:href="@{/inventory}" th:classappend="${page == 'inventory' ? 'active' : ''}">Kho hàng</a></li>
-        <li><a th:href="@{/imports}" th:classappend="${page == 'imports' ? 'active' : ''}">Nhập hàng</a></li>
         <li><a th:href="@{/vouchers}" th:classappend="${page == 'voucher' ? 'active' : ''}">Voucher</a></li>
         <li sec:authorize="hasAnyRole('OWNER', 'MANAGER')"><a th:href="@{/return/manage}" th:classappend="${page == 'returns' ? 'active' : ''}">Xử lý yêu cầu</a></li>
         <li sec:authorize="hasAnyRole('OWNER')"><a th:href="@{/employee}" th:classappend="${page == 'employee' ? 'active' : ''}">Nhân viên</a></li>

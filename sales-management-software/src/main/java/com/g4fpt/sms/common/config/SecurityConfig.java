@@ -22,16 +22,14 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
-            .authorizeHttpRequests(auth -> auth
+                .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/branch", "/branch/detail/**").hasAnyRole("OWNER", "MANAGER")
                         .requestMatchers("/branch/**").hasAnyRole("OWNER")
                         .requestMatchers("/employee/**").hasAnyRole("OWNER", "MANAGER")
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .headers(headers -> headers
-                        .frameOptions(frameOptions -> frameOptions.sameOrigin())
-                )
+                        .frameOptions(frameOptions -> frameOptions.sameOrigin()))
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
@@ -48,8 +46,7 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                         .clearAuthentication(true)
-                        .permitAll()
-                );
+                        .permitAll());
         return http.build();
     }
 

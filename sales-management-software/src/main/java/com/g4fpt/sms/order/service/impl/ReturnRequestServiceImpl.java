@@ -142,7 +142,12 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
                 int currentPoint = customer.getTotalPoint() != null ? customer.getTotalPoint() : 0;
                 int pointToReverse = refundAmount
                         .divide(new BigDecimal("10000"), 0, RoundingMode.FLOOR).intValue();
-                customer.setTotalPoint(Math.max(0, currentPoint - pointToReverse));
+                int newTotalPoint = Math.max(0, currentPoint - pointToReverse);
+                
+                customer.setTotalPoint(newTotalPoint);
+                if (customer.getUsedPoint() != null && customer.getUsedPoint() > newTotalPoint) {
+                    customer.setUsedPoint(newTotalPoint);
+                }
             }
         }
 

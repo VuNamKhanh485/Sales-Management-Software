@@ -123,7 +123,7 @@ public class ReturnController {
                         String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
                         Path filePath = uploadPath.resolve(fileName);
                         Files.copy(file.getInputStream(), filePath);
-                        imageUrls.add("/uploads/returns/" + fileName);
+                        imageUrls.add(fileName);
                     }
                 }
             }
@@ -158,7 +158,8 @@ public class ReturnController {
             data.put("status", req.getStatus());
             data.put("createdAt", req.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
             data.put("orderCode", req.getOrder().getCode());
-            data.put("customerName", req.getOrder().getCustomer() != null ? req.getOrder().getCustomer().getFullName() : "Khách lẻ");
+            data.put("customerName",
+                    req.getOrder().getCustomer() != null ? req.getOrder().getCustomer().getFullName() : "Khách lẻ");
 
             List<Map<String, Object>> items = new ArrayList<>();
             for (var item : req.getItems()) {
@@ -177,8 +178,10 @@ public class ReturnController {
 
             if (req.getReviewedBy() != null) {
                 data.put("reviewedBy", req.getReviewedBy());
-                data.put("reviewedAt", req.getReviewedAt() != null ?
-                        req.getReviewedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : null);
+                data.put("reviewedAt",
+                        req.getReviewedAt() != null
+                                ? req.getReviewedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                                : null);
                 data.put("rejectReason", req.getRejectReason());
             }
 
@@ -205,8 +208,8 @@ public class ReturnController {
     @PostMapping("/api/requests/{id}/reject")
     @ResponseBody
     public ResponseEntity<?> rejectRequest(@PathVariable Long id,
-                                            @RequestParam("reason") String reason,
-                                            HttpSession session) {
+            @RequestParam("reason") String reason,
+            HttpSession session) {
         try {
             Long employeeId = getCurrentUser().getEmployee().getId();
             returnRequestService.rejectRequest(id, employeeId, reason);
