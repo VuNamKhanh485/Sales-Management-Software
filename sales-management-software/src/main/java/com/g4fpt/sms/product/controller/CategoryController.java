@@ -90,8 +90,8 @@ public class CategoryController {
         return "redirect:/category";
     }
 
-    @PostMapping("/delete")
-    public String delete(@RequestParam("id") Long id,
+    @PostMapping("/delete/{id}")
+    public String delete(@PathVariable Long id,
                          RedirectAttributes redirectAttributes) {
         try {
             categoryService.deleteById(id);

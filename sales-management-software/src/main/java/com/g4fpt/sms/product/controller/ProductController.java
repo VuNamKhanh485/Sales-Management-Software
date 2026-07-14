@@ -132,11 +132,7 @@ public class ProductController {
         return "redirect:/product";
     }
 
-    @PostMapping("/delete/{id}")
-    public String delete(@PathVariable Long id) {
-        productService.deleteById(id);
-        return "redirect:/product";
-    }
+
     
     private void addAttributeToForm(Model model, Long id){
         if(id != null) {
@@ -156,12 +152,12 @@ public class ProductController {
         model.addAttribute("unitList", unitService.findAll());
     }
 
-    @PostMapping("/delete")
-    public String delete(@RequestParam("id") Long id,
+    @PostMapping("/delete/{id}")
+    public String delete(@PathVariable Long id,
                          RedirectAttributes redirectAttributes) {
         try {
-            categoryService.deleteById(id);
-        }catch (NotFoundException | ResourceInUseException e){
+            productService.deleteById(id);
+        }catch(NotFoundException | ResourceInUseException e){
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/product";
         }

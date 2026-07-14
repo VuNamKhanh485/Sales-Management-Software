@@ -41,4 +41,6 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
             "WHERE i.branch.id = :branchId " +
             "AND i.stock <= i.minStock")
     Page<Inventory> findLowStockByBranchId(@Param("branchId") Long branchId, Pageable pageable);
+
+    boolean existsByProductUnitId(Long productUnitId);
 }

@@ -71,6 +71,9 @@
                                     </svg>
                                     Sửa
                                 </a>
+                                <form th:action="@{/unit/delete/{id}(id=${u.id})}" method="post" onsubmit="return confirm('Xác nhận xóa đơn vị này?')" style="margin:0;">
+                                    <button type="submit" class="action-delete" style="background:transparent; border:none; cursor:pointer;">Xóa</button>
+                                </form>
                             </div>
                         </td>
                     </tr>

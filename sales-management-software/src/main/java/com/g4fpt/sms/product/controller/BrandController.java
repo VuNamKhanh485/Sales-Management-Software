@@ -94,8 +94,8 @@ public class BrandController {
         return "redirect:/brand";
     }
 
-    @PostMapping("/delete")
-    public String delete(@RequestParam("id") Long id,
+    @PostMapping("/delete/{id}")
+    public String delete(@PathVariable Long id,
                          RedirectAttributes redirectAttributes) {
         try {
             brandService.deleteById(id);

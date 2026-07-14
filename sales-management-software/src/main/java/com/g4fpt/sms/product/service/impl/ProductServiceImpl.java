@@ -1,12 +1,14 @@
 package com.g4fpt.sms.product.service.impl;
 
 import com.g4fpt.sms.common.exception.ResourceInUseException;
+import com.g4fpt.sms.inventory.repository.InventoryRepository;
 import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
 import com.g4fpt.sms.product.dto.request.ProductRequest;
 import com.g4fpt.sms.product.dto.response.ProductResponse;
 import com.g4fpt.sms.product.entity.Product;
 import com.g4fpt.sms.common.exception.NotFoundException;
 import com.g4fpt.sms.common.exception.ValidationException;
+import com.g4fpt.sms.product.entity.ProductUnit;
 import com.g4fpt.sms.product.mapper.ProductMapper;
 import com.g4fpt.sms.product.repository.*;
 import com.g4fpt.sms.product.service.ProductService;
@@ -20,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,9 +34,11 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
+    private final InventoryRepository inventoryRepository;
     private final ProductMapper productMapper;
     private final ProductUnitService productUnitService;
 
+    @Transactional
     @Override
     public void create(ProductRequest productRequest) {
         validate(productRequest, null);
@@ -45,6 +50,7 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
     }
 
+    @Transactional
     @Override
     public void update(long id, ProductRequest productRequest) {
         validate(productRequest, id);
@@ -93,6 +99,14 @@ public class ProductServiceImpl implements ProductService {
             throw new ResourceInUseException("Sản phẩm đã nằm trong giao dịch");
         }
 
+        for (ProductUnit unit : product.getProductUnits()) {
+            if (inventoryRepository.existsByProductUnitId(unit.getId())) {
+                throw new ResourceInUseException(
+                        "Không thể xóa sản phẩm vì đã có dữ liệu tồn kho."
+                );
+            }
+        }
+
         productRepository.delete(product);
     }
 
@@ -134,10 +148,10 @@ public class ProductServiceImpl implements ProductService {
                 .filter(u -> Boolean.TRUE.equals(u.getIsBaseUnit()))
                 .count();
         if (baseUnitCount == 0) {
-            errors.add(new ValidationError("productUnits", "Phải có ít nhất 1 base unit"));
+            errors.add(new ValidationError("productUnitsRequest", "Phải có ít nhất 1 base unit"));
         }
         if (baseUnitCount > 1) {
-            errors.add(new ValidationError("productUnits", "Chỉ được có 1 base unit"));
+            errors.add(new ValidationError("productUnitsRequest", "Chỉ được có 1 base unit"));
         }
 
         if (!errors.isEmpty()) {
