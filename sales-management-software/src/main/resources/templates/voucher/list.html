@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Voucher — SMS</title>
+    <meta name="description" content="Quản lý toàn bộ voucher, mã giảm giá trong hệ thống bán hàng.">
+    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
+</head>
+
+<body>
+
+    <!-- ── Global Nav ── -->
+    <div th:replace="~{component/navbar :: global-nav('voucher')}"></div>
+
+    <!-- ── Sub Nav ── -->
+    <div class="sub-nav">
+        <div style="max-width: 1200px; margin: 0 auto; width: 100%; display: flex; justify-content: space-between; align-items: center;">
+            <span class="sub-nav__title">Voucher</span>
+            <div class="sub-nav__actions">
+                <a href="/vouchers/create" class="btn-primary btn-primary--sm" id="btn-add-voucher">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 1V11M1 6H11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                    </svg>
+                    Thêm voucher
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Page Content ── -->
+    <main class="page-wrap" id="main-content">
+
+        <!-- Alerts -->
+        <div th:if="${successMessage}" th:text="${successMessage}" class="alert alert-success" role="alert"></div>
+        <div th:if="${errorMessage}" th:text="${errorMessage}" class="alert alert-danger" role="alert"></div>
+
+        <!-- Search bar -->
+        <form method="get" action="/vouchers" class="search-bar" id="search-form" role="search">
+
+            <div class="search-input-wrap">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M10 10L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+                <input id="search-keyword" type="text" name="keyword" class="search-input"
+                    placeholder="Tìm theo mã hoặc tên voucher…" th:value="${keyword}" autocomplete="off">
+            </div>
+
+            <select id="filter-status" name="status" class="filter-select">
+                <option value="">Tất cả trạng thái</option>
+                <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Đang hoạt động</option>
+                <option value="INACTIVE" th:selected="${status == 'INACTIVE'}">Ngừng hoạt động</option>
+            </select>
+
+            <button type="submit" class="btn-primary btn-primary--sm" id="btn-search">Tìm kiếm</button>
+            <a href="/vouchers" class="btn-clear-link" id="btn-clear-filter">Xóa lọc</a>
+        </form>
+
+        <!-- Table card -->
+        <div class="card-panel">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:44px">#</th>
+                        <th>Mã voucher</th>
+                        <th>Tên</th>
+                        <th>Loại giảm</th>
+                        <th>Giá trị</th>
+                        <th>Thời hạn</th>
+                        <th>Trạng thái</th>
+                        <th style="width:120px">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data rows -->
+                    <tr th:each="v, stat : ${vouchers}">
+                        <td th:text="${stat.count}" style="color:var(--ink-muted-48);font-size:12px;"></td>
+                        <td><span class="code-chip" th:text="${v.code}">SALE50</span></td>
+                        <td th:text="${v.name}">Tên voucher</td>
+                        <td th:text="${v.discountType.name() == 'PERCENT' ? 'Phần trăm' : 'Cố định'}">Loại</td>
+                        <td>
+                            <span class="discount-value"
+                                th:text="${v.discountType.name() == 'PERCENT'} ? ${v.discountValue + '%'} : ${#numbers.formatDecimal(v.discountValue,0,'COMMA',0,'POINT') + ' đ'}">
+                            </span>
+                        </td>
+                        <td>
+                            <span class="date-range"
+                                th:text="${#temporals.format(v.startAt,'dd/MM/yy HH:mm')} + ' → ' + ${#temporals.format(v.endAt,'dd/MM/yy HH:mm')}">
+                            </span>
+                        </td>
+                        <td>
+                            <span
+                                th:class="${v.status.name() == 'ACTIVE'} ? 'badge badge-active' : 'badge badge-inactive'"
+                                th:text="${v.status.name() == 'ACTIVE'} ? 'Hoạt động' : 'Ngừng'">
+                            </span>
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <a th:href="@{/vouchers/edit/{id}(id=${v.id})}" class="action-edit"
+                                    th:id="'btn-edit-' + ${v.id}">
+                                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                        <path d="M9.5 1.5L11.5 3.5L4.5 10.5H2.5V8.5L9.5 1.5Z" stroke="currentColor"
+                                            stroke-width="1.4" stroke-linejoin="round" />
+                                    </svg>
+                                    Sửa
+                                </a>
+                                <a th:href="@{/vouchers/delete/{id}(id=${v.id})}" class="action-delete"
+                                    th:id="'btn-delete-' + ${v.id}">
+                                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                        <path d="M2 3.5H11M5 3.5V2H8V3.5M4 3.5L4.5 11H8.5L9 3.5H4Z"
+                                            stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                    </svg>
+                                    Xóa
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Empty state -->
+                    <tr th:if="${#lists.isEmpty(vouchers)}">
+                        <td colspan="8" style="padding:0;border:none;">
+                            <div class="empty-state">
+                                <div class="empty-state__icon">🎫</div>
+                                <div class="empty-state__title">Không tìm thấy voucher nào</div>
+                                <p class="empty-state__sub">Thử thay đổi bộ lọc hoặc tạo voucher mới.</p>
+                                <a href="/vouchers/create" class="btn-primary btn-primary--sm" id="btn-add-first">Thêm
+                                    voucher đầu tiên</a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+</body>
+
+</html>

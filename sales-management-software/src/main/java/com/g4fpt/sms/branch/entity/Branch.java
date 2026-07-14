@@ -40,12 +40,6 @@ public class Branch {
     @Column(nullable = false)
     private BranchStatus status;
 
-    @Column(name = "opened_at")
-    private LocalDate openedAt;
-
-    @Column(name = "closed_at")
-    private LocalDate closedAt;
-
     @Column(columnDefinition = "TEXT")
     private String note;
 

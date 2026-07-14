@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận xóa Voucher — SMS</title>
+    <meta name="description" content="Xác nhận xóa voucher khỏi hệ thống bán hàng.">
+    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
+</head>
+<body>
+
+<!-- ── Global Nav ── -->
+<div th:replace="~{component/navbar :: global-nav('voucher')}"></div>
+
+<!-- ── Center Stage ── -->
+<div class="center-stage">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+
+        <!-- Header (dark tile) -->
+        <div class="dialog__header">
+            <div class="dialog__icon-wrap" aria-hidden="true">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 9V15M14 19H14.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M12.1 4.2L2.7 20a2 2 0 0 0 1.7 3h19.2a2 2 0 0 0 1.7-3L15.9 4.2a2 2 0 0 0-3.8 0Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="dialog__eyebrow">Hành động không thể hoàn tác</div>
+            <h1 class="dialog__title" id="dialog-title">Xác nhận xóa</h1>
+        </div>
+
+        <!-- Body -->
+        <div class="dialog__body">
+            <p class="dialog__question">
+                Bạn có chắc muốn xóa voucher này không?
+            </p>
+
+            <!-- Voucher chip -->
+            <div class="voucher-info-card">
+                <div class="voucher-info-card__icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M2 7.5V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2.5M2 7.5a1.5 1.5 0 0 1 0 3V13a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a1.5 1.5 0 0 1 0-3M2 7.5h14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="voucher-info-card__label">Mã voucher</div>
+                    <div class="voucher-info-card__value" th:text="${voucher.code}">SALE50</div>
+                </div>
+            </div>
+
+            <!-- Warning -->
+            <div class="dialog__warning" role="alert">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.4"/>
+                    <path d="M7 4.5V7.5M7 9.5H7.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                </svg>
+                <p>Tất cả dữ liệu liên quan đến voucher này sẽ bị xóa vĩnh viễn và không thể khôi phục.</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="dialog__footer">
+            <a href="/vouchers" class="btn-cancel" id="btn-confirm-cancel">Giữ lại</a>
+            <form th:action="@{/vouchers/delete/{id}(id=${voucher.id})}" method="post" style="flex:1;display:flex;">
+                <button type="submit" class="btn-delete" id="btn-confirm-delete" style="width:100%">
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+                        <path d="M2.5 4H12.5M6 4V2.5H9V4M5 4L5.5 12.5H9.5L10 4H5Z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Xóa voucher
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

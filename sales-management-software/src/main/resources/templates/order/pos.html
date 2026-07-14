@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý bán hàng - POS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/apple-design.css}" rel="stylesheet">
+    <link th:href="@{/css/pos.css}" rel="stylesheet">
+</head>
+
+<body>
+    <!-- TOP NAV -->
+    <div th:replace="~{component/navbar :: global-nav('pos')}"></div>
+
+    <div class="d-flex" style="height: calc(100vh - 52px);">
+        <!-- POS WRAPPER -->
+        <div class="pos-wrapper flex-grow-1">
+
+            <!-- ===== LEFT ===== -->
+            <div class="pos-left">
+
+                <!-- Flash messages -->
+                <div th:if="${error}" class="alert alert-danger alert-dismissible mx-2 mt-2 py-2 mb-0">
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <div th:if="${success}" class="alert alert-success alert-dismissible mx-2 mt-2 py-2 mb-0">
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Tabs + SKU cùng hàng -->
+                <div class="order-tabs-row">
+
+                    <!-- SKU input -->
+                    <form onsubmit="addBySku(event)" class="d-flex gap-2 me-2" style="min-width:220px">
+                        <input type="text" id="skuKeyword" class="form-control form-control-sm"
+                            placeholder="Quét SKU / barcode..." autofocus>
+                        <button type="submit" class="btn btn-primary btn-sm px-2">
+                            <i class="bi bi-upc-scan"></i>
+                        </button>
+                    </form>
+
+                    <div class="vr mx-1"></div>
+
+                    <!-- Order tabs -->
+                    <div th:each="entry : ${posData.carts}" class="d-flex">
+                        <a href="#" th:onclick="'switchOrder(' + ${entry.key} + ', event)'"
+                            th:classappend="${entry.key == session.activeIndex} ? 'active'" class="order-tab">
+                            <i class="bi bi-receipt" style="font-size:12px"></i>
+                            <span th:text="'Đơn ' + ${entry.key}"></span>
+                            <span th:if="${!entry.value.items.isEmpty()}" class="badge bg-danger rounded-pill"
+                                style="font-size:10px" th:text="${entry.value.items.size()}"></span>
+                            <span class="close-btn"
+                                th:onclick="'confirmCloseOrder(' + ${entry.key} + ', event)'">✕</span>
+                        </a>
+                    </div>
+
+                    <!-- Nút thêm đơn -->
+                    <a th:if="${posData.canAddOrder()}" th:href="@{/pos/new-order}" class="btn-new-order"
+                        title="Thêm đơn mới">+</a>
+                    <span th:unless="${posData.canAddOrder()}" class="text-muted small">Tối đa 5 đơn</span>
+                </div>
+
+                <!-- Cart table -->
+                <div class="cart-table-wrapper">
+                    <table class="table cart-table mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width:36px">STT</th>
+                                <th>Tên sản phẩm</th>
+                                <th style="width:120px" class="text-center">ĐVT</th>
+                                <th style="width:110px">Số lượng</th>
+                                <th style="width:90px">Đơn giá</th>
+                                <th style="width:100px">Thành tiền</th>
+                                <th style="width:36px"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item, stat : ${cart.items}">
+                                <td class="text-muted" th:text="${stat.count}"></td>
+                                <td>
+                                    <div class="fw-semibold" th:text="${item.name}"></div>
+                                    <div class="text-muted" style="font-size:11px" th:text="${item.sku}"></div>
+                                </td>
+                                <td class="text-center">
+                                    <select th:if="${cartItemUnitsMap != null and cartItemUnitsMap.containsKey(item.productUnitId) and #lists.size(cartItemUnitsMap.get(item.productUnitId)) > 1}"
+                                            class="unit-select"
+                                            th:onchange="'updateUnit(' + ${stat.index} + ', this.value)'">
+                                        <option th:each="pu : ${cartItemUnitsMap.get(item.productUnitId)}"
+                                                th:value="${pu.id}"
+                                                th:text="${pu.unit != null ? pu.unit.name : 'Mặc định'} + ' (' + ${pu.conventionValue} + ')'"
+                                                th:selected="${pu.id == item.productUnitId}">
+                                        </option>
+                                    </select>
+                                    <span th:unless="${cartItemUnitsMap != null and cartItemUnitsMap.containsKey(item.productUnitId) and #lists.size(cartItemUnitsMap.get(item.productUnitId)) > 1}"
+                                          th:text="${item.unitName}"></span>
+                                </td>
+                                <td>
+                                    <div class="qty-control">
+                                        <a href="#" th:onclick="'updateQty(' + ${stat.index} + ', ' + ${item.quantity - 1} + ', event)'"
+                                            class="btn btn-outline-secondary btn-sm qty-btn">−</a>
+                                        <span class="fw-bold" style="min-width:28px;text-align:center"
+                                            th:text="${item.quantity}"></span>
+                                        <a href="#" th:onclick="'updateQty(' + ${stat.index} + ', ' + ${item.quantity + 1} + ', event)'"
+                                            class="btn btn-outline-primary btn-sm qty-btn">+</a>
+                                    </div>
+                                </td>
+                                <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                                <td class="fw-semibold text-primary"
+                                    th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')} + 'đ'">
+                                </td>
+                                <td>
+                                    <a href="#" th:onclick="'removeCartItem(' + ${stat.index} + ', event)'"
+                                        class="btn btn-sm btn-outline-danger qty-btn">
+                                        <i class="bi bi-trash" style="font-size:11px"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(cart.items)}">
+                                <td colspan="7" class="text-center text-muted py-5">
+                                    <i class="bi bi-cart fs-1 d-block mb-2"></i>
+                                    Chưa có sản phẩm — quét mã hoặc chọn từ danh sách bên dưới
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Bottom toolbar -->
+                <div class="pos-toolbar">
+                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#productModal">
+                        <i class="bi bi-grid me-1"></i>Danh sách sản phẩm
+                    </button>
+                    <a th:href="@{/orders}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-arrow-return-left me-1"></i>Đổi trả hàng
+                    </a>
+                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#voucherModal">
+                        <i class="bi bi-tag me-1"></i>Khuyến mãi
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#salesHistoryModal">
+                        <i class="bi bi-clock-history me-1"></i>Lịch sử bán hàng
+                    </button>
+                    <!-- Chi nhánh Selector (Chỉ dành cho Owner) -->
+                    <div th:if="${isOwner}" class="dropdown ms-2">
+                        <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-shop me-1"></i>
+                            <span th:text="${activeBranch != null ? activeBranch.name : 'SMS STORE'}">SMS STORE</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li th:each="br : ${branches}">
+                                <a class="dropdown-item" href="#" th:onclick="'changeBranch(' + ${br.id} + ', event)'"
+                                    th:text="${br.name}"></a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Chi nhánh hiện tại (Cho Cashier thường) -->
+                    <div th:unless="${isOwner}" class="ms-2 d-inline-flex align-items-center">
+                        <span class="badge bg-primary py-2 px-3">
+                            <i class="bi bi-shop me-1"></i>
+                            <span th:text="${activeBranch != null ? activeBranch.name : 'SMS STORE'}">SMS STORE</span>
+                        </span>
+                    </div>
+
+                    <form th:action="@{/pos/clear}" method="get"
+                        onsubmit="return confirm('Xóa toàn bộ đơn hàng hiện tại?')" class="ms-auto">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-trash me-1"></i>Xóa đơn
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ===== RIGHT: Thanh toán ===== -->
+            <div class="pos-right">
+
+                <div class="panel-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-receipt me-1"></i>Hóa đơn</span>
+                    <span class="badge bg-white text-primary" th:text="'Đơn ' + ${posData.activeIndex}"></span>
+                </div>
+
+                <!-- Khách hàng -->
+                <div class="panel-customer">
+                    <div th:if="${cart.customerId == null}">
+                        <form onsubmit="searchCustomer(event)" class="d-flex gap-2 mb-1">
+                            <input type="text" id="customerPhone" class="form-control form-control-sm"
+                                placeholder="SĐT hoặc tên khách hàng..." th:value="${searchedPhone}">
+                            <button type="submit" class="btn btn-outline-primary btn-sm px-2" title="Tìm">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-success btn-sm px-2" data-bs-toggle="modal"
+                                data-bs-target="#newCustomerModal" title="Thêm khách mới">
+                                <i class="bi bi-person-plus"></i>
+                            </button>
+                        </form>
+                        <div id="customerResult">
+                            <div th:if="${customerSearchError}" class="small text-danger mt-1">
+                                <i class="bi bi-exclamation-circle"></i> <span th:text="${customerSearchError}"></span>
+                            </div>
+                            <div th:if="${customerSearchResults != null}" class="list-group mt-1 shadow-sm" style="max-height: 200px; overflow-y: auto;">
+                                <div th:each="c : ${customerSearchResults}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-2 border-bottom">
+                                    <div class="small text-start">
+                                        <div class="fw-bold text-dark" th:text="${c.fullName}"></div>
+                                        <div class="text-muted" style="font-size: 11px;">
+                                            SĐT: <span th:text="${c.phone}"></span> | Hạng: 
+                                            <span class="badge bg-info text-dark" th:text="${c.customerRank != null ? c.customerRank.name : 'Thường'}"></span>
+                                        </div>
+                                    </div>
+                                    <a href="#" th:onclick="'selectCustomer(' + ${c.id} + ', \'' + ${c.fullName} + '\', \'' + ${c.phone} + '\', event)'"
+                                       class="btn btn-sm btn-primary py-1 px-2 fw-semibold" style="font-size: 11px;">Chọn</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:unless="${cart.customerId == null}"
+                        class="customer-info d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-person-fill text-primary me-1"></i>
+                            <span class="fw-semibold small" th:text="${cart.customerName}"></span>
+                            <div class="text-muted" style="font-size:11px" th:text="${cart.customerPhone}"></div>
+                        </div>
+                        <a href="#" th:onclick="'removeCustomer(event)'" class="btn btn-sm btn-outline-danger py-0">
+                            <i class="bi bi-x"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Footer thanh toán -->
+                <div class="panel-footer">
+
+                    <!-- Voucher -->
+                    <div class="mb-3" th:if="${cart.voucherCode == null}">
+                        <form onsubmit="applyVoucher(event)" class="d-flex gap-2">
+                            <input type="text" id="voucherCode" class="form-control form-control-sm"
+                                placeholder="Mã giảm giá...">
+                            <button type="submit" class="btn btn-outline-primary btn-sm">Áp dụng</button>
+                        </form>
+                        <div class="small mt-1">
+                            <span th:if="${voucherSuccess}" class="text-success"><i class="bi bi-check-circle"></i> <span th:text="${voucherSuccess}"></span></span>
+                            <span th:if="${voucherError}" class="text-danger"><i class="bi bi-x-circle"></i> <span th:text="${voucherError}"></span></span>
+                        </div>
+                    </div>
+                    <div class="mb-3" th:unless="${cart.voucherCode == null}">
+                        <div class="d-flex justify-content-between align-items-center
+                                bg-success bg-opacity-10 rounded p-2">
+                            <span class="small text-success">
+                                <i class="bi bi-tag-fill me-1"></i>
+                                <span th:text="${cart.voucherCode}"></span>
+                            </span>
+                            <a href="#" th:onclick="'removeVoucher(event)'" class="btn btn-sm btn-outline-danger py-0">
+                                <i class="bi bi-x"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Tổng tiền -->
+                    <div class="mb-3">
+                        <div class="summary-row">
+                            <span>Tổng tiền hàng</span>
+                            <span
+                                th:text="${#numbers.formatDecimal(cart.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        </div>
+                        <div class="summary-row text-danger">
+                            <span>Giảm giá</span>
+                            <span
+                                th:text="'- ' + ${#numbers.formatDecimal(cart.voucherDiscount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Thuế VAT (2%)</span>
+                            <span
+                                th:text="${#numbers.formatDecimal(cart.vatAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Khách phải trả</span>
+                            <span
+                                th:text="${#numbers.formatDecimal(cart.finalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        </div>
+                    </div>
+
+                    <!-- Form thanh toán -->
+                    <form th:action="@{/pos/checkout}" method="POST">
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold mb-1">
+                                Phương thức thanh toán
+                            </label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="paymentMethodId" value="1"
+                                        id="pmCash" checked>
+                                    <label class="form-check-label small" for="pmCash">
+                                        <i class="bi bi-cash"></i> Tiền mặt
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="paymentMethodId" value="2"
+                                        id="pmTransfer">
+                                    <label class="form-check-label small" for="pmTransfer">
+                                        <i class="bi bi-qr-code"></i> Chuyển khoản
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold mb-1">
+                                Tiền khách đưa
+                            </label>
+                            <input type="number" name="givenAmount" id="givenAmount"
+                                class="form-control form-control-sm" th:value="${cart.finalAmount}" min="0" step="any"
+                                oninput="calcChange()">
+                            <div class="d-flex flex-wrap gap-1 mt-1" id="amountSuggestions"></div>
+                        </div>
+
+                        <div class="summary-row mb-2">
+                            <span class="small">Tiền thừa trả khách</span>
+                            <span class="fw-bold text-success" id="changeDisplay">0đ</span>
+                        </div>
+
+                        <div class="mb-2">
+                            <input type="text" name="note" class="form-control form-control-sm"
+                                placeholder="Ghi chú...">
+                        </div>
+
+                        <button type="submit" class="btn-payment mt-3">
+                            <i class="bi bi-check-circle me-2"></i>
+                            XÁC NHẬN THANH TOÁN
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div th:replace="~{component/pos-modals :: modals}"></div>
+
+    <!-- Configuration variables from Thymeleaf to JS -->
+    <div id="pos-config" style="display: none;"
+         th:data-final-amount="${cart.finalAmount}"
+         th:data-customer-id="${cart.customerId}"
+         th:data-show-success-modal="${successOrder != null}"
+         th:data-success-order-code="${successOrder != null ? successOrder.code : ''}"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script th:src="@{/js/pos.js(v=3)}"></script>
+</body>
+
+</html>

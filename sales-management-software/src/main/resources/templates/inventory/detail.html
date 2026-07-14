@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết kho chi nhánh</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+<div class="admin-shell">
+    <div th:replace="~{component/navbar :: sidebar-component}"></div>
+    <main class="admin-main">
+        <header class="admin-topbar">
+            <div>
+                <p class="admin-kicker">Admin Panel</p>
+                <h1>Chi tiết kho</h1>
+            </div>
+        </header>
+        <section class="admin-content p-4">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0">Thông tin kho chi nhánh</h2>
+                <div class="d-flex gap-2">
+                    <!-- Nút Thêm tồn kho mới vào chi nhánh này -->
+                    <a th:href="@{/inventory/create(branchId=${branch.id})}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Nhập kho
+                    </a>
+                    <a th:href="@{/inventory}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Quay lại danh sách kho
+                    </a>
+                </div>
+            </div>
+
+            <!-- Thông báo thành công hoặc lỗi (từ RedirectAttributes) -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill"></i>
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Thẻ Card hiển thị thông tin chi nhánh -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong>Mã kho:</strong>
+                            <span th:text="${branch.branchCode}"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Tên kho:</strong>
+                            <span th:text="${branch.name}"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Trạng thái:</strong>
+                            <span th:if="${branch.status != null and branch.status.name() == 'ACTIVE'}" class="badge bg-success">ACTIVE</span>
+                            <span th:if="${branch.status != null and branch.status.name() == 'INACTIVE'}" class="badge bg-danger">INACTIVE</span>
+                            <span th:if="${branch.status == null}" class="badge bg-secondary">N/A</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Thanh tìm kiếm và lọc -->
+            <div class="card shadow mb-3">
+                <div class="card-body py-3">
+                    <form th:action="@{/inventory/{id}(id=${branch.id})}" method="get">
+                        <div class="row g-2 align-items-end">
+
+                            <!-- Ô tìm kiếm: tên sản phẩm hoặc SKU -->
+                            <div class="col-md-5">
+                                <label for="keyword" class="form-label mb-1 fw-semibold">
+                                    <i class="bi bi-search"></i> Tìm kiếm
+                                </label>
+                                <input type="text"
+                                       id="keyword"
+                                       name="keyword"
+                                       class="form-control"
+                                       placeholder="Nhập tên sản phẩm hoặc SKU..."
+                                       th:value="${keyword}" />
+                                <!--
+                                    th:value="${keyword}" => giữ lại từ khóa cũ sau khi tìm
+                                    để người dùng không phải gõ lại
+                                -->
+                            </div>
+
+                            <!-- Dropdown lọc: Tất cả / Hàng sắp hết -->
+                            <div class="col-md-3">
+                                <label for="filter" class="form-label mb-1 fw-semibold">
+                                    <i class="bi bi-funnel"></i> Lọc theo trạng thái
+                                </label>
+                                <select id="filter" name="filter" class="form-select">
+                                    <!--
+                                        th:selected => tự động chọn lại option đúng
+                                        dựa trên giá trị filter đang có trong Model
+                                    -->
+                                    <option value=""
+                                            th:selected="${filter == null or filter == ''}">
+                                        Tất cả sản phẩm
+                                    </option>
+                                    <option value="low_stock"
+                                            th:selected="${filter == 'low_stock'}">
+                                        Hàng sắp hết
+                                    </option>
+                                </select>
+                            </div>
+
+                            <!-- Nhóm nút bấm -->
+                            <div class="col-md-4 d-flex gap-2">
+                                <!-- Nút Tìm kiếm: submit form -->
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> Tìm kiếm
+                                </button>
+                                <!-- Nút Làm mới: xóa tất cả param, load lại trang gốc -->
+                                <a th:href="@{/inventory/{id}(id=${branch.id})}"
+                                   class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-clockwise"></i> Làm mới
+                                </a>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- ============================================================ -->
+
+            <!-- Danh sách sản phẩm trong kho -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Danh sách sản phẩm trong kho</h6>
+
+                    <span th:if="${keyword != null and keyword != ''}"
+                          class="badge bg-info text-dark">
+                        Kết quả tìm kiếm: "<span th:text="${keyword}"></span>"
+                    </span>
+                    <span th:if="${filter == 'low_stock'}"
+                          class="badge bg-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Đang lọc: Hàng sắp hết
+                    </span>
+                </div>
+                <div class="card-body">
+                    <!-- Thông báo nếu kho trống hoặc không có kết quả -->
+                    <div th:if="${inventoryDetails == null or inventoryDetails.empty}"
+                         class="alert alert-info text-center" role="alert">
+                        <i class="bi bi-inbox"></i>
+                        <span th:if="${keyword != null and keyword != ''}">
+                            Không tìm thấy sản phẩm nào khớp với từ khóa "<strong th:text="${keyword}"></strong>".
+                        </span>
+                        <span th:if="${filter == 'low_stock' and (keyword == null or keyword == '')}">
+                            Không có sản phẩm nào sắp hết hàng.
+                        </span>
+                        <span th:if="${(keyword == null or keyword == '') and (filter == null or filter == '')}">
+                            Hiện tại không có sản phẩm nào trong kho của chi nhánh này.
+                        </span>
+                    </div>
+
+                    <!-- Bảng Responsive hiển thị sản phẩm -->
+                    <div class="table-responsive" th:if="${inventoryDetails != null and !inventoryDetails.empty}">
+                        <table class="table table-bordered table-hover w-100 align-middle">
+                            <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="width: 50px;">STT</th>
+                                <th>Tên sản phẩm</th>
+                                <th>SKU</th>
+                                <th>Đơn vị</th>
+                                <th class="text-end" style="width: 100px;">Tồn kho</th>
+                                <th class="text-end" style="width: 130px;">Giá bán</th>
+                                <th class="text-end" style="width: 150px;">Giá trị tồn kho</th>
+                                <th class="text-center" style="width: 130px;">Trạng thái</th>
+<!--                                <th class="text-center" style="width: 150px;">Hành động</th>-->
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="item, stat : ${inventoryDetails}">
+                                <td class="text-center" th:text="${(inventoryPage.number * inventoryPage.size) + stat.count}">1</td>
+                                <td th:text="${item.productName}">Tên sản phẩm</td>
+                                <td>
+                                    <span class="badge bg-secondary fw-normal" th:text="${item.sku}">SKU-001</span>
+                                </td>
+                                <td th:text="${item.unitName}">Cái</td>
+                                <td class="text-end font-weight-bold" th:text="${item.stock}">10</td>
+                                <td class="text-end" th:text="${#numbers.formatDecimal(item.price, 1, 'DEFAULT', 0, 'DEFAULT') + ' đ'}">10,000 đ</td>
+                                <td class="text-end fw-bold text-success" th:text="${#numbers.formatDecimal(item.totalValue, 1, 'DEFAULT', 0, 'DEFAULT') + ' đ'}">100,000 đ</td>
+                                <td class="text-center">
+                                    <span th:if="${item.stock <= item.minStock}" class="badge bg-danger">Sắp hết hàng</span>
+                                    <span th:if="${item.stock > item.minStock}" class="badge bg-success">Còn hàng</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Thanh phân trang Bootstrap -->
+                    <div th:if="${inventoryPage.totalPages > 0}" class="d-flex justify-content-center mt-3">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination">
+                                <!-- Nút Trước -->
+                                <li class="page-item" th:classappend="${inventoryPage.first} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/inventory/{id}(id=${branch.id}, page=${inventoryPage.first ? 0 : inventoryPage.number - 1}, keyword=${keyword}, filter=${filter}, size=${size})}"
+                                       aria-label="Previous">
+                                        <span aria-hidden="true">&laquo; Trước</span>
+                                    </a>
+                                </li>
+
+                                <!-- Các số trang -->
+                                <li class="page-item"
+                                    th:each="pageIdx : ${#numbers.sequence(0, inventoryPage.totalPages - 1)}"
+                                    th:classappend="${pageIdx == inventoryPage.number} ? 'active'">
+                                    <a class="page-link"
+                                       th:href="@{/inventory/{id}(id=${branch.id}, page=${pageIdx}, keyword=${keyword}, filter=${filter}, size=${size})}"
+                                       th:text="${pageIdx + 1}">1</a>
+                                </li>
+
+                                <!-- Nút Sau -->
+                                <li class="page-item" th:classappend="${inventoryPage.last} ? 'disabled'">
+                                    <a class="page-link"
+                                       th:href="@{/inventory/{id}(id=${branch.id}, page=${inventoryPage.last ? inventoryPage.totalPages - 1 : inventoryPage.number + 1}, keyword=${keyword}, filter=${filter}, size=${size})}"
+                                       aria-label="Next">
+                                        <span aria-hidden="true">Sau &raquo;</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách khách hàng — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/customer.css}">
+</head>
+<body>
+
+    <!-- ── Global Nav ── -->
+    <div th:replace="~{component/navbar :: global-nav('customer')}"></div>
+
+    <!-- ── Sub Nav ── -->
+    <div class="sub-nav">
+        <h1 class="sub-nav__title">Quản lý Khách hàng</h1>
+    </div>
+
+    <main class="page-content">
+
+        <!-- Flash messages -->
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="header-actions">
+            <form th:action="@{/customers}" method="GET" class="search-bar" style="margin-bottom:0; flex:1;">
+                <div class="search-input-wrap">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path fill-rule="evenodd" d="M11.742 10.342a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                    </svg>
+                    <input type="text" name="keyword" class="search-input" th:value="${keyword}" placeholder="Số điện thoại...">
+                </div>
+                <button type="submit" class="btn-secondary btn-secondary--sm">Tìm kiếm</button>
+                <a th:if="${keyword != null and !#strings.isEmpty(keyword)}" th:href="@{/customers}" class="btn-clear-link">Xóa bộ lọc</a>
+            </form>
+            <a th:href="@{/customers/create}" class="btn-primary btn-primary--sm">+ Thêm khách hàng</a>
+        </div>
+
+        <div class="card-panel">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Khách hàng</th>
+                            <th>Số điện thoại</th>
+                            <th>Hạng thẻ</th>
+                            <th>Tổng chi tiêu</th>
+                            <th>Trạng thái</th>
+                            <th style="text-align:right;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${customerPage.totalElements == 0}">
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <div class="empty-state__icon">👥</div>
+                                    <h3 class="empty-state__title">Không tìm thấy khách hàng</h3>
+                                    <p class="empty-state__sub">Vui lòng thử lại với từ khóa khác hoặc thêm mới</p>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:each="cus : ${customerPage.content}">
+                            <td>
+                                <div class="customer-name" th:text="${cus.fullName}"></div>
+                                <div class="customer-email" th:text="${cus.email}"></div>
+                            </td>
+                            <td th:text="${cus.phone}"></td>
+                            <td>
+                                <span th:if="${cus.customerRank != null}" class="code-chip" th:text="${cus.customerRank.name}"></span>
+                                <span th:unless="${cus.customerRank != null}" class="text-muted">—</span>
+                            </td>
+                            <td th:text="${#numbers.formatDecimal(cus.totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                            <td>
+                                <span th:classappend="${cus.status.name() == 'ACTIVE'} ? 'badge badge-active' : 'badge badge-inactive'"
+                                      th:text="${cus.status.name() == 'ACTIVE'} ? 'Hoạt động' : 'Ngừng'">
+                                </span>
+                            </td>
+                            <td>
+                                <div class="actions" style="justify-content:flex-end;">
+                                    <a th:href="@{/customers/detail/{id}(id=${cus.id})}" class="action-view">Xem</a>
+                                    <a th:href="@{/customers/edit/{id}(id=${cus.id})}" class="action-edit">Sửa</a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div th:if="${customerPage.totalPages > 0}" class="pagination-bar">
+                <small class="pagination-bar__info">
+                    Hiển thị <span th:text="${customerPage.numberOfElements}"></span> /
+                    <span th:text="${customerPage.totalElements}"></span> khách hàng
+                </small>
+
+                <nav th:if="${customerPage.totalPages > 1}">
+                    <ul class="pagination">
+                        <li th:classappend="${currentPage == 1} ? 'disabled'">
+                            <a th:href="@{/customers(page=${currentPage - 1}, keyword=${keyword})}">&laquo;</a>
+                        </li>
+                        <li th:each="i : ${#numbers.sequence(1, totalPages)}" th:classappend="${i == currentPage} ? 'active'">
+                            <a th:href="@{/customers(page=${i}, keyword=${keyword})}" th:text="${i}"></a>
+                        </li>
+                        <li th:classappend="${currentPage == totalPages} ? 'disabled'">
+                            <a th:href="@{/customers(page=${currentPage + 1}, keyword=${keyword})}">&raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+    </main>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${voucherId != null} ? 'Sửa Voucher — SMS' : 'Thêm Voucher — SMS'">Voucher — SMS</title>
+    <meta name="description"
+        th:content="${voucherId != null} ? 'Chỉnh sửa thông tin voucher trong hệ thống.' : 'Tạo voucher giảm giá mới trong hệ thống bán hàng.'">
+    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
+</head>
+
+<body>
+
+    <!-- ── Global Nav ── -->
+    <div th:replace="~{component/navbar :: global-nav('voucher')}"></div>
+
+    <!-- ── Sub Nav ── -->
+    <div class="sub-nav" aria-label="Breadcrumb">
+        <nav class="sub-nav__breadcrumb">
+            <a href="/vouchers">Voucher</a>
+            <span class="sep">›</span>
+            <span class="current" th:text="${voucherId != null} ? 'Sửa voucher' : 'Thêm voucher mới'">Thêm voucher mới</span>
+        </nav>
+    </div>
+
+    <!-- ── Form Page ── -->
+    <main class="form-page" id="main-content">
+        <div class="form-card">
+
+            <!-- Card header -->
+            <div class="form-card__header">
+                <div class="form-card__eyebrow" th:text="${voucherId != null} ? 'Chỉnh sửa' : 'Tạo mới'">Tạo mới</div>
+                <h1 class="form-card__title" th:text="${voucherId != null} ? 'Sửa Voucher' : 'Thêm Voucher mới'">Thêm Voucher mới
+                </h1>
+            </div>
+
+            <!-- Error alert -->
+            <div th:if="${errorMessage}" th:text="${errorMessage}" class="alert" role="alert"></div>
+
+            <!-- Form -->
+            <form th:action="${voucherId != null} ? @{/vouchers/edit/{id}(id=${voucherId})} : @{/vouchers/create}"
+                th:object="${request}" method="post" id="voucher-form" novalidate>
+
+                <div class="form-grid">
+
+                    <!-- ── Thông tin cơ bản ── -->
+                    <div class="section-divider">Thông tin cơ bản</div>
+
+                    <!-- Mã voucher -->
+                    <div class="form-group">
+                        <label class="form-label" for="code">Mã voucher <span class="required">*</span></label>
+                        <input id="code" type="text" class="form-input" th:field="*{code}" placeholder="VD: SALE50"
+                            autocomplete="off" th:classappend="${#fields.hasErrors('code')} ? 'input-error' : ''">
+                        <span class="field-error" th:if="${#fields.hasErrors('code')}" th:errors="*{code}"></span>
+                    </div>
+
+                    <!-- Tên voucher -->
+                    <div class="form-group">
+                        <label class="form-label" for="name">Tên voucher <span class="required">*</span></label>
+                        <input id="name" type="text" class="form-input" th:field="*{name}"
+                            placeholder="VD: Giảm 50,000đ"
+                            th:classappend="${#fields.hasErrors('name')} ? 'input-error' : ''">
+                        <span class="field-error" th:if="${#fields.hasErrors('name')}"
+                            th:errors="*{name}"></span>
+                    </div>
+
+                    <!-- ── Cấu hình giảm giá ── -->
+                    <div class="section-divider">Cấu hình giảm giá</div>
+
+                    <!-- Loại giảm giá -->
+                    <div class="form-group">
+                        <label class="form-label" for="discountType">Loại giảm giá <span
+                                class="required">*</span></label>
+                        <select id="discountType" class="form-select" th:field="*{discountType}">
+                            <option value="">— Chọn loại —</option>
+                            <option value="PERCENT">Phần trăm (%)</option>
+                            <option value="AMOUNT">Số tiền cố định (đ)</option>
+                        </select>
+                        <span class="field-error" th:if="${#fields.hasErrors('discountType')}"
+                            th:errors="*{discountType}"></span>
+                    </div>
+
+                    <!-- Giá trị giảm -->
+                    <div class="form-group">
+                        <label class="form-label" for="discountValue">Giá trị giảm <span
+                                class="required">*</span></label>
+                        <input id="discountValue" type="number" class="form-input" th:field="*{discountValue}"
+                            step="0.01" min="0" placeholder="0"
+                            th:classappend="${#fields.hasErrors('discountValue')} ? 'input-error' : ''">
+                        <span class="field-error" th:if="${#fields.hasErrors('discountValue')}"
+                            th:errors="*{discountValue}"></span>
+                    </div>
+
+                    <!-- Đơn tối thiểu -->
+                    <div class="form-group">
+                        <label class="form-label" for="minOrderAmount">Đơn tối thiểu (đ)</label>
+                        <input id="minOrderAmount" type="number" class="form-input" th:field="*{minOrderAmount}"
+                            step="1000" min="0" placeholder="0">
+                        <span class="field-hint">Để trống nếu không giới hạn</span>
+                    </div>
+
+                    <!-- Giảm tối đa (% only) -->
+                    <div class="form-group" id="maxDiscountGroup">
+                        <label class="form-label" for="maxDiscountAmount">Giảm tối đa (đ)</label>
+                        <input id="maxDiscountAmount" type="number" class="form-input" th:field="*{maxDiscountAmount}"
+                            step="1000" min="0" placeholder="0">
+                        <span class="field-hint">Chỉ áp dụng khi giảm theo phần trăm</span>
+                    </div>
+
+                    <!-- ── Giới hạn & thời gian ── -->
+                    <div class="section-divider">Giới hạn &amp; thời gian</div>
+
+                    <!-- Hạng khách hàng (Customer Rank) -->
+                    <div class="form-group">
+                        <label class="form-label" for="customerRankId">Đối tượng áp dụng (Rank)</label>
+                        <select id="customerRankId" class="form-select" th:field="*{customerRankId}">
+                            <option value="">Tất cả khách hàng</option>
+                            <option th:each="rank : ${ranks}" th:value="${rank.id}" th:text="${rank.name}"></option>
+                        </select>
+                        <span class="field-hint">Chỉ khách hàng đạt hạng này trở lên (hoặc chính xác hạng này) mới được áp dụng</span>
+                    </div>
+
+                    <!-- Trạng thái -->
+                    <div class="form-group">
+                        <label class="form-label" for="status">Trạng thái</label>
+                        <select id="status" class="form-select" th:field="*{status}">
+                            <option value="ACTIVE">Hoạt động</option>
+                            <option value="INACTIVE">Ngừng hoạt động</option>
+                        </select>
+                    </div>
+
+                    <!-- Ngày bắt đầu -->
+                    <div class="form-group">
+                        <label class="form-label" for="startAt">Ngày bắt đầu <span class="required">*</span></label>
+                        <input id="startAt" type="datetime-local" class="form-input" th:field="*{startAt}"
+                            th:classappend="${#fields.hasErrors('startAt')} ? 'input-error' : ''">
+                        <span class="field-error" th:if="${#fields.hasErrors('startAt')}"
+                            th:errors="*{startAt}"></span>
+                    </div>
+
+                    <!-- Ngày kết thúc -->
+                    <div class="form-group">
+                        <label class="form-label" for="endAt">Ngày kết thúc <span class="required">*</span></label>
+                        <input id="endAt" type="datetime-local" class="form-input" th:field="*{endAt}"
+                            th:classappend="${#fields.hasErrors('endAt')} ? 'input-error' : ''">
+                        <span class="field-error" th:if="${#fields.hasErrors('endAt')}" th:errors="*{endAt}"></span>
+                    </div>
+
+                </div><!-- /form-grid -->
+
+                <!-- Action bar -->
+                <div class="form-actions">
+                    <a href="/vouchers" class="btn-secondary" id="btn-form-cancel">Hủy</a>
+                    <button type="submit" class="btn-primary" id="btn-form-submit"
+                        th:text="${voucherId != null} ? 'Cập nhật voucher' : 'Tạo voucher'">
+                        Tạo voucher
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </main>
+
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            const discountTypeSelect = document.getElementById("discountType");
+            const discountValueInput = document.getElementById("discountValue");
+            const maxDiscountGroup = document.getElementById("maxDiscountGroup");
+            const maxDiscountInput = document.getElementById("maxDiscountAmount");
+
+            function syncDiscountType() {
+                const type = discountTypeSelect.value;
+                if (type === "PERCENT") {
+                    maxDiscountGroup.classList.remove("form-group--hidden");
+                } else if (type === "AMOUNT") {
+                    maxDiscountGroup.classList.add("form-group--hidden");
+                    maxDiscountInput.value = discountValueInput.value;
+                } else {
+                    maxDiscountGroup.classList.add("form-group--hidden");
+                }
+            }
+
+            discountTypeSelect.addEventListener("change", syncDiscountType);
+            discountValueInput.addEventListener("input", function () {
+                if (discountTypeSelect.value === "AMOUNT") {
+                    maxDiscountInput.value = discountValueInput.value;
+                }
+            });
+
+            // Date validation: endAt >= startAt
+            const startAt = document.getElementById("startAt");
+            const endAt = document.getElementById("endAt");
+
+            const isEdit = [[${voucherId != null}]];
+            if (!isEdit) {
+                const now = new Date();
+                const tzoffset = now.getTimezoneOffset() * 60000;
+                const localISOTime = (new Date(now - tzoffset)).toISOString().slice(0, 16);
+
+                startAt.min = localISOTime;
+                if (!startAt.value) {
+                    startAt.value = localISOTime;
+                }
+                endAt.min = localISOTime;
+            }
+
+            startAt.addEventListener("change", function () {
+                if (endAt.value && endAt.value < startAt.value) {
+                    endAt.value = startAt.value;
+                }
+                endAt.min = startAt.value;
+            });
+
+            syncDiscountType();
+        });
+    </script>
+</body>
+
+</html>

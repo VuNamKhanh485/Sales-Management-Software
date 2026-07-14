@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết Đơn vị tính — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
+</head>
+<body>
+    <!-- ── Global Nav ── -->
+    <div th:replace="~{component/navbar :: global-nav('product')}"></div>
+
+    <!-- ── Sub Nav ── -->
+    <div class="sub-nav">
+        <div style="max-width: 800px; margin: 0 auto; width: 100%; display: flex; justify-content: space-between; align-items: center;">
+            <span class="sub-nav__title" th:text="${id == 0 ? 'Thêm Đơn vị tính mới' : 'Cập nhật Đơn vị tính'}"></span>
+            <div class="sub-nav__actions">
+                <a th:href="@{/unit}" class="btn-cancel">Quay lại</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Page Content ── -->
+    <main class="page-wrap" style="max-width: 800px;">
+        <div class="form-card">
+            <div class="form-card__header">
+                <h2 class="form-card__title">Thông tin cơ bản</h2>
+            </div>
+
+            <form th:action="@{/unit/form/{id}(id=${id})}" th:object="${unitRequest}" method="post">
+                <div class="form-grid">
+                    
+                    <div class="form-group form-group--full">
+                        <label class="form-label">Tên đơn vị tính <span style="color:red">*</span></label>
+                        <input type="text" class="form-input" th:field="*{name}" placeholder="VD: Cái, Hộp, Kg..." />
+                        <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" style="color:var(--danger); font-size:13px; margin-top:4px;"></div>
+                    </div>
+
+                </div>
+
+                <div class="form-actions">
+                    <a th:href="@{/unit}" class="btn-cancel">Hủy</a>
+                    <button type="submit" class="btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

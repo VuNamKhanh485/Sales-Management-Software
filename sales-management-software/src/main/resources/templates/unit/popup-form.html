@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Popup Thêm Đơn vị tính</title>
+    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
+    <style>
+        body { background: transparent; padding: 20px; margin: 0; }
+    </style>
+</head>
+<body>
+    <form th:action="@{/unit/popup-form}" th:object="${unitRequest}" method="post">
+        <div class="form-grid">
+            <div class="form-group form-group--full">
+                <label class="form-label">Tên đơn vị tính <span style="color:red">*</span></label>
+                <input type="text" class="form-input" th:field="*{name}" placeholder="VD: Hộp, Lốc, Thùng..." />
+                <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" style="color:var(--danger); font-size:13px; margin-top:4px;"></div>
+            </div>
+        </div>
+        <div class="form-actions" style="margin-top: 20px;">
+            <button type="button" class="btn-cancel" onclick="window.parent.closeModal('modalUnit')">Hủy</button>
+            <button type="submit" class="btn-primary">Tạo mới</button>
+        </div>
+    </form>
+</body>
+</html>

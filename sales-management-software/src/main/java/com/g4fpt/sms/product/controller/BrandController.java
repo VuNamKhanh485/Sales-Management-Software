@@ -1,0 +1,132 @@
+package com.g4fpt.sms.product.controller;
+
+import com.g4fpt.sms.common.exception.NotFoundException;
+import com.g4fpt.sms.common.exception.ResourceInUseException;
+import com.g4fpt.sms.product.dto.request.BrandRequest;
+import com.g4fpt.sms.product.dto.response.BrandResponse;
+import com.g4fpt.sms.common.exception.DuplicateException;
+import com.g4fpt.sms.product.service.BrandService;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+@Controller
+@RequestMapping("/brand")
+public class BrandController {
+    private final BrandService brandService;
+
+    public BrandController(BrandService brandService) {
+        this.brandService = brandService;
+    }
+
+    /**
+     * List
+     */
+    @GetMapping
+    public String list(Model model,
+                       @RequestParam(defaultValue = "") String keyword,
+                       @RequestParam(defaultValue = "0") int page,
+                       @RequestParam(defaultValue = "10") int size,
+                       @RequestParam(defaultValue = "name") String sortField,
+                       @RequestParam(defaultValue = "asc") String sortDir) {
+
+        String modifyKeyword = keyword.trim().replaceAll("\\s+", " ");
+        Page<BrandResponse> brandPage = brandService.findAll(modifyKeyword, page, size, sortField, sortDir);
+
+        model.addAttribute("brandPage", brandPage);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("size", size);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        // Dùng để render nút toggle asc/desc trên header bảng
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+        return "brand/list";
+    }
+
+    @GetMapping("/form/{id}")
+    public String updatePage(@PathVariable Long id, Model model,
+                             RedirectAttributes redirectAttributes) {
+        BrandRequest brandRequest = new BrandRequest();
+        if(id != 0) {
+            try {
+                BrandResponse brandResponse = brandService.findById(id);
+                brandRequest.setBrandName(brandResponse.getName());
+                brandRequest.setBrandStatus(brandResponse.getStatus());
+            }catch (NotFoundException e){
+                redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                return "redirect:/brand";
+            }
+        }
+        model.addAttribute("brandRequest", brandRequest);
+        return "brand/form";
+    }
+
+    @PostMapping("/form/{id}")
+    public String update(@PathVariable Long id,@Valid @ModelAttribute BrandRequest brandRequest,
+                         BindingResult result,
+                         RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            return "brand/form";
+        }
+        String action;
+        try {
+            if (id == 0) {
+                action = "Tạo";
+                brandService.create(brandRequest);
+            } else {
+                action = "Sửa";
+                brandService.update(id, brandRequest);
+            }
+        } catch (DuplicateException | NotFoundException e) {
+            result.rejectValue("brandName", "error.brandName", e.getMessage());
+            return "brand/form";
+        }
+
+        redirectAttributes.addFlashAttribute(
+                "successMessage",
+                action + " thương hiệu thành công!");
+
+        return "redirect:/brand";
+    }
+
+    @PostMapping("/delete/{id}")
+    public String delete(@PathVariable Long id,
+                         RedirectAttributes redirectAttributes) {
+        try {
+            brandService.deleteById(id);
+        }catch (NotFoundException | ResourceInUseException e){
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/brand";
+        }
+        redirectAttributes.addFlashAttribute("successMessage", "Xóa thành công");
+        return "redirect:/brand";
+    }
+
+    @GetMapping("/popup-form")
+    public String popupForm(Model model) {
+        model.addAttribute("brandRequest", new BrandRequest());
+        return "brand/popup-form";
+    }
+
+    @PostMapping("/popup-form")
+    public String submitPopupForm(@Valid @ModelAttribute BrandRequest brandRequest, BindingResult result, Model model) {
+        if (result.hasErrors()) {
+            return "brand/popup-form";
+        }
+        try {
+            BrandResponse response = brandService.create(brandRequest);
+            model.addAttribute("newId", response.getId());
+            model.addAttribute("newName", response.getName());
+            model.addAttribute("type", "BRAND");
+            return "common/popup-success";
+        } catch (DuplicateException e) {
+            result.rejectValue("brandName", "error.brandName", e.getMessage());
+            return "brand/popup-form";
+        }
+    }
+}

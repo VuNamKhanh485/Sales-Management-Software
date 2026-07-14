@@ -1,0 +1,96 @@
+body {
+    font-family: var(--font-text, "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
+    background-color: #f4f6f9;
+    color: #333;
+}
+.invoice-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.06);
+    padding: 40px;
+    margin-bottom: 30px;
+    border: 1px solid #e9ecef;
+}
+.invoice-header {
+    border-bottom: 2px solid #f1f3f5;
+    padding-bottom: 24px;
+    margin-bottom: 24px;
+}
+.store-logo {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0066cc; /* Apple Action Blue */
+    letter-spacing: -0.5px;
+    display: inline-flex;
+    align-items: center;
+}
+.invoice-title-text {
+    font-size: 22px;
+    font-weight: 700;
+    color: #212529;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.info-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #8c98a5;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+.info-value {
+    font-size: 14px;
+    color: #212529;
+    font-weight: 600;
+}
+.table-invoice {
+    font-size: 14px;
+}
+.table-invoice th {
+    font-weight: 600;
+    color: #495057;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    padding: 12px;
+}
+.table-invoice td {
+    padding: 14px 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f3f5;
+}
+.summary-table td {
+    padding: 6px 0;
+    font-size: 14px;
+}
+.summary-table .total-row td {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0066cc; /* Apple Action Blue */
+    border-top: 1px double #dee2e6;
+    padding-top: 12px;
+    margin-top: 6px;
+}
+
+@media print {
+    body {
+        background-color: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    .no-print {
+        display: none !important;
+    }
+    .container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .invoice-card {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+}
