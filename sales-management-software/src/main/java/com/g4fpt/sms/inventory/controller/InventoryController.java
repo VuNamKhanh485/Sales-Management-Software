@@ -1,27 +1,23 @@
 package com.g4fpt.sms.inventory.controller;
 
-import com.g4fpt.sms.auth.security.CustomUserDetails;
+import com.g4fpt.sms.auth.dto.SessionUser;
+import com.g4fpt.sms.auth.util.SessionConstants;
 import com.g4fpt.sms.branch.entity.Branch;
 import com.g4fpt.sms.branch.repository.BranchRepository;
 import com.g4fpt.sms.inventory.dto.InventoryBranchSummaryResponse;
 import com.g4fpt.sms.inventory.dto.InventoryDetailResponse;
 import com.g4fpt.sms.inventory.dto.InventoryRequest;
 import com.g4fpt.sms.inventory.service.InventoryService;
-import com.g4fpt.sms.product.repository.ProductRepository;
 import com.g4fpt.sms.product.repository.ProductUnitRepository;
-import com.g4fpt.sms.product.repository.UnitRepository;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.util.List;
 
 @Controller
 @RequestMapping("/inventory")
@@ -30,58 +26,76 @@ public class InventoryController {
 
     private final InventoryService inventoryService;
     private final BranchRepository branchRepository;
-    private final ProductRepository productRepository;
-    private final UnitRepository unitRepository;
     private final ProductUnitRepository productUnitRepository;
 
-    // --- Danh sách kho: GET /inventory ---
+    // --- Lấy SessionUser từ HttpSession ---
+    private SessionUser getSessionUser(HttpSession session) {
+        return (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
+    }
+
+    // --- Kiểm tra quyền truy cập chi nhánh ---
+    // OWNER: xem tất cả. BRANCH_MANAGER / WAREHOUSE_STAFF: chỉ xem chi nhánh của mình.
+    private boolean canAccessBranch(SessionUser sessionUser, Long targetBranchId) {
+        if (sessionUser.hasRole("OWNER")) {
+            return true;
+        }
+        Long userBranchId = sessionUser.getBranchId();
+        return userBranchId != null && userBranchId.equals(targetBranchId);
+    }
+
+    // =========================================================
+    // GET /inventory — Danh sách kho
+    // =========================================================
     @GetMapping
-    public String listInventoryBranches(@AuthenticationPrincipal CustomUserDetails userDetails,
+    public String listInventoryBranches(HttpSession session,
                                         @RequestParam(defaultValue = "0") int page,
                                         @RequestParam(defaultValue = "5") int size,
                                         Model model) {
-        if (userDetails == null) {
-            return "redirect:/login";
-        }
+        SessionUser sessionUser = getSessionUser(session);
 
-        // Nếu là OWNER -> xem danh sách tất cả các kho
-        if (userDetails.hasRole("OWNER")) {
+        // OWNER: xem danh sách tất cả các kho
+        if (sessionUser.hasRole("OWNER")) {
             Pageable pageable = PageRequest.of(page, size);
             Page<InventoryBranchSummaryResponse> branchesPage = inventoryService.getInventorySummaryByBranch(pageable);
             model.addAttribute("branchesPage", branchesPage);
             model.addAttribute("branches", branchesPage.getContent());
             model.addAttribute("size", size);
+            model.addAttribute("page", "inventory");
             return "inventory/list";
         }
 
-        // Nếu là BRANCH_MANAGER hoặc WAREHOUSE_STAFF -> tự động chuyển về kho của chi nhánh mình
-        if (userDetails.hasRole("BRANCH_MANAGER") || userDetails.hasRole("WAREHOUSE_STAFF")) {
-            Long userBranchId = userDetails.getBranchId();
+        // BRANCH_MANAGER hoặc WAREHOUSE_STAFF: tự động chuyển về kho của chi nhánh mình
+        if (sessionUser.hasAnyRole("BRANCH_MANAGER", "WAREHOUSE_STAFF")) {
+            Long userBranchId = sessionUser.getBranchId();
             if (userBranchId != null) {
                 return "redirect:/inventory/" + userBranchId;
             }
         }
 
-        throw new AccessDeniedException("Bạn không có quyền truy cập trang này!");
+        // Các role khác (SALE_STAFF) không được vào — AuthInterceptor đã chặn trước
+        return "redirect:/error/403";
     }
 
-    //Chi tiết kho
+    // =========================================================
+    // GET /inventory/{branchId} — Chi tiết kho một chi nhánh
+    // =========================================================
     @GetMapping("/{branchId}")
-    public String detailInventoryBranch(@AuthenticationPrincipal CustomUserDetails userDetails,
+    public String detailInventoryBranch(HttpSession session,
                                         @PathVariable Long branchId,
                                         @RequestParam(required = false) String keyword,
                                         @RequestParam(required = false) String filter,
                                         @RequestParam(defaultValue = "0") int page,
                                         @RequestParam(defaultValue = "5") int size,
                                         Model model) {
-        // Kiểm tra quyền: nếu không phải chi nhánh của mình thì redirect về chi nhánh của mình (hoặc ném 403)
-        try {
-            checkBranchAccess(userDetails, branchId);
-        } catch (AccessDeniedException e) {
-            if (userDetails != null && userDetails.getBranchId() != null) {
-                return "redirect:/inventory/" + userDetails.getBranchId();
+        SessionUser sessionUser = getSessionUser(session);
+
+        // Kiểm tra quyền: nếu không phải chi nhánh của mình thì redirect về chi nhánh của mình
+        if (!canAccessBranch(sessionUser, branchId)) {
+            Long userBranchId = sessionUser.getBranchId();
+            if (userBranchId != null) {
+                return "redirect:/inventory/" + userBranchId;
             }
-            throw e;
+            return "redirect:/error/403";
         }
 
         Branch branch = branchRepository.findById(branchId)
@@ -104,140 +118,89 @@ public class InventoryController {
         model.addAttribute("keyword", keyword != null ? keyword : "");
         model.addAttribute("filter", filter != null ? filter : "");
         model.addAttribute("size", size);
+        model.addAttribute("page", "inventory");
 
         return "inventory/detail";
     }
 
-    // --- Hiển thị form Thêm mới: GET /inventory/create ---
-    @GetMapping("/create")
-    public String showCreateForm(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                 @RequestParam(required = false) Long branchId, Model model) {
-        // Nếu không phải OWNER thì ép target branchId về đúng chi nhánh của nhân viên đó
-        if (userDetails != null && !userDetails.hasRole("OWNER")) {
-            branchId = userDetails.getBranchId();
-        }
-
-        checkBranchAccess(userDetails, branchId);
-
-        InventoryRequest request = new InventoryRequest();
-        if (branchId != null) {
-            request.setBranchId(branchId);
-        }
-        model.addAttribute("inventoryRequest", request);
-
-        // Phân quyền truyền chi nhánh ra giao diện Form
-        if (userDetails.hasRole("OWNER")) {
-            model.addAttribute("branches", branchRepository.findAll());
-        } else if (userDetails.getBranchId() != null) {
-            Branch userBranch = branchRepository.findById(userDetails.getBranchId())
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy chi nhánh của nhân viên."));
-            model.addAttribute("userBranch", userBranch);
-        }
-
-
-        model.addAttribute("products", productRepository.findAll());
-        model.addAttribute("units", unitRepository.findAll());
-        return "inventory/form";
-    }
-
-    // --- Lưu thêm mới: POST /inventory/save ---
-    @PostMapping("/save")
-    public String saveInventory(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                @ModelAttribute InventoryRequest request,
-                                RedirectAttributes redirectAttributes) {
-        try {
-            // Nếu người dùng không phải OWNER, bỏ qua branchId gửi từ client, lấy trực tiếp từ tài khoản đăng nhập
-            if (userDetails != null && !userDetails.hasRole("OWNER")) {
-                request.setBranchId(userDetails.getBranchId());
-            }
-
-            checkBranchAccess(userDetails, request.getBranchId());
-
-            inventoryService.createInventory(request);
-            redirectAttributes.addFlashAttribute("successMessage", "Thêm tồn kho thành công!");
-            return "redirect:/inventory/" + request.getBranchId();
-        } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/inventory/create";
-        } catch (AccessDeniedException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/inventory";
-        }
-    }
-
-
-    // --- Hiển thị form Sửa: GET /inventory/edit/{id} ---
+    // =========================================================
+    // GET /inventory/edit/{id} — Hiển thị form sửa thông tin kho
+    // (Chỉ cho phép sửa minStock, maxStock, positionInShop)
+    // =========================================================
     @GetMapping("/edit/{id}")
-    public String showEditForm(@AuthenticationPrincipal CustomUserDetails userDetails,
-                               @PathVariable Long id, Model model) {
+    public String showEditForm(HttpSession session,
+                               @PathVariable Long id,
+                               Model model) {
+        SessionUser sessionUser = getSessionUser(session);
+
         InventoryRequest request = inventoryService.getInventoryRequestById(id);
 
-        checkBranchAccess(userDetails, request.getBranchId());
+        // Kiểm tra quyền: chỉ được sửa kho của chi nhánh mình
+        if (!canAccessBranch(sessionUser, request.getBranchId())) {
+            return "redirect:/error/403";
+        }
 
         model.addAttribute("inventoryRequest", request);
-
         Branch branch = branchRepository.findById(request.getBranchId())
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy chi nhánh"));
         model.addAttribute("branch", branch);
         model.addAttribute("productUnit", productUnitRepository.findById(request.getProductUnitId()).orElse(null));
+        model.addAttribute("page", "inventory");
         return "inventory/form";
     }
 
-    // --- Cập nhật: POST /inventory/update/{id} ---
+    // =========================================================
+    // POST /inventory/update/{id} — Cập nhật thông tin kho
+    // =========================================================
     @PostMapping("/update/{id}")
-    public String updateInventory(@AuthenticationPrincipal CustomUserDetails userDetails,
+    public String updateInventory(HttpSession session,
                                   @PathVariable Long id,
                                   @ModelAttribute InventoryRequest request,
                                   RedirectAttributes redirectAttributes) {
+        SessionUser sessionUser = getSessionUser(session);
+
         try {
-            // Lấy lại branchId thực tế của bản ghi để tránh bị bypass chỉnh sửa chi nhánh khác qua request param
+            // Lấy lại branchId thực tế của bản ghi để tránh bị bypass
             InventoryRequest existing = inventoryService.getInventoryRequestById(id);
-            checkBranchAccess(userDetails, existing.getBranchId());
+            if (!canAccessBranch(sessionUser, existing.getBranchId())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Bạn không có quyền chỉnh sửa kho của chi nhánh khác!");
+                return "redirect:/inventory";
+            }
 
             inventoryService.updateInventory(id, request);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật tồn kho thành công!");
-            return "redirect:/inventory/" + request.getBranchId();
+            return "redirect:/inventory/" + existing.getBranchId();
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/inventory/edit/" + id;
-        } catch (AccessDeniedException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/inventory";
         }
     }
 
-    // --- Xóa: GET /inventory/delete/{id} ---
+    // =========================================================
+    // GET /inventory/delete/{id} — Xóa bản ghi kho (chỉ OWNER)
+    // =========================================================
     @GetMapping("/delete/{id}")
-    public String deleteInventory(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                  @PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String deleteInventory(HttpSession session,
+                                  @PathVariable Long id,
+                                  RedirectAttributes redirectAttributes) {
+        SessionUser sessionUser = getSessionUser(session);
+
         try {
             InventoryRequest request = inventoryService.getInventoryRequestById(id);
-            checkBranchAccess(userDetails, request.getBranchId());
+
+            // Chỉ OWNER mới được xóa bản ghi kho
+            if (!sessionUser.hasRole("OWNER")) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Chỉ OWNER mới có quyền xóa bản ghi kho!");
+                return "redirect:/inventory/" + request.getBranchId();
+            }
 
             Long branchId = request.getBranchId();
             inventoryService.deleteInventory(id);
             redirectAttributes.addFlashAttribute("successMessage", "Xóa tồn kho thành công!");
             return "redirect:/inventory/" + branchId;
-        } catch (AccessDeniedException e) {
+        } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/inventory";
         }
     }
-
-    // Helper check quyền truy cập chi nhánh
-    private void checkBranchAccess(CustomUserDetails userDetails, Long targetBranchId) {
-        if (userDetails == null) {
-            throw new AccessDeniedException("Bạn cần đăng nhập để thực hiện chức năng này!");
-        }
-        // OWNER có quyền xem tất cả
-        if (userDetails.hasRole("OWNER")) {
-            return;
-        }
-        // BRANCH_MANAGER / WAREHOUSE_STAFF chỉ được xem kho của chi nhánh mình
-        Long userBranchId = userDetails.getBranchId();
-        if (userBranchId == null || !userBranchId.equals(targetBranchId)) {
-            throw new AccessDeniedException("403 - Access Denied: Bạn không có quyền truy cập thông tin của chi nhánh khác!");
-        }
-    }
-
 }

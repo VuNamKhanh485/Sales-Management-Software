@@ -55,7 +55,7 @@
                         method="post">
 
                         <!-- Trường ẩn: branchId (chỉ dùng khi sửa hoặc cho manager/staff khi thêm) -->
-                        <input type="hidden" th:field="*{branchId}" th:if="${inventoryRequest.id != null or !#authentication.principal.hasRole('OWNER')}" />
+                        <input type="hidden" th:field="*{branchId}" th:if="${inventoryRequest.id != null or (sessionUser != null and !sessionUser.hasRole('OWNER'))}" />
 
                         <div class="row">
                             <!-- CHI NHÁNH -->
@@ -67,7 +67,7 @@
                                 -->
                                 <div th:if="${inventoryRequest.id == null}">
                                     <!-- OWNER: Được chọn chi nhánh từ dropdown -->
-                                    <div th:if="${#authentication.principal.hasRole('OWNER')}">
+                                    <div th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">
                                         <select th:field="*{branchId}" class="form-select" required>
                                             <option value="">-- Chọn chi nhánh --</option>
                                             <option th:each="b : ${branches}"
@@ -78,7 +78,7 @@
                                     </div>
                                     
                                     <!-- BRANCH_MANAGER hoặc WAREHOUSE_STAFF: Không được chọn, chỉ hiển thị chi nhánh làm việc -->
-                                    <div th:if="${!#authentication.principal.hasRole('OWNER')}">
+                                    <div th:if="${sessionUser == null or !sessionUser.hasRole('OWNER')}">
                                         <input type="text" class="form-control bg-light"
                                                th:value="${userBranch.branchCode + ' - ' + userBranch.name}"
                                                readonly />

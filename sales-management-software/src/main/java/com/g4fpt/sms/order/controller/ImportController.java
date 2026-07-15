@@ -1,0 +1,173 @@
+package com.g4fpt.sms.order.controller;
+
+import com.g4fpt.sms.auth.dto.SessionUser;
+import com.g4fpt.sms.auth.util.SessionConstants;
+import com.g4fpt.sms.branch.repository.BranchRepository;
+import com.g4fpt.sms.order.dto.ImportRequest;
+import com.g4fpt.sms.order.service.ImportService;
+import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
+import com.g4fpt.sms.product.dto.response.ProductResponse;
+import com.g4fpt.sms.product.enums.ProductStatus;
+import com.g4fpt.sms.product.repository.ProductUnitRepository;
+import com.g4fpt.sms.product.service.ProductService;
+import com.g4fpt.sms.supplier.repository.SupplierRepository;
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
+
+@Controller
+@RequiredArgsConstructor
+@RequestMapping("/imports")
+public class ImportController {
+
+    private final ImportService importService;
+    private final BranchRepository branchRepository;
+    private final SupplierRepository supplierRepository;
+    private final ProductUnitRepository productUnitRepository;
+    private final ProductService productService;
+
+    // --- Lấy SessionUser từ HttpSession ---
+    private SessionUser getSessionUser(HttpSession session) {
+        return (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
+    }
+
+    // =========================================================
+    // GET /imports — Danh sách yêu cầu nhập hàng
+    // =========================================================
+    @GetMapping
+    public String listImports(HttpSession session,
+                              @RequestParam(required = false) String status,
+                              @RequestParam(required = false) String keyword,
+                              Model model) {
+        model.addAttribute("page", "imports");
+        model.addAttribute("imports", importService.getAllImports(status, keyword));
+        model.addAttribute("keyword", keyword != null ? keyword : "");
+        model.addAttribute("filter", status != null ? status : "");
+        return "imports/list";
+    }
+
+    // =========================================================
+    // GET /imports/create — Màn hình tạo phiếu nhập hàng
+    // Chỉ BRANCH_MANAGER và WAREHOUSE_STAFF được tạo
+    // =========================================================
+    @GetMapping("/create")
+    public String showCreateForm(HttpSession session,
+                                 Model model,
+                                 @ModelAttribute("importRequest") ImportRequest importRequest) {
+        SessionUser sessionUser = getSessionUser(session);
+
+        if (!sessionUser.hasAnyRole("BRANCH_MANAGER", "WAREHOUSE_STAFF")) {
+            return "redirect:/error/403";
+        }
+
+        model.addAttribute("page", "imports");
+
+        // Nếu nhân viên đã gắn với chi nhánh, tự điền branchId
+        if (sessionUser.getBranchId() != null) {
+            importRequest.setBranchId(sessionUser.getBranchId());
+        }
+
+        model.addAttribute("branches", branchRepository.findAll());
+        model.addAttribute("suppliers", supplierRepository.findAll());
+
+        // Load all active products to display in the product dropdown
+        ProductFilterRequest filter = new ProductFilterRequest();
+        filter.setStatus(ProductStatus.ACTIVE);
+        List<ProductResponse> activeProducts = productService.findAll(filter, 0, 10000, "name", "asc").getContent();
+        model.addAttribute("activeProducts", activeProducts);
+
+        return "imports/form";
+    }
+
+    // =========================================================
+    // POST /imports/save — Lưu yêu cầu nhập hàng
+    // Chỉ BRANCH_MANAGER và WAREHOUSE_STAFF được tạo
+    // =========================================================
+    @PostMapping("/save")
+    public String saveImportRequest(HttpSession session,
+                                    @ModelAttribute ImportRequest importRequest,
+                                    RedirectAttributes redirectAttributes) {
+        SessionUser sessionUser = getSessionUser(session);
+
+        try {
+            if (!sessionUser.hasAnyRole("BRANCH_MANAGER", "WAREHOUSE_STAFF")) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Chỉ Quản lý chi nhánh hoặc Nhân viên kho mới được phép tạo phiếu nhập hàng!");
+                return "redirect:/imports";
+            }
+
+            // Lấy employeeId trực tiếp từ SessionUser (không cần getEmployee().getId())
+            Long employeeId = sessionUser.getId();
+
+            importService.createImportRequest(importRequest, employeeId);
+            redirectAttributes.addFlashAttribute("successMessage", "Gửi yêu cầu nhập hàng thành công! Đang chờ phê duyệt.");
+            return "redirect:/imports";
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/imports/create";
+        }
+    }
+
+    // =========================================================
+    // GET /imports/{id} — Chi tiết phiếu nhập
+    // =========================================================
+    @GetMapping("/{id}")
+    public String detailImport(@PathVariable Long id,
+                               Model model) {
+        model.addAttribute("page", "imports");
+        model.addAttribute("importTx", importService.getImportById(id));
+        model.addAttribute("details", importService.getImportDetails(id));
+        return "imports/detail";
+    }
+
+    // =========================================================
+    // POST /imports/{id}/approve — OWNER hoặc WAREHOUSE_STAFF duyệt phiếu
+    // =========================================================
+    @PostMapping("/{id}/approve")
+    public String approveImport(HttpSession session,
+                                @PathVariable Long id,
+                                RedirectAttributes redirectAttributes) {
+        SessionUser sessionUser = getSessionUser(session);
+
+        try {
+            // OWNER và WAREHOUSE_STAFF có quyền duyệt
+            if (!sessionUser.hasAnyRole("OWNER", "WAREHOUSE_STAFF")) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Chỉ OWNER hoặc Nhân viên kho mới có quyền duyệt phiếu nhập!");
+                return "redirect:/imports/" + id;
+            }
+            importService.approveImportRequest(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Nhập hàng thành công. Hàng tồn kho đã được cập nhật!");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/imports";
+    }
+
+    // =========================================================
+    // POST /imports/{id}/reject — OWNER hoặc WAREHOUSE_STAFF từ chối phiếu
+    // =========================================================
+    @PostMapping("/{id}/reject")
+    public String rejectImport(HttpSession session,
+                               @PathVariable Long id,
+                               @RequestParam(required = false) String reason,
+                               RedirectAttributes redirectAttributes) {
+        SessionUser sessionUser = getSessionUser(session);
+
+        try {
+            // OWNER và WAREHOUSE_STAFF có quyền từ chối
+            if (!sessionUser.hasAnyRole("OWNER", "WAREHOUSE_STAFF")) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Chỉ OWNER hoặc Nhân viên kho mới có quyền từ chối phiếu nhập!");
+                return "redirect:/imports/" + id;
+            }
+            importService.rejectImportRequest(id, reason);
+            redirectAttributes.addFlashAttribute("successMessage", "Yêu cầu nhập hàng đã bị từ chối.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/imports";
+    }
+}
