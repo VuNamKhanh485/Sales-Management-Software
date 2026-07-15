@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,30 +8,33 @@
     <link rel="stylesheet" th:href="@{/css/apple-design.css}">
     <link rel="stylesheet" th:href="@{/css/customer.css}">
 </head>
+
 <body>
 
-    <!-- ── Global Nav ── -->
+    <!-- Thanh điều hướng -->
     <div th:replace="~{component/navbar :: global-nav('customer')}"></div>
 
-    <!-- ── Sub Nav ── -->
+    <!-- Thanh phụ -->
     <div class="sub-nav">
         <a href="/customers" class="sub-nav__back">Khách hàng</a>
         <span class="sub-nav__sep">›</span>
-        <h1 class="sub-nav__title" th:text="${customerDTO.id == null ? 'Thêm mới' : 'Chỉnh sửa'}" style="margin:0;"></h1>
+        <h1 class="sub-nav__title" th:text="${customerDTO.id == null ? 'Thêm mới' : 'Chỉnh sửa'}" style="margin:0;">
+        </h1>
     </div>
 
     <main class="form-page">
         <div class="form-card">
             <div class="form-card__header">
-                <h1 class="form-card__title" th:text="${customerDTO.id == null ? 'Thêm Khách hàng' : 'Cập nhật Khách hàng'}"></h1>
+                <h1 class="form-card__title"
+                    th:text="${customerDTO.id == null ? 'Thêm Khách hàng' : 'Cập nhật Khách hàng'}"></h1>
             </div>
 
-            <!-- Flash messages -->
+            <!-- Thông báo nhanh -->
             <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
             <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
             <form th:action="@{/customers/save}" th:object="${customerDTO}" method="POST">
-                <input type="hidden" th:field="*{id}"/>
+                <input type="hidden" th:field="*{id}" />
 
                 <div class="form-grid">
 
@@ -96,4 +100,5 @@
     </main>
 
 </body>
+
 </html>

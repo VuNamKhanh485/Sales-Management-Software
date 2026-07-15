@@ -10,8 +10,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/apple-design.css}">
     <link rel="stylesheet" th:href="@{/css/return.css}">
-    <meta name="_csrf" th:content="${_csrf.token}" />
-    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <meta th:if="${_csrf != null}" name="_csrf" th:content="${_csrf.token}" />
+    <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}" />
 </head>
 
 <body>
@@ -143,8 +143,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+        const csrfMeta = document.querySelector('meta[name="_csrf"]');
+        const csrfToken = csrfMeta ? csrfMeta.content : '';
+        const csrfHeaderMeta = document.querySelector('meta[name="_csrf_header"]');
+        const csrfHeader = csrfHeaderMeta ? csrfHeaderMeta.content : 'X-CSRF-TOKEN';
         let currentRequestId = null;
 
         function viewDetail(id) {
@@ -192,7 +194,7 @@
                     if (data.images && data.images.length > 0) {
                         html += `<h6 class="fw-bold mb-2">Hình ảnh</h6><div class="d-flex flex-wrap gap-2 mb-2">`;
                         data.images.forEach(img => {
-                            html += `<img src="/uploads/returns/` + img + `" class="return-image" onclick="window.open(this.src)">`;
+                            html += `<img src="/return-image/` + img + `" class="return-image" onclick="window.open(this.src)">`;
                         });
                         html += `</div>`;
                     }
@@ -224,7 +226,8 @@
         }
 
         function confirmApprove() {
-            fetch('/return/api/requests/' + currentRequestId + '/approve', { method: 'POST', headers: { [csrfHeader]: csrfToken } })
+            const headers = csrfToken ? { [csrfHeader]: csrfToken } : {};
+            fetch('/return/api/requests/' + currentRequestId + '/approve', { method: 'POST', headers: headers })
                 .then(r => r.json())
                 .then(data => {
                     if (data.error) { alert(data.error); return; }
@@ -250,9 +253,10 @@
         function confirmReject() {
             const reason = document.getElementById('rejectReason').value.trim();
             if (!reason) { alert('Nhập lý do từ chối'); return; }
+            const headers = csrfToken ? { 'Content-Type': 'application/x-www-form-urlencoded', [csrfHeader]: csrfToken } : { 'Content-Type': 'application/x-www-form-urlencoded' };
             fetch('/return/api/requests/' + currentRequestId + '/reject', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded', [csrfHeader]: csrfToken },
+                headers: headers,
                 body: 'reason=' + encodeURIComponent(reason)
             })
                 .then(r => r.json())

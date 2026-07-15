@@ -69,7 +69,7 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
             request.getItems().add(rri);
         }
 
-        // Ảnh (tùy chọn)
+        // Lưu ảnh minh chứng (tùy chọn)
         if (imageUrls != null) {
             for (String url : imageUrls) {
                 ReturnRequestImage img = ReturnRequestImage.builder()
@@ -122,7 +122,7 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         Long branchId = order.getBranchId();
 
         for (ReturnRequestItem item : req.getItems()) {
-            // + tồn kho
+            // Cộng lại tồn kho
             Inventory inv = inventoryRepository.findByBranchIdAndProductUnitId(
                             branchId, item.getProductUnit().getId())
                     .orElse(null);
@@ -130,7 +130,7 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
                 inv.setStock(inv.getStock() + item.getQuantity());
             }
 
-            // trừ doanh thu & điểm của khách hàng
+            // Trừ doanh thu & điểm của khách hàng
             if (order.getCustomer() != null) {
                 Customer customer = order.getCustomer();
                 BigDecimal refundAmount = item.getSalePrice()
@@ -149,7 +149,6 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
                     customer.setUsedPoint(newTotalPoint);
                 }
             }
-        }
 
         req.setStatus("APPROVED");
         req.setReviewedBy(reviewerId);
@@ -158,7 +157,7 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         // Đánh dấu đơn hàng gốc là RETURNED
         order.setStatus("RETURNED");
 
-        // --- TẠO GIAO DỊCH TRẢ HÀNG VÀO LỊCH SỬ ---
+        // Tạo giao dịch trả hàng ghi vào lịch sử
         BigDecimal totalRefund = BigDecimal.ZERO;
         for (ReturnRequestItem item : req.getItems()) {
             totalRefund = totalRefund.add(item.getSalePrice().multiply(BigDecimal.valueOf(item.getQuantity())));

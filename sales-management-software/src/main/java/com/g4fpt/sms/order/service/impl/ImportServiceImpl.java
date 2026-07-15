@@ -48,14 +48,12 @@ public class ImportServiceImpl implements ImportService {
         List<ImportResponse> responseList = new ArrayList<>();
 
         for (OrderTransaction tx : txList) {
-            // Lấy tên chi nhánh
+            // Lấy tên chi nhánh, nhà cung cấp, người tạo để hiển thị
             Branch branch = branchRepository.findById(tx.getBranchId()).orElse(null);
             String branchName = (branch != null) ? branch.getName() : "Không xác định";
 
-            // Lấy tên nhà cung cấp
             String supplierName = (tx.getSupplier() != null) ? tx.getSupplier().getName() : "Không xác định";
 
-            // Lấy tên người tạo
             Employee creator = employeeRepository.findById(tx.getCreatedBy()).orElse(null);
             String creatorName = (creator != null) ? creator.getFullName() : "Không xác định";
 
@@ -99,7 +97,7 @@ public class ImportServiceImpl implements ImportService {
     @Override
     @Transactional
     public void createImportRequest(ImportRequest request, Long employeeId) {
-        // Validation
+        // Validation đầu vào
         if (request.getBranchId() == null) {
             throw new IllegalArgumentException("Vui lòng chọn chi nhánh cần nhập hàng!");
         }
@@ -116,7 +114,7 @@ public class ImportServiceImpl implements ImportService {
         Supplier supplier = supplierRepository.findById(request.getSupplierId())
                 .orElseThrow(() -> new IllegalArgumentException("Nhà cung cấp không tồn tại!"));
 
-        // Generate unique code: IMP-yyyyMMdd-XXXXX
+        // Sinh mã tự động: IMP-yyyyMMdd-XXXXX
         String code = "IMP-" + System.currentTimeMillis() + "-" + (100 + new Random().nextInt(900));
 
         OrderTransaction tx = new OrderTransaction();
@@ -155,7 +153,7 @@ public class ImportServiceImpl implements ImportService {
             detail.setOrderTransaction(tx);
             detail.setProductUnit(productUnit);
             detail.setQuantity(itemReq.getQuantity());
-            detail.setSalePrice(BigDecimal.ZERO); // Mặc định giá bán bằng 0 khi nhập hàng
+            detail.setSalePrice(BigDecimal.ZERO); // Giá bán mặc định = 0 khi nhập hàng
             detail.setImportPrice(itemReq.getImportPrice());
             detail.setDiscountAmount(BigDecimal.ZERO);
 
@@ -186,11 +184,11 @@ public class ImportServiceImpl implements ImportService {
             throw new IllegalArgumentException("Chỉ cho phép duyệt phiếu ở trạng thái PENDING!");
         }
 
-        // Cập nhật trạng thái phiếu nhập
+        // Cập nhật trạng thái phiếu nhập và cộng tồn kho
         tx.setStatus("COMPLETED");
         orderTransactionRepository.save(tx);
 
-        // Duyệt từng chi tiết để cộng dồn tồn kho
+        // Duyệt từng sản phẩm để cộng dồn tồn kho
         for (OrderTransactionDetail detail : tx.getDetails()) {
             Long branchId = tx.getBranchId();
             Long productUnitId = detail.getProductUnit().getId();
@@ -200,17 +198,17 @@ public class ImportServiceImpl implements ImportService {
                     productUnitId);
 
             if (optInventory.isPresent()) {
-                // Đã tồn tại trong kho -> cộng thêm số lượng nhập
+                // Đã có trong kho -> cộng thêm số lượng nhập
                 Inventory inventory = optInventory.get();
                 inventory.setStock(inventory.getStock() + quantity);
                 inventoryRepository.save(inventory);
             } else {
-                // Chưa tồn tại trong kho -> tạo mới bản ghi Inventory
+                // Chưa có tồn kho -> tạo mới bản ghi Inventory
                 Inventory inventory = new Inventory();
                 inventory.setBranch(branchRepository.findById(branchId).orElse(null));
                 inventory.setProductUnit(detail.getProductUnit());
                 inventory.setStock(quantity);
-                inventory.setMinStock(0); // Mặc định tồn tối thiểu là 0
+                inventory.setMinStock(0);
                 inventoryRepository.save(inventory);
             }
         }
@@ -226,7 +224,7 @@ public class ImportServiceImpl implements ImportService {
             throw new IllegalArgumentException("Chỉ cho phép từ chối phiếu ở trạng thái PENDING!");
         }
 
-        // Đổi trạng thái sang CANCELLED
+        // Chuyển trạng thái sang CANCELLED
         tx.setStatus("CANCELLED");
 
         // Ghi lại lý do từ chối vào note
@@ -241,6 +239,6 @@ public class ImportServiceImpl implements ImportService {
         tx.setNote(finalNote);
 
         orderTransactionRepository.save(tx);
-        // KHÔNG cập nhật inventory
+        // Không cập nhật tồn kho
     }
 }

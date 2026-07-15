@@ -31,14 +31,12 @@ public class ImportController {
     private final ProductUnitRepository productUnitRepository;
     private final ProductService productService;
 
-    // --- Lấy SessionUser từ HttpSession ---
+    // Lấy thông tin người dùng đăng nhập từ session
     private SessionUser getSessionUser(HttpSession session) {
         return (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
     }
 
-    // =========================================================
-    // GET /imports — Danh sách yêu cầu nhập hàng
-    // =========================================================
+    // Hiển thị danh sách yêu cầu nhập hàng
     @GetMapping
     public String listImports(HttpSession session,
                               @RequestParam(required = false) String status,
@@ -51,10 +49,7 @@ public class ImportController {
         return "imports/list";
     }
 
-    // =========================================================
-    // GET /imports/create — Màn hình tạo phiếu nhập hàng
-    // Chỉ BRANCH_MANAGER và WAREHOUSE_STAFF được tạo
-    // =========================================================
+    // Hiển thị giao diện tạo yêu cầu nhập hàng cho Quản lý chi nhánh hoặc Nhân viên kho
     @GetMapping("/create")
     public String showCreateForm(HttpSession session,
                                  Model model,
@@ -67,7 +62,7 @@ public class ImportController {
 
         model.addAttribute("page", "imports");
 
-        // Nếu nhân viên đã gắn với chi nhánh, tự điền branchId
+        // Tự động chọn chi nhánh nếu nhân viên đã thuộc chi nhánh cụ thể
         if (sessionUser.getBranchId() != null) {
             importRequest.setBranchId(sessionUser.getBranchId());
         }
@@ -75,7 +70,7 @@ public class ImportController {
         model.addAttribute("branches", branchRepository.findAll());
         model.addAttribute("suppliers", supplierRepository.findAll());
 
-        // Load all active products to display in the product dropdown
+        // Lấy danh sách sản phẩm đang hoạt động để đưa vào dropdown lựa chọn
         ProductFilterRequest filter = new ProductFilterRequest();
         filter.setStatus(ProductStatus.ACTIVE);
         List<ProductResponse> activeProducts = productService.findAll(filter, 0, 10000, "name", "asc").getContent();
@@ -84,10 +79,7 @@ public class ImportController {
         return "imports/form";
     }
 
-    // =========================================================
-    // POST /imports/save — Lưu yêu cầu nhập hàng
-    // Chỉ BRANCH_MANAGER và WAREHOUSE_STAFF được tạo
-    // =========================================================
+    // Lưu yêu cầu nhập hàng mới
     @PostMapping("/save")
     public String saveImportRequest(HttpSession session,
                                     @ModelAttribute ImportRequest importRequest,
@@ -100,7 +92,7 @@ public class ImportController {
                 return "redirect:/imports";
             }
 
-            // Lấy employeeId trực tiếp từ SessionUser (không cần getEmployee().getId())
+            // Lấy ID nhân viên trực tiếp từ session
             Long employeeId = sessionUser.getId();
 
             importService.createImportRequest(importRequest, employeeId);
@@ -112,9 +104,7 @@ public class ImportController {
         }
     }
 
-    // =========================================================
-    // GET /imports/{id} — Chi tiết phiếu nhập
-    // =========================================================
+    // Xem chi tiết một phiếu nhập hàng
     @GetMapping("/{id}")
     public String detailImport(@PathVariable Long id,
                                Model model) {
@@ -124,9 +114,7 @@ public class ImportController {
         return "imports/detail";
     }
 
-    // =========================================================
-    // POST /imports/{id}/approve — OWNER hoặc WAREHOUSE_STAFF duyệt phiếu
-    // =========================================================
+    // Duyệt yêu cầu nhập hàng và cập nhật tồn kho
     @PostMapping("/{id}/approve")
     public String approveImport(HttpSession session,
                                 @PathVariable Long id,
@@ -134,7 +122,7 @@ public class ImportController {
         SessionUser sessionUser = getSessionUser(session);
 
         try {
-            // OWNER và WAREHOUSE_STAFF có quyền duyệt
+            // Chỉ Owner hoặc Nhân viên kho mới được phép duyệt phiếu
             if (!sessionUser.hasAnyRole("OWNER", "WAREHOUSE_STAFF")) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Chỉ OWNER hoặc Nhân viên kho mới có quyền duyệt phiếu nhập!");
                 return "redirect:/imports/" + id;
@@ -147,9 +135,7 @@ public class ImportController {
         return "redirect:/imports";
     }
 
-    // =========================================================
-    // POST /imports/{id}/reject — OWNER hoặc WAREHOUSE_STAFF từ chối phiếu
-    // =========================================================
+    // Từ chối yêu cầu nhập hàng
     @PostMapping("/{id}/reject")
     public String rejectImport(HttpSession session,
                                @PathVariable Long id,
@@ -158,7 +144,7 @@ public class ImportController {
         SessionUser sessionUser = getSessionUser(session);
 
         try {
-            // OWNER và WAREHOUSE_STAFF có quyền từ chối
+            // Chỉ Owner hoặc Nhân viên kho mới được phép từ chối phiếu
             if (!sessionUser.hasAnyRole("OWNER", "WAREHOUSE_STAFF")) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Chỉ OWNER hoặc Nhân viên kho mới có quyền từ chối phiếu nhập!");
                 return "redirect:/imports/" + id;

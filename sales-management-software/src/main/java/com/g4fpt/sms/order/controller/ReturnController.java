@@ -35,14 +35,14 @@ public class ReturnController {
         return (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
     }
 
-    // ---------- Trang tạo yêu cầu trả hàng (cho nhân viên POS) ----------
+    // Hiển thị trang tạo yêu cầu trả hàng (cho nhân viên POS)
     @GetMapping
     public String returnPage(@RequestParam(required = false) String orderCode, Model model) {
         model.addAttribute("autoOrderCode", orderCode != null && !orderCode.isBlank() ? orderCode : "");
         return "order/return-request";
     }
 
-    // ---------- API: tìm đơn hàng theo mã ----------
+    // API: tìm đơn hàng theo mã
     @GetMapping("/api/search-order")
     @ResponseBody
     public ResponseEntity<?> searchOrder(@RequestParam("code") String code) {
@@ -74,7 +74,7 @@ public class ReturnController {
         }
     }
 
-    // ---------- API: tạo yêu cầu trả hàng ----------
+    // API: tạo yêu cầu trả hàng mới
     @PostMapping("/api/create")
     @ResponseBody
     public ResponseEntity<?> createReturnRequest(
@@ -104,7 +104,7 @@ public class ReturnController {
                 return ResponseEntity.badRequest().body(Map.of("error", "Chọn ít nhất 1 sản phẩm để trả"));
             }
 
-            // Get branchId from order
+            // Lấy branchId từ đơn hàng gốc
             OrderTransaction order = orderTransactionRepository.findByIdWithDetails(orderId)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
             Long branchId = order.getBranchId();
@@ -112,7 +112,7 @@ public class ReturnController {
             // Upload ảnh
             List<String> imageUrls = new ArrayList<>();
             if (images != null) {
-                String uploadDir = "src/main/resources/static/uploads/returns/";
+                String uploadDir = System.getProperty("user.dir") + "/return-image/";
                 Path uploadPath = Paths.get(uploadDir);
                 if (!Files.exists(uploadPath)) {
                     Files.createDirectories(uploadPath);
@@ -137,7 +137,7 @@ public class ReturnController {
         }
     }
 
-    // ---------- Trang quản lý yêu cầu (cho Shop Manager) ----------
+    // Hiển thị trang quản lý yêu cầu trả hàng (cho Shop Manager)
     @GetMapping("/manage")
     public String managePage(Model model) {
         List<ReturnRequest> requests = returnRequestService.getAllRequests();
@@ -146,7 +146,7 @@ public class ReturnController {
         return "order/return-manage";
     }
 
-    // ---------- API: lấy chi tiết yêu cầu ----------
+    // API: lấy chi tiết yêu cầu trả hàng
     @GetMapping("/api/requests/{id}")
     @ResponseBody
     public ResponseEntity<?> getRequestDetail(@PathVariable Long id) {
@@ -191,7 +191,7 @@ public class ReturnController {
         }
     }
 
-    // ---------- API: duyệt yêu cầu ----------
+    // API: duyệt yêu cầu trả hàng
     @PostMapping("/api/requests/{id}/approve")
     @ResponseBody
     public ResponseEntity<?> approveRequest(@PathVariable Long id, HttpSession session) {
@@ -205,7 +205,7 @@ public class ReturnController {
         }
     }
 
-    // ---------- API: từ chối yêu cầu ----------
+    // API: từ chối yêu cầu trả hàng
     @PostMapping("/api/requests/{id}/reject")
     @ResponseBody
     public ResponseEntity<?> rejectRequest(@PathVariable Long id,

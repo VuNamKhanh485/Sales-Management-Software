@@ -19,7 +19,7 @@ function printReceipt() {
     window.print();
 }
 
-// Tự động kích hoạt khi được mở từ tab mới kèm tham số
+// Tự động tải PDF/in nếu mở từ tab mới kèm tham số
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const element = document.getElementById('receiptContent');

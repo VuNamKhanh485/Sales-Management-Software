@@ -11,17 +11,17 @@
 </head>
 
 <body>
-    <!-- TOP NAV -->
+    <!-- Thanh điều hướng -->
     <div th:replace="~{component/navbar :: global-nav('pos')}"></div>
 
     <div class="d-flex" style="height: calc(100vh - 52px);">
-        <!-- POS WRAPPER -->
+        <!-- Khung POS -->
         <div class="pos-wrapper flex-grow-1">
 
-            <!-- ===== LEFT ===== -->
+            <!-- LEFT: Giỏ hàng -->
             <div class="pos-left">
 
-                <!-- Flash messages -->
+                <!-- Thông báo nhanh -->
                 <div th:if="${error}" class="alert alert-danger alert-dismissible mx-2 mt-2 py-2 mb-0">
                     <span th:text="${error}"></span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -31,10 +31,10 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
 
-                <!-- Tabs + SKU cùng hàng -->
+                <!-- Tabs đơn + quét mã -->
                 <div class="order-tabs-row">
 
-                    <!-- SKU input -->
+                    <!-- Nhập mã SKU -->
                     <form th:action="@{/pos/add}" method="get" class="d-flex gap-2 me-2" style="min-width:220px">
                         <input type="text" name="keyword" class="form-control form-control-sm"
                             placeholder="Quét SKU / barcode..." autofocus>
@@ -45,7 +45,7 @@
 
                     <div class="vr mx-1"></div>
 
-                    <!-- Order tabs -->
+                    <!-- Các tab đơn hàng -->
                     <div th:each="entry : ${posData.carts}" class="d-flex">
                         <div th:classappend="${entry.key == session.activeIndex} ? 'active'" class="order-tab">
                             <a th:href="@{/pos/switch/{index}(index=${entry.key})}" class="order-tab-link">
@@ -66,7 +66,7 @@
                     <span th:unless="${posData.canAddOrder()}" class="text-muted small">Tối đa 5 đơn</span>
                 </div>
 
-                <!-- Cart table -->
+                <!-- Bảng giỏ hàng -->
                 <div class="cart-table-wrapper">
                     <table class="table cart-table mb-0">
                         <thead>
@@ -135,7 +135,7 @@
                     </table>
                 </div>
 
-                <!-- Bottom toolbar -->
+                <!-- Thanh công cụ dưới -->
                 <div class="pos-toolbar">
                     <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
                         data-bs-target="#productModal">
@@ -152,7 +152,7 @@
                         data-bs-target="#salesHistoryModal">
                         <i class="bi bi-clock-history me-1"></i>Lịch sử bán hàng
                     </button>
-                    <!-- Chi nhánh Selector (Chỉ dành cho Owner) -->
+                    <!-- Chọn chi nhánh (chỉ dành cho Owner) -->
                     <div th:if="${isOwner}" class="dropdown ms-2">
                         <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button"
                             data-bs-toggle="dropdown" aria-expanded="false">
@@ -167,7 +167,7 @@
                         </ul>
                     </div>
 
-                    <!-- Chi nhánh hiện tại (Cho Cashier thường) -->
+                    <!-- Chi nhánh hiện tại (cho Cashier) -->
                     <div th:unless="${isOwner}" class="ms-2 d-inline-flex align-items-center">
                         <span class="badge bg-primary py-2 px-3">
                             <i class="bi bi-shop me-1"></i>
@@ -184,7 +184,7 @@
                 </div>
             </div>
 
-            <!-- ===== RIGHT: Thanh toán ===== -->
+            <!-- RIGHT: Thanh toán -->
             <div class="pos-right">
 
                 <div class="panel-header d-flex justify-content-between align-items-center">
@@ -376,10 +376,10 @@
         </div>
     </div>
 
-    <!-- Modals -->
+    <!-- Các popup -->
     <div th:replace="~{component/pos-modals :: modals}"></div>
 
-    <!-- Configuration variables from Thymeleaf to JS -->
+    <!-- Config từ Thymeleaf sang JS -->
     <div id="pos-config" style="display: none;"
          th:data-final-amount="${cart.finalAmount}"
          th:data-customer-id="${cart.customerId}"

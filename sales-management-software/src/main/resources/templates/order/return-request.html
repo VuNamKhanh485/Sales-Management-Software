@@ -7,8 +7,8 @@
     <meta name="description" content="Tạo yêu cầu trả/đổi hàng trong hệ thống SMS.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta th:if="${_csrf != null}" name="_csrf" th:content="${_csrf.token}"/>
+    <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}"/>
     <link rel="stylesheet" th:href="@{/css/return.css}">
 </head>
 <body>
@@ -77,7 +77,7 @@
         </div>
     </div>
 
-    <!-- Success Modal -->
+    <!-- Modal thông báo thành công -->
     <div class="modal fade" id="successModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content text-center p-3">
@@ -93,11 +93,13 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+        const csrfMeta = document.querySelector('meta[name="_csrf"]');
+        const csrfToken = csrfMeta ? csrfMeta.content : '';
+        const csrfHeaderMeta = document.querySelector('meta[name="_csrf_header"]');
+        const csrfHeader = csrfHeaderMeta ? csrfHeaderMeta.content : 'X-CSRF-TOKEN';
         let selectedOrder = null;
 
-        // ← Auto search if orderCode is provided
+        // Tự động tìm đơn nếu đã có mã
         const autoCode = '[[${autoOrderCode}]]';
         if (autoCode && autoCode !== 'null' && autoCode !== '') {
             document.getElementById('orderCode').value = autoCode;
@@ -149,7 +151,7 @@
             document.getElementById('returnForm').style.display = 'block';
             document.getElementById('orderId').value = order.id;
 
-            // Render product list
+            // Hiển thị danh sách sản phẩm
             const list = document.getElementById('productList');
             list.innerHTML = '';
             order.details.forEach(d => {
@@ -178,7 +180,7 @@
             });
         }
 
-        // ===== Drag-and-drop + click upload =====
+        // Xử lý kéo thả và chọn ảnh
         const dropZone = document.getElementById('dropZone');
         const imageInput = document.getElementById('imageInput');
         const imagePreview = document.getElementById('imagePreview');
@@ -224,7 +226,7 @@
             });
         }
 
-        // ===== Submit =====
+        // Xử lý gửi form trả hàng
         document.getElementById('returnForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -252,7 +254,7 @@
             selectedFiles.forEach(f => formData.append('images', f));
             fetch('/return/api/create', {
                 method: 'POST',
-                headers: { [csrfHeader]: csrfToken },
+                headers: csrfToken ? { [csrfHeader]: csrfToken } : {},
                 body: formData
             })
             .then(r => r.json())
