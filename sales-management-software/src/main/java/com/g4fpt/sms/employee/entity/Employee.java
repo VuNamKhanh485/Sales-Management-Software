@@ -5,10 +5,12 @@ import com.g4fpt.sms.employee.utils.Gender;
 import com.g4fpt.sms.employee.utils.WorkStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 
 @Entity
@@ -72,10 +74,11 @@ public class Employee {
     @Column(name = "gender")
     private Gender gender;
 
-
+    @DateTimeFormat(pattern = "dd-MM-yyyy")
     @Column(name = "dob")
     private LocalDate dob;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Column(name = "hired_date", nullable = false)
     private LocalDate hiredDate;
 
@@ -99,5 +102,44 @@ public class Employee {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @PrePersist
+    public void prePersist() {
+        createdAt = LocalDateTime.now();
+
+        if (workStatus == null) {
+            workStatus = WorkStatus.ACTIVE;
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
+    public boolean isActive() {
+        return workStatus == WorkStatus.ACTIVE;
+    }
+
+    @Override
+    public String toString() {
+        return "Employee{id=" + id +
+                ", employeeCode='" + employeeCode + '\'' +
+                ", fullName='" + fullName + '\'' +
+                ", email='" + email + '\'' +
+                ", role=" + (role != null ? role.getCode() : null) +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Employee employee)) return false;
+        return id != null && Objects.equals(id, employee.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
 

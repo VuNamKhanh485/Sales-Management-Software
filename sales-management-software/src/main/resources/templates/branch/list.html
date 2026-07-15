@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -65,7 +65,7 @@
                 <a th:href="@{/branch}" class="btn-clear-link">Làm mới</a>
             </form>
             
-            <a sec:authorize="hasRole('OWNER')" th:href="@{/branch/create}" class="btn-primary btn-primary--sm">+ Thêm chi nhánh</a>
+            <a th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}" th:href="@{/branch/create}" class="btn-primary btn-primary--sm">+ Thêm chi nhánh</a>
         </div>
 
         <div class="card-panel">
@@ -107,8 +107,8 @@
                             <td>
                                 <div class="actions" style="justify-content:flex-end;">
                                     <a th:href="@{/branch/detail/{id}(id=${branch.id})}" class="action-edit" style="color:var(--ink-muted-80);">Chi tiết</a>
-                                    <a sec:authorize="hasRole('OWNER')" th:href="@{/branch/edit/{id}(id=${branch.id})}" class="action-edit">Sửa</a>
-                                    <a sec:authorize="hasRole('OWNER')" th:href="@{/branch/delete/{id}(id=${branch.id})}" class="action-delete" onclick="return confirm('Bạn có chắc chắn muốn xóa chi nhánh này?')">Xóa</a>
+                                    <a th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}" th:href="@{/branch/edit/{id}(id=${branch.id})}" class="action-edit">Sửa</a>
+                                    <a th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}" th:href="@{/branch/delete/{id}(id=${branch.id})}" class="action-delete" onclick="return confirm('Bạn có chắc chắn muốn xóa chi nhánh này?')">Xóa</a>
                                 </div>
                             </td>
                         </tr>

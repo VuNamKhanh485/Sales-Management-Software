@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -70,10 +70,11 @@
                         </div>
                     </div>
 
-                    <!-- Khu vực phê duyệt dành cho OWNER -->
-                    <div class="card shadow mt-4" th:if="${importTx.status == 'PENDING'}" sec:authorize="hasAnyRole('OWNER')">
+                    <!-- Khu vực phê duyệt dành cho OWNER và WAREHOUSE_STAFF -->
+                    <div class="card shadow mt-4"
+                         th:if="${importTx.status == 'PENDING' and sessionUser != null and sessionUser.hasAnyRole('OWNER', 'WAREHOUSE_STAFF')}">
                         <div class="card-header bg-warning text-dark">
-                            <h6 class="m-0 font-weight-bold"><i class="bi bi-shield-check"></i> OWNER Phê duyệt phiếu</h6>
+                            <h6 class="m-0 font-weight-bold"><i class="bi bi-shield-check"></i> Phê duyệt / Từ chối phiếu nhập</h6>
                         </div>
                         <div class="card-body">
                             <p class="text-muted small">Vui lòng kiểm tra kỹ danh sách hàng hóa và tổng tiền trước khi phê duyệt hoặc hủy.</p>

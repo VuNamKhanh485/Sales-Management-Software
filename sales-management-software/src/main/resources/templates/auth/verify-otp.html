@@ -3,10 +3,11 @@
       xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>Quên mật khẩu - Sales Management Software</title>
+    <title>Xác minh OTP - Sales Management Software</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet">
@@ -23,27 +24,38 @@
 
                     <div class="text-center mb-4">
                         <h1 class="h3 mb-2">
-                            Quên mật khẩu
+                            Xác minh mã OTP
                         </h1>
 
                         <p class="text-muted mb-0">
-                            Nhập email tài khoản để nhận mã OTP đặt lại mật khẩu.
+                            Nhập mã OTP gồm 6 chữ số đã được gửi đến email của bạn.
                         </p>
                     </div>
 
-                    <!-- Flash message nằm ngoài form được -->
+                    <div th:if="${infoMessage}"
+                         class="alert alert-info"
+                         role="alert">
+                        <span th:text="${infoMessage}"></span>
+                    </div>
+
                     <div th:if="${errorMessage}"
                          class="alert alert-danger"
                          role="alert">
                         <span th:text="${errorMessage}"></span>
                     </div>
 
-                    <form th:action="@{/auth/forgot-password}"
-                          th:object="${forgotPasswordForm}"
+                    <div class="alert alert-warning"
+                         role="alert">
+                        Mã OTP có hiệu lực trong 5 phút.
+                        Không chia sẻ mã này với bất kỳ ai.
+                    </div>
+
+                    <form th:action="@{/auth/verify-otp}"
+                          th:object="${verifyOtpForm}"
                           method="post"
                           novalidate>
 
-                        <!-- Global error phải nằm trong form có th:object -->
+                        <!-- Phải nằm bên trong form có th:object -->
                         <div th:if="${#fields.hasGlobalErrors()}"
                              class="alert alert-danger"
                              role="alert">
@@ -54,25 +66,28 @@
                         </div>
 
                         <div class="mb-4">
-                            <label for="email"
+                            <label for="otp"
                                    class="form-label">
-                                Email
+                                Mã OTP
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input type="email"
-                                   id="email"
-                                   th:field="*{email}"
-                                   class="form-control"
-                                   th:classappend="${#fields.hasErrors('email')}
+                            <input type="text"
+                                   id="otp"
+                                   th:field="*{otp}"
+                                   class="form-control text-center fs-4"
+                                   th:classappend="${#fields.hasErrors('otp')}
                                        ? 'is-invalid' : ''"
-                                   placeholder="Nhập email tài khoản"
-                                   autocomplete="email"
-                                   maxlength="255"
+                                   placeholder="000000"
+                                   maxlength="6"
+                                   minlength="6"
+                                   inputmode="numeric"
+                                   pattern="[0-9]{6}"
+                                   autocomplete="one-time-code"
                                    autofocus>
 
-                            <div th:if="${#fields.hasErrors('email')}"
-                                 th:errors="*{email}"
+                            <div th:if="${#fields.hasErrors('otp')}"
+                                 th:errors="*{otp}"
                                  class="invalid-feedback">
                             </div>
                         </div>
@@ -80,14 +95,18 @@
                         <div class="d-grid mb-3">
                             <button type="submit"
                                     class="btn btn-primary">
-                                Gửi mã OTP
+                                Xác nhận OTP
                             </button>
                         </div>
 
                         <div class="text-center">
-                            <a th:href="@{/auth/login}"
+                            <p class="text-muted mb-2">
+                                Không nhận được mã hoặc mã đã hết hạn?
+                            </p>
+
+                            <a th:href="@{/auth/forgot-password}"
                                class="text-decoration-none">
-                                Quay lại đăng nhập
+                                Yêu cầu gửi lại mã OTP
                             </a>
                         </div>
 

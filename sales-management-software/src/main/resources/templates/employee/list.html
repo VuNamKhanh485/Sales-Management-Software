@@ -2,77 +2,159 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý nhân viên — SMS</title>
-    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
+    <title>Quản lý nhân viên</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body>
+<div class="container mt-4">
 
-    <div th:replace="~{component/navbar :: global-nav('employee')}"></div>
-
-    <div class="sub-nav">
-        <h1 class="sub-nav__title">Quản lý Nhân viên</h1>
-        <div class="sub-nav__actions">
-            <a th:href="@{/employee/create}" class="btn-primary btn-primary--sm">+ Thêm nhân viên</a>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Quản lý nhân viên</h3>
+        <a th:href="@{/employee/new}" class="btn btn-primary">+ Thêm nhân viên</a>
     </div>
 
-    <main class="page-wrap">
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-        <div class="card-panel">
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 17px; border-bottom:1px solid var(--hairline);">
-                <span class="usage">
-                    Tổng cộng <b th:text="${employees != null ? #lists.size(employees) : 0}"></b> nhân viên
-                </span>
-            </div>
+    <form th:action="@{/employee}" method="get" class="row g-2 mb-3">
 
-            <div style="overflow-x:auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Mã NV</th>
-                            <th>Họ tên</th>
-                            <th>Email</th>
-                            <th>SĐT</th>
-                            <th>Chi nhánh</th>
-                            <th>Vai trò</th>
-                            <th>Trạng thái</th>
-                            <th style="text-align:right;">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:if="${#lists.isEmpty(employees)}">
-                            <td colspan="8">
-                                <div class="empty-state">
-                                    <div class="empty-state__icon">👤</div>
-                                    <h3 class="empty-state__title">Chưa có nhân viên nào</h3>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr th:each="employee : ${employees}">
-                            <td><span class="code-chip" th:text="${employee.employeeCode}"></span></td>
-                            <td style="font-weight:600; color:var(--ink);" th:text="${employee.fullName}"></td>
-                            <td th:text="${employee.email}"></td>
-                            <td th:text="${employee.phone}"></td>
-                            <td th:text="${employee.branch != null ? employee.branch.name : 'Chưa phân'}"></td>
-                            <td>
-                                <span class="badge" th:text="${employee.role != null ? employee.role.name : 'Chưa có'}"></span>
-                            </td>
-                            <td>
-                                <span class="badge" th:classappend="${employee.workStatus != null and employee.workStatus.name() == 'ACTIVE'} ? 'badge-active' : 'badge-inactive'" th:text="${employee.workStatus != null ? employee.workStatus : 'N/A'}"></span>
-                            </td>
-                            <td>
-                                <div class="actions" style="justify-content:flex-end;">
-                                    <a th:href="@{/employee/edit/{id}(id=${employee.id})}" class="action-edit">Sửa</a>
-                                    <a th:href="@{/employee/delete/{id}(id=${employee.id})}" class="action-delete" onclick="return confirm('Bạn có chắc chắn xóa nhân viên này?')">Xóa</a>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <div class="col-md-3">
+            <input type="text"
+                   name="keyword"
+                   class="form-control"
+                   placeholder="Tìm mã, tên, email, SĐT"
+                   th:value="${keyword}">
         </div>
 
-    </main>
+        <div class="col-md-2" th:if="${session.loggedInUser.roleCode == 'OWNER'}">
+            <select name="branchId" class="form-select">
+                <option value="">-- Chi nhánh --</option>
+                <option th:each="b : ${branches}"
+                        th:value="${b.id}"
+                        th:text="${b.name}"
+                        th:selected="${branchId != null and branchId == b.id}">
+                </option>
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <select name="roleId" class="form-select">
+                <option value="">-- Vai trò --</option>
+                <option th:each="r : ${roles}"
+                        th:value="${r.id}"
+                        th:text="${r.code}"
+                        th:selected="${roleId != null and roleId == r.id}">
+                </option>
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <select name="status" class="form-select">
+                <option value="">-- Trạng thái --</option>
+                <option th:each="s : ${statuses}"
+                        th:value="${s}"
+                        th:text="${s}"
+                        th:selected="${status != null and status == s}">
+                </option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-success">Tìm kiếm</button>
+            <a th:href="@{/employee}" class="btn btn-secondary">Reset</a>
+        </div>
+    </form>
+
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+        <tr>
+            <th>STT</th>
+            <th>Mã NV</th>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>SĐT</th>
+            <th>Chi nhánh</th>
+            <th>Vai trò</th>
+            <th>Trạng thái</th>
+            <th style="width: 220px;">Hành động</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="e, stat : ${employeePage.content}">
+            <td th:text="${employeePage.number * employeePage.size + stat.index + 1}"></td>
+            <td th:text="${e.employeeCode}"></td>
+            <td th:text="${e.fullName}"></td>
+            <td th:text="${e.email}"></td>
+            <td th:text="${e.phone}"></td>
+            <td th:text="${e.branch != null ? e.branch.name : ''}"></td>
+            <td th:text="${e.role != null ? e.role.code : ''}"></td>
+
+            <td>
+                <span th:if="${e.workStatus.name() == 'ACTIVE'}"
+                      class="badge bg-success">ACTIVE</span>
+                <span th:if="${e.workStatus.name() == 'INACTIVE'}"
+                      class="badge bg-secondary">INACTIVE</span>
+            </td>
+
+            <td>
+                <a th:href="@{/employee/{id}/edit(id=${e.id})}"
+                   class="btn btn-sm btn-warning">Sửa</a>
+
+                <form th:action="@{/employee/{id}/toggle-status(id=${e.id})}"
+                      method="post"
+                      class="d-inline">
+                    <button type="submit"
+                            class="btn btn-sm btn-info"
+                            th:text="${e.workStatus.name() == 'ACTIVE' ? 'Khóa' : 'Mở'}">
+                    </button>
+                </form>
+
+                <form th:action="@{/employee/{id}/delete(id=${e.id})}"
+                      method="post"
+                      class="d-inline"
+                      onsubmit="return confirm('Bạn có chắc muốn xóa nhân viên này không?')">
+                    <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+                </form>
+            </td>
+        </tr>
+
+        <tr th:if="${employeePage.totalElements == 0}">
+            <td colspan="9" class="text-center">Không có nhân viên nào</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <nav th:if="${employeePage.totalPages > 1}">
+        <ul class="pagination">
+
+            <li class="page-item" th:classappend="${employeePage.first} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/employee(page=${employeePage.number - 1}, keyword=${keyword}, branchId=${branchId}, roleId=${roleId}, status=${status})}">
+                    Trước
+                </a>
+            </li>
+
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence(0, employeePage.totalPages - 1)}"
+                th:classappend="${i == employeePage.number} ? 'active'">
+                <a class="page-link"
+                   th:href="@{/employee(page=${i}, keyword=${keyword}, branchId=${branchId}, roleId=${roleId}, status=${status})}"
+                   th:text="${i + 1}">
+                </a>
+            </li>
+
+            <li class="page-item" th:classappend="${employeePage.last} ? 'disabled'">
+                <a class="page-link"
+                   th:href="@{/employee(page=${employeePage.number + 1}, keyword=${keyword}, branchId=${branchId}, roleId=${roleId}, status=${status})}">
+                    Sau
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+
+</div>
 </body>
 </html>

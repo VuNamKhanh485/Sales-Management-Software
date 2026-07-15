@@ -1,6 +1,6 @@
 package com.g4fpt.sms.inventory.service.impl;
 
-import com.g4fpt.sms.auth.security.CustomUserDetails;
+
 import com.g4fpt.sms.branch.entity.Branch;
 import com.g4fpt.sms.branch.repository.BranchRepository;
 import com.g4fpt.sms.inventory.dto.InventoryBranchSummaryResponse;
@@ -15,7 +15,7 @@ import com.g4fpt.sms.product.repository.ProductUnitRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -107,16 +107,6 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     @Transactional
     public void createInventory(InventoryRequest request) {
-
-        if (SecurityContextHolder.getContext().getAuthentication() != null) {
-            Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            if (principal instanceof CustomUserDetails) {
-                CustomUserDetails userDetails = (CustomUserDetails) principal;
-                if (!userDetails.hasRole("OWNER")) {
-                    request.setBranchId(userDetails.getBranchId());
-                }
-            }
-        }
 
         // 1. Validate: kiểm tra stock và minStock không âm
         if (request.getStock() == null || request.getStock() < 0) {
