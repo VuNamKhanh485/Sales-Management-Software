@@ -49,7 +49,7 @@
             font-size: 13px; font-weight: 600; color: var(--ink);
         }
         .form-input, .form-select, .form-textarea {
-            width: 100%;
+            min-width: 100%;
             padding: 10px 14px;
             border: 1px solid var(--hairline);
             border-radius: var(--r-md);
@@ -149,6 +149,90 @@
         .modal-close {
             background: none; border: none; font-size: 20px; cursor: pointer; color: var(--ink-muted-48);
         }
+        .barcode-input {
+            width: 140px;        /* cố định, không đổi theo nội dung gõ */
+            min-width: 140px;
+            max-width: 140px;
+            padding: 4px 8px;
+            font-size: 13px;
+            box-sizing: border-box;
+            text-overflow: ellipsis;   /* nếu text dài hơn ô, hiện dấu ... thay vì phình to */
+        }
+
+        .barcode-cell {
+            min-width: 180px;   /* đủ chỗ cho ảnh barcode preview nếu nó rộng hơn input */
+        }
+
+        .barcode-preview-box {
+            margin-top: 6px;
+            max-width: 100%;
+            overflow-x: auto;   /* nếu barcode ảnh quá rộng, cho cuộn ngang thay vì phá layout bảng */
+        }
+
+        .barcode-svg {
+            display: block;
+            height: auto;
+            max-width: none;    /* để ảnh giữ đúng tỷ lệ thật, không bị ép nhỏ lại gây khó đọc mã vạch */
+        }
+        .barcode-text{
+            margin-top:5px;
+            font-size:12px;
+            color:#666;
+        }
+        .add-link {
+            display: block;
+            width: fit-content;
+            margin-top: 4px;
+            padding: 0;
+            font-size: 12px;
+            color: var(--primary);
+            background: transparent;
+            border: none;
+            text-decoration: none;
+            cursor: pointer;
+            line-height: 1.4;
+        }
+
+        .add-link:hover {
+            text-decoration: underline;
+        }
+
+        .add-link:focus {
+            outline: none;
+            text-decoration: underline;
+        }
+        .unit-select-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
+
+        .btn-link {
+            display: block;
+            width: fit-content;
+            padding: 0;
+            margin: 0;
+            font-size: 11px;
+            color: var(--primary);
+            background: transparent;
+            border: none;
+            text-decoration: none;
+            cursor: pointer;
+            line-height: 1.3;
+        }
+
+        .btn-link:hover {
+            text-decoration: underline;
+        }
+
+
+        .field-error {
+            display: block;
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
@@ -169,7 +253,10 @@
                 <h1 class="form-card__title" th:text="${id != null} ? 'Cập nhật Sản phẩm' : 'Thêm Sản phẩm mới'"></h1>
             </div>
 
-            <form th:action="${id != null} ? @{/product/form/{id}(id=${id}, from=${from})} : @{/product/form(from=${from})}" method="post" th:object="${productRequest}">
+            <form th:action="${id != null} ? @{/product/form/{id}(id=${id}, from=${from})} : @{/product/form(from=${from})}"
+                  method="post"
+                  th:object="${productRequest}"
+                  enctype="multipart/form-data">
                 <div class="form-grid">
                     
                     <div class="section-title">Thông tin cơ bản</div>
@@ -183,6 +270,7 @@
                                    placeholder="VD: Sữa chua Vinamilk"
                                    required/>
                         </label>
+                        <div class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
                     </div>
 
                     <div class="form-group">
@@ -190,13 +278,14 @@
                             Danh mục
                             <select class="form-select select2-init"
                                     id="categoryId"
-                                    name="categoryId"
                                     th:field="*{categoryId}"
                                     required>
                                 <option value="">-- Chọn danh mục --</option>
                                 <option th:each="c : ${categoryList}" th:value="${c.id}" th:text="${c.name}"></option>
                             </select>
                         </label>
+                        <div class="field-error" th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}"></div>
+
                         <button type="button"
                            class="add-link"
                            onclick="openModal('modalCategory'); return false;">
@@ -207,11 +296,16 @@
                     <div class="form-group">
                         <label class="form-label">
                             Thương hiệu
-                            <select class="form-select select2-init" id="brandId" name="brandId" th:field="*{brandId}">
+                            <select class="form-select select2-init"
+                                    id="brandId"
+                                    th:field="*{brandId}"
+                                    required>
                                 <option value="">-- Chọn thương hiệu --</option>
                                 <option th:each="b : ${brandList}" th:value="${b.id}" th:text="${b.name}"></option>
                             </select>
                         </label>
+                        <div class="field-error" th:if="${#fields.hasErrors('brandId')}" th:errors="*{brandId}"></div>
+
                         <button type="button"
                                 class="add-link"
                                 onclick="openModal('modalBrand'); return false;">
@@ -221,35 +315,62 @@
 
                     <div class="form-group form-group--full">
                         <label class="form-label">
-                            Ảnh (URL)
-                            <input type="text" class="form-input" name="imageUrl" th:field="*{imageUrl}" placeholder="https://..."/>
+                            Ảnh
+                            <input type="file"
+                                   class="form-input"
+                                   th:field="*{imageFile}"
+                                   accept="image/*" onchange="previewImage(this)">
                         </label>
+
+                        <div style="display:flex; gap:20px; margin-bottom:10px;">
+                            <!-- Ảnh cũ: chỉ hiện khi đang update -->
+                            <div th:if="${id != null}">
+                                <p>Ảnh hiện tại</p>
+                                <img th:src="@{'/images/' + *{imageName}}"
+                                     alt="Ảnh cũ" style="max-width:200px;"/>
+                            </div>
+
+                            <!-- Ảnh mới: ẩn cho tới khi người dùng chọn file -->
+                            <div id="previewFrame" style="display:none">
+                                <p>Ảnh mới</p>
+                                <img id="imagePreview" src="#" alt="Ảnh mới"
+                                     style="max-width:200px;"/>
+                            </div>
+                        </div>
                     </div>
+
+                    <div class="field-error" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></div>
 
                     <div class="form-group form-group--full">
                         <label class="form-label">
                             Mô tả
-                            <textarea class="form-textarea" name="description" rows="3" th:field="*{description}"></textarea>
+                            <textarea class="form-textarea" rows="3" th:field="*{description}"></textarea>
                         </label>
+                        <div class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
                     </div>
 
                     <div class="form-group form-group--full">
                         <label class="form-label">
                             Ghi chú
-                            <textarea class="form-textarea" name="note" rows="2" th:field="*{note}"></textarea>
+                            <textarea class="form-textarea" rows="2" th:field="*{note}"></textarea>
                         </label>
+                        <div class="field-error" th:if="${#fields.hasErrors('note')}" th:errors="*{note}"></div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">
                             Trạng thái
-                            <select class="form-select" name="status" th:field="*{status}">
-                                <option th:each="s : ${T(com.g4fpt.sms.product.enums.ProductStatus).values()}" th:value="${s}" th:text="${s}"></option>
+                            <select class="form-select" th:field="*{status}">
+                                <option th:each="s : ${T(com.g4fpt.sms.product.enums.ProductStatus).values()}"
+                                        th:value="${s}" th:text="${s}"></option>
                             </select>
                         </label>
+                        <div class="field-error" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></div>
                     </div>
 
                     <div class="section-title">Quy đổi Đơn vị tính</div>
+                    <span class="field-error" th:if="${#fields.hasErrors('productUnitsRequest')}"
+                         th:errors="*{productUnitsRequest}"></span>
                     <div class="form-group--full" style="overflow-x:auto;">
                         <table class="unit-table">
                             <thead>
@@ -258,8 +379,8 @@
                                     <th>Đơn vị</th>
                                     <th>Quy đổi</th>
                                     <th>Giá bán</th>
-                                    <th>Barcode</th>
                                     <th>SKU</th>
+                                    <th>Barcode</th>
                                     <th>Cơ bản</th>
                                     <th></th>
                                 </tr>
@@ -272,12 +393,18 @@
                                     <td th:text="${stat.index + 1}" class="row-index"></td>
                                     <input type="hidden" th:field="*{productUnitsRequest[__${stat.index}__].id}">
                                     
-                                    <td>
-                                        <select class="form-select" th:field="*{productUnitsRequest[__${stat.index}__].unitId}" style="padding:4px 20px 4px 8px; font-size:13px; min-width:100px;">
+                                    <td class="unit-select-wrap">
+                                        <select class="form-select" th:field="*{productUnitsRequest[__${stat.index}__].unitId}"
+                                                style="padding:4px 20px 4px 8px; font-size:13px; min-width:100px;">
+                                            <option value="">-- Chọn --</option>
                                             <option th:each="unit : ${unitList}"
                                                     th:value="${unit.id}"
                                                     th:text="${unit.name}"></option>
                                         </select>
+
+                                        <div class="field-error"
+                                              th:if="${#fields.hasErrors('productUnitsRequest[__${stat.index}__].unitId')}"
+                                              th:errors="*{productUnitsRequest[__${stat.index}__].unitId}"></div>
 
                                         <button type="button"
                                                 class="btn-link"
@@ -285,20 +412,83 @@
                                             + Thêm
                                         </button>
                                     </td>
-                                    <td><input type="number" class="form-input" th:field="*{productUnitsRequest[__${stat.index}__].conventionValue}" style="padding:4px 8px; font-size:13px; width:70px;"></td>
-                                    <td><input type="number" class="form-input" th:field="*{productUnitsRequest[__${stat.index}__].price}" style="padding:4px 8px; font-size:13px; width:100px;"></td>
-                                    <td><input type="text" class="form-input" th:field="*{productUnitsRequest[__${stat.index}__].barcodeUnit}" style="padding:4px 8px; font-size:13px; width:100px;"></td>
-                                    <td><input type="text" class="form-input" th:field="*{productUnitsRequest[__${stat.index}__].sku}" style="padding:4px 8px; font-size:13px; width:100px;"></td>
-                                    <td style="text-align:center;"><input type="checkbox" th:field="*{productUnitsRequest[__${stat.index}__].isBaseUnit}"></td>
-                                    <td><button type="button" class="btn-icon" style="width:24px; height:24px; font-size:12px; color:var(--danger); background:transparent;" onclick="removeUnitRow(this)">✕</button></td>
+
+                                    <td>
+                                        <input
+                                                type="number"
+                                                class="form-input"
+                                                th:field="*{productUnitsRequest[__${stat.index}__].conventionValue}"
+                                                style="padding:4px 8px; font-size:13px; width:70px;">
+
+                                        <div class="field-error"
+                                             th:if="${#fields.hasErrors('productUnitsRequest[__${stat.index}__].conventionValue')}"
+                                             th:errors="*{productUnitsRequest[__${stat.index}__].conventionValue}"></div>
+                                    </td>
+
+                                    <td>
+                                        <input type="number"
+                                               class="form-input"
+                                               th:field="*{productUnitsRequest[__${stat.index}__].price}"
+                                               style="padding:4px 8px; font-size:13px; width:100px;">
+
+                                        <div class="field-error"
+                                             th:if="${#fields.hasErrors('productUnitsRequest[__${stat.index}__].price')}"
+                                             th:errors="*{productUnitsRequest[__${stat.index}__].price}"></div>
+                                    </td>
+
+                                    <td>
+                                        <input type="text"
+                                               class="form-input sku-input"
+                                               th:field="*{productUnitsRequest[__${stat.index}__].sku}"
+                                               style="padding:4px 8px; font-size:13px; width:100px;">
+
+                                        <div class="field-error"
+                                             th:if="${#fields.hasErrors('productUnitsRequest[__${stat.index}__].sku')}"
+                                             th:errors="*{productUnitsRequest[__${stat.index}__].sku}"></div>
+                                    </td>
+
+                                    <td class="barcode-cell">
+                                        <input type="text"
+                                               class="form-input barcode-input"
+                                               th:field="*{productUnitsRequest[__${stat.index}__].barcodeUnit}"
+                                               style="padding:4px 8px; font-size:13px; width:100px;">
+
+                                        <div class="field-error"
+                                             th:if="${#fields.hasErrors('productUnitsRequest[__${stat.index}__].barcodeUnit')}"
+                                             th:errors="*{productUnitsRequest[__${stat.index}__].barcodeUnit}"></div>
+
+                                        <div class="barcode-preview-box">
+                                            <svg class="barcode-svg" ></svg>
+                                            <div class="barcode-text"></div>
+                                        </div>
+                                    </td>
+
+                                    <td style="text-align:center;">
+                                        <input type="checkbox"
+                                               th:field="*{productUnitsRequest[__${stat.index}__].isBaseUnit}">
+
+                                        <div class="field-error"
+                                             th:if="${#fields.hasErrors('productUnitsRequest[__${stat.index}__].isBaseUnit')}"
+                                             th:errors="*{productUnitsRequest[__${stat.index}__].isBaseUnit}"></div>
+                                    </td>
+                                    <td>
+                                        <button type="button"
+                                                class="btn-icon"
+                                                style="width:24px; height:24px; font-size:12px; color:var(--danger); background:transparent;"
+                                                onclick="removeUnitRow(this)">
+                                            ✕
+                                        </button>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
-                        <button type="button" class="btn-secondary btn-secondary--sm" style="margin-top:12px;" onclick="addUnitRow()">+ Thêm đơn vị tính</button>
+                        <button type="button"
+                                class="btn-secondary btn-secondary--sm"
+                                style="margin-top:12px;" onclick="addUnitRow()">
+                            + Thêm đơn vị tính
+                        </button>
                     </div>
-
                 </div>
-
                 <div class="form-actions">
                     <a href="/product" class="btn-cancel" style="padding:10px 20px; font-size:15px;">Hủy</a>
                     <button type="submit" class="btn-primary" style="padding:10px 24px; font-size:15px;">Lưu thay đổi</button>
@@ -311,7 +501,7 @@
     <div id="modalCategory" class="modal-overlay">
         <div class="modal-box" style="padding:0; overflow:hidden;">
             <div class="modal-header" style="padding: 20px 20px 0; margin-bottom: 0;">
-                <span>Thêm Danh mục mới</span>
+                <span>Thêm danh mục mới</span>
                 <button class="modal-close" onclick="closeModal('modalCategory')">×</button>
             </div>
             <iframe src="/category/popup-form" style="width:100%; border:none; height:320px;"></iframe>
@@ -340,11 +530,20 @@
         </div>
     </div>
 
+
+
+<script th:src="@{/js/JsBarcode.all.min.js}"></script>
 <script th:inline="javascript">
     const unitList = /*[[${unitList}]]*/ [];
     let rowIndex = document.querySelectorAll('#unitTable tr:not(#no-unit-row)').length;
     let currentUnitSelect = null;
 
+    /*
+     * mở modal để tạo danh mục, nhãn hàng, đơn vị
+     * ở ngay trong trang tạo sản phẩm
+     * @param id
+     * @param button
+     */
     function openModal(id, button = null) {
         if (id === "modalUnit" && button) {
             currentUnitSelect = $(button)
@@ -355,6 +554,84 @@
         document.getElementById(id).style.display = "flex";
     }
 
+    let currentPreviewUrl = null;
+
+    function previewImage(input) {
+        const file = input.files[0];
+        const img = document.getElementById('imagePreview');
+        const display = document.getElementById('previewFrame');
+
+        if (currentPreviewUrl) {
+            URL.revokeObjectURL(currentPreviewUrl);
+            currentPreviewUrl = null;
+        }
+
+        if (file) {
+            currentPreviewUrl = URL.createObjectURL(file);
+            img.src = currentPreviewUrl;
+            display.style.display = 'block';
+        } else {
+            display.style.display = 'none';
+        }
+    }
+
+    function updateBarcodePreview(row){
+        const preview = row.querySelector(".barcode-preview-box");
+        const barcodeInput = row.querySelector(".barcode-input");
+        const barcodeValue = barcodeInput.value.trim();
+
+        if(barcodeValue === ""){
+            preview.style.display = "none";
+        }else {
+            preview.style.display = "";
+            const svg = row.querySelector(".barcode-svg");
+            const text = row.querySelector(".barcode-text");
+
+            if (barcodeValue === "") {
+                svg.innerHTML = "";
+                text.innerHTML = "";
+                return;
+            }
+            JsBarcode(svg, barcodeValue, {
+                format: "CODE128",
+                width: 2,
+                height: 50,
+                displayValue: false
+            });
+            text.innerText = barcodeValue;
+        }
+    }
+
+    /*
+     * hiển thị ảnh barcode
+     * @param row
+     */
+    function initBarcode(row) {
+        const sku = row.querySelector(".sku-input");
+        const barcode = row.querySelector(".barcode-input");
+
+        if (!sku || !barcode) return;
+        let edited = false;
+        barcode.addEventListener("input", function () {
+            edited = true;
+            updateBarcodePreview(row);
+        });
+        sku.addEventListener("input", function () {
+            if (!edited) {
+                barcode.value = sku.value;
+            }
+            updateBarcodePreview(row);
+        });
+
+        updateBarcodePreview(row);
+    }
+
+    /*
+     * Thêm dòng đơn vị khi bấm thêm đơn vị tính,
+     * append vào table
+     * update barcode preview
+     * tạo select cho phần đơn vị để phục vụ việc tạo mới đơn vị tính ngay
+     */
     function addUnitRow() {
         const noUnitRow = document.getElementById('no-unit-row');
         if (noUnitRow) noUnitRow.style.display = 'none';
@@ -394,6 +671,7 @@
                    name="productUnitsRequest[${i}].conventionValue"
                    value="1"
                    style="padding:4px 8px;font-size:13px;width:70px;">
+
         </td>
 
         <td>
@@ -401,20 +679,27 @@
                    class="form-input"
                    name="productUnitsRequest[${i}].price"
                    style="padding:4px 8px;font-size:13px;width:100px;">
+
         </td>
 
         <td>
             <input type="text"
-                   class="form-input"
-                   name="productUnitsRequest[${i}].barcodeUnit"
-                   style="padding:4px 8px;font-size:13px;width:100px;">
-        </td>
-
-        <td>
-            <input type="text"
-                   class="form-input"
+                   class="form-input sku-input"
                    name="productUnitsRequest[${i}].sku"
                    style="padding:4px 8px;font-size:13px;width:100px;">
+
+        </td>
+
+        <td>
+            <input type="text"
+                   class="form-input barcode-input"
+                   name="productUnitsRequest[${i}].barcodeUnit"
+                   style="padding:4px 8px;font-size:13px;width:100px;">
+
+            <div class="barcode-preview-box">
+                <svg class="barcode-svg"></svg>
+                <div class="barcode-text"></div>
+            </div>
         </td>
 
         <td style="text-align:center;">
@@ -433,6 +718,9 @@
     `;
 
         tbody.appendChild(tr);
+
+        initBarcode(tr);
+        updateBarcodePreview(tr);
 
         // Khởi tạo Select2 cho select vừa thêm
         $(tr).find(".unit-select2").select2();
@@ -502,6 +790,14 @@
             closeModal('modalUnit');
         }
     });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("#unitTable tr:not(#no-unit-row)")
+            .forEach(function (row) {
+                initBarcode(row);
+            });
+    });
+
 </script>
 </body>
 </html>

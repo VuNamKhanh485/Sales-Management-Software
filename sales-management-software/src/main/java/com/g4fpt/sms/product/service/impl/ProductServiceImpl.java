@@ -11,6 +11,7 @@ import com.g4fpt.sms.common.exception.ValidationException;
 import com.g4fpt.sms.product.entity.ProductUnit;
 import com.g4fpt.sms.product.mapper.ProductMapper;
 import com.g4fpt.sms.product.repository.*;
+import com.g4fpt.sms.product.service.FileStorageService;
 import com.g4fpt.sms.product.service.ProductService;
 import com.g4fpt.sms.product.service.ProductUnitService;
 import com.g4fpt.sms.product.util.ProductSpecification;
@@ -23,7 +24,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,13 +40,21 @@ public class ProductServiceImpl implements ProductService {
     private final InventoryRepository inventoryRepository;
     private final ProductMapper productMapper;
     private final ProductUnitService productUnitService;
+    private final FileStorageService fileStorageService;
 
     @Transactional
     @Override
-    public void create(ProductRequest productRequest) {
+    public void create(ProductRequest productRequest) throws IOException {
         validate(productRequest, null);
         Product product = new Product();
         requestToProduct(productRequest, product);
+
+        MultipartFile imageFile = productRequest.getImageFile();
+        if (!imageFile.isEmpty()) {
+            String fileName = fileStorageService.saveFile(imageFile);
+            product.setImageName(fileName);
+        }
+
         product.setProductUnits(
                 productUnitService.productUnitSync(productRequest.getProductUnitsRequest(),
                         product));
@@ -52,10 +63,21 @@ public class ProductServiceImpl implements ProductService {
 
     @Transactional
     @Override
-    public void update(long id, ProductRequest productRequest) {
+    public void update(long id, ProductRequest productRequest) throws IOException {
         validate(productRequest, id);
         Product product = getProductById(id);
         requestToProduct(productRequest, product);
+        
+        MultipartFile imageFile = productRequest.getImageFile();
+        if (!imageFile.isEmpty()) {
+
+            fileStorageService.deleteFile(product.getImageName());
+
+            String fileName = fileStorageService.saveFile(imageFile);
+
+            product.setImageName(fileName);
+        }
+
         product.setProductUnits(
                 productUnitService.productUnitSync(productRequest.getProductUnitsRequest(),
                         product));
@@ -166,7 +188,6 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new NotFoundException("Brand not found")));
         product.setName(productRequest.getName());
         product.setDescription(productRequest.getDescription());
-        product.setImageUrl(productRequest.getImageUrl());
         product.setStatus(productRequest.getStatus());
         product.setNote(productRequest.getNote());
     }

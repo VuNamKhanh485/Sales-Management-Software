@@ -6,6 +6,7 @@ import com.g4fpt.sms.product.dto.response.BrandResponse;
 import com.g4fpt.sms.product.entity.Brand;
 import com.g4fpt.sms.common.exception.DuplicateException;
 import com.g4fpt.sms.common.exception.NotFoundException;
+import com.g4fpt.sms.product.enums.BrandStatus;
 import com.g4fpt.sms.product.mapper.BrandMapper;
 import com.g4fpt.sms.product.repository.BrandRepository;
 import com.g4fpt.sms.product.service.BrandService;
@@ -62,6 +63,14 @@ public class BrandServiceImpl implements BrandService {
                 .stream()
                 .map(brandMapper::toResponse)
                 .toList();
+    }
+
+    @Override
+    public List<BrandResponse> findAllActive() {
+        return brandRepository.findByStatus(BrandStatus.ACTIVE)
+                .stream()
+                .map(brandMapper::toResponse).
+                toList();
     }
 
     @Override

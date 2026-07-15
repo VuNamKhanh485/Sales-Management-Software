@@ -4,6 +4,8 @@ import com.g4fpt.sms.common.exception.NotFoundException;
 import com.g4fpt.sms.common.exception.ResourceInUseException;
 import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
 import com.g4fpt.sms.product.dto.request.ProductRequest;
+import com.g4fpt.sms.product.dto.response.BrandResponse;
+import com.g4fpt.sms.product.dto.response.CategoryResponse;
 import com.g4fpt.sms.product.dto.response.ProductResponse;
 import com.g4fpt.sms.product.enums.ProductStatus;
 import com.g4fpt.sms.common.exception.ValidationException;
@@ -17,6 +19,9 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.io.IOException;
+import java.util.List;
 
 
 @Controller
@@ -93,7 +98,7 @@ public class ProductController {
                        BindingResult result, Model model,
                        @PathVariable(required = false) Long id,
                        @RequestParam(required = false) String from,
-                       RedirectAttributes redirectAttributes) {
+                       RedirectAttributes redirectAttributes) throws IOException {
         if (result.hasErrors()) {
             addAttributeToForm(model, id);
             model.addAttribute("from", from);
@@ -139,13 +144,8 @@ public class ProductController {
             model.addAttribute("id", id);
         }
         
-        java.util.List<com.g4fpt.sms.product.dto.response.CategoryResponse> activeCategories = categoryService.findAll().stream()
-                .filter(c -> "ACTIVE".equals(c.getCategoryStatus().name()))
-                .toList();
-                
-        java.util.List<com.g4fpt.sms.product.dto.response.BrandResponse> activeBrands = brandService.findAll().stream()
-                .filter(b -> "ACTIVE".equals(b.getStatus().name()))
-                .toList();
+        List<CategoryResponse> activeCategories = categoryService.findAllActive();
+        List<BrandResponse> activeBrands = brandService.findAllActive();
                 
         model.addAttribute("categoryList", activeCategories);
         model.addAttribute("brandList", activeBrands);
