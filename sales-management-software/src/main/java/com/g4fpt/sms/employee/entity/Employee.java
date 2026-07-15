@@ -74,7 +74,7 @@ public class Employee {
     @Column(name = "gender")
     private Gender gender;
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @DateTimeFormat(pattern = "dd-MM-yyyy")
     @Column(name = "dob")
     private LocalDate dob;
 

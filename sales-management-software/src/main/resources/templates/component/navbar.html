@@ -1,4 +1,4 @@
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org">
 
 <nav class="global-nav" th:fragment="global-nav(page)">
     <a href="/dashboard" class="global-nav__brand">SMS</a>
@@ -10,16 +10,18 @@
         <li><a th:href="@{/inventory}" th:classappend="${page == 'inventory' ? 'active' : ''}">Kho hàng</a></li>
         <li><a th:href="@{/imports}" th:classappend="${page == 'imports' ? 'active' : ''}">Nhập hàng</a></li>
         <li><a th:href="@{/vouchers}" th:classappend="${page == 'voucher' ? 'active' : ''}">Voucher</a></li>
-        <li sec:authorize="hasAnyRole('OWNER')"><a th:href="@{/employee}" th:classappend="${page == 'employee' ? 'active' : ''}">Nhân viên</a></li>
-        <li sec:authorize="hasAnyRole('OWNER', 'MANAGER')"><a th:href="@{/branch}" th:classappend="${page == 'branch' ? 'active' : ''}">Chi nhánh</a></li>
+        <li th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">
+            <a th:href="@{/employee}" th:classappend="${page == 'employee' ? 'active' : ''}">Nhân viên</a>
+        </li>
+        <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}">
+            <a th:href="@{/branch}" th:classappend="${page == 'branch' ? 'active' : ''}">Chi nhánh</a>
+        </li>
     </ul>
-    <div style="display:flex; align-items:center; gap:12px; margin-left:auto;" sec:authorize="isAuthenticated()">
-        <span style="font-size:12px; color:rgba(245,245,247,0.8);" th:text="${#authentication.principal.employee.fullName}">Admin</span>
-        <form th:action="@{/logout}" method="post" style="margin:0;">
-            <button type="submit" style="background:transparent; border:none; color:rgba(245,245,247,0.8); cursor:pointer; font-size:12px; padding:4px 8px;">
-                Đăng xuất
-            </button>
-        </form>
+    <div style="display:flex; align-items:center; gap:12px; margin-left:auto;" th:if="${sessionUser != null}">
+        <span style="font-size:12px; color:rgba(245,245,247,0.8);" th:text="${sessionUser.fullName}">Admin</span>
+        <a th:href="@{/auth/logout}" style="background:transparent; border:none; color:rgba(245,245,247,0.8); cursor:pointer; font-size:12px; padding:4px 8px; text-decoration:none;">
+            Đăng xuất
+        </a>
     </div>
 </nav>
 
@@ -50,29 +52,28 @@
             <span>Nhập hàng</span>
         </a>
 
-        <a sec:authorize="hasAnyRole('OWNER')" th:href="@{/employee}"
+        <a th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}"
+           th:href="@{/employee}"
            th:class="${page == 'employee' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Quản lý nhân viên</span>
         </a>
 
-        <a sec:authorize="hasAnyRole('OWNER', 'MANAGER')" th:href="@{/branch}"
+        <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}"
+           th:href="@{/branch}"
            th:class="${page == 'branch' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Quản lý chi nhánh</span>
         </a>
     </nav>
 
     <hr>
-    <div class="user-profile" sec:authorize="isAuthenticated()">
+    <div class="user-profile" th:if="${sessionUser != null}">
         <div class="mb-2">
-            <div class="fw-bold text-dark" th:text="${#authentication.principal.employee.fullName}">Admin</div>
-            <small class="text-muted d-block mb-2"
-                   th:text="${#authentication.principal.employee.role != null ? #authentication.principal.employee.role.name : 'Quản trị viên'}">Quản trị viên</small>
+            <div class="fw-bold text-dark" th:text="${sessionUser.fullName}">Admin</div>
+            <small class="text-muted d-block mb-2" th:text="${sessionUser.roleName}">Quản trị viên</small>
         </div>
-        <form th:action="@{/logout}" method="post" class="logout-form m-0">
-            <button type="submit" class="btn btn-sm btn-outline-danger w-100" title="Đăng xuất">
-                Đăng xuất
-            </button>
-        </form>
+        <a th:href="@{/auth/logout}" class="btn btn-sm btn-outline-danger w-100" title="Đăng xuất">
+            Đăng xuất
+        </a>
     </div>
 </aside>
 

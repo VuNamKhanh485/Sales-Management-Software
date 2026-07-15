@@ -517,7 +517,7 @@ public class PosController {
 
         model.addAttribute("products", all);
         model.addAttribute("stockMap", stockMap);
-        
+
         List<Category> categories = categoryRepository.findAll().stream()
                 .filter(c -> c.getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE)
                 .collect(Collectors.toList());
@@ -550,7 +550,7 @@ public class PosController {
 
         Customer customer = customerRepository.findById(customerId).orElse(null);
         final Customer finalCust = customer;
-        
+
         List<Voucher> result = activeVouchers.stream()
                 .filter(v -> {
                     if (v.getCustomerRank() == null) return true;
