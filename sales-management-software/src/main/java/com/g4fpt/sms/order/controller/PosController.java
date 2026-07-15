@@ -412,7 +412,7 @@ public class PosController {
                             item.setPrice(pu.getPrice());
                             item.setQuantity(1);
                             item.setUnitName(pu.getUnit() != null ? pu.getUnit().getName() : "");
-                            item.setImageUrl(pu.getProduct().getImageUrl());
+                            item.setImageUrl(pu.getProduct().getImageName());
                             cart.getItems().add(item);
                         });
     }
