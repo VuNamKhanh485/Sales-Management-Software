@@ -53,14 +53,6 @@ public class VoucherServiceImpl implements VoucherService {
 
         validateTimeRange(request.getStartAt(), request.getEndAt());
         validateDiscountValue(request.getDiscountType(), request.getDiscountValue());
-
-        if (request.getCode() != null && !request.getCode().trim().toUpperCase().equals(voucher.getCode())) {
-            if (voucherRepository.existsByCodeAndIdNot(request.getCode().trim().toUpperCase(), id)) {
-                throw new AppException(ErrorCode.VOUCHER_CODE_EXISTED);
-            }
-            voucher.setCode(request.getCode().trim().toUpperCase());
-        }
-
         voucher.setName(request.getName().trim());
         voucher.setDiscountType(request.getDiscountType());
         voucher.setDiscountValue(request.getDiscountValue());

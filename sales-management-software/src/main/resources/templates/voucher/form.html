@@ -463,7 +463,8 @@
                     <div class="form-group">
                         <label class="form-label" for="code">Mã voucher <span class="required">*</span></label>
                         <input id="code" type="text" class="form-input" th:field="*{code}" placeholder="VD: SALE50"
-                            autocomplete="off" th:classappend="${#fields.hasErrors('code')} ? 'input-error' : ''">
+                            autocomplete="off" th:classappend="${#fields.hasErrors('code')} ? 'input-error' : ''"
+                            th:readonly="${voucherId != null}">
                         <span class="field-error" th:if="${#fields.hasErrors('code')}" th:errors="*{code}"></span>
                     </div>
 
