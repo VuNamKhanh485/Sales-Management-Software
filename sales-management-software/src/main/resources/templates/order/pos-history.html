@@ -5,8 +5,9 @@
     <title>Lịch sử bán hàng</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>body { padding: 10px; background-color: #fff; font-size: 13px;}</style>
 </head>
-<body style="padding: 10px; background-color: #fff; font-size: 13px;">
+<body>
     <form th:action="@{/pos/sales-history}" method="GET" class="d-flex gap-2 align-items-center mb-3">
         <label class="small fw-semibold text-muted mb-0">Chọn ngày:</label>
         <input type="date" name="date" class="form-control form-control-sm" style="max-width: 180px;" th:value="${filterDate}" onchange="this.form.submit()">
@@ -33,15 +34,18 @@
                 <tr th:each="order : ${orders}">
                     <td class="fw-semibold text-primary" th:text="${order.code}"></td>
                     <td th:if="${isOwner}">
-                        <span class="badge bg-light text-dark border" th:text="${branchNames.get(order.branchId) != null ? branchNames.get(order.branchId) : 'SMS STORE'}"></span>
+                        <span class="badge bg-light text-dark border" th:text="${branchNames.get(order.branchId) != null ? branchNames.get(order.branchId) : '—'}"></span>
                     </td>
                     <td th:text="${#temporals.format(order.createdAt, 'HH:mm dd/MM')}"></td>
                     <td th:text="${order.customer != null ? order.customer.fullName : 'Khách lẻ'}"></td>
-                    <td class="text-end fw-semibold" th:text="${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                    <td class="text-end fw-semibold" th:text="${order.transactionType == 'RETURN' ? '-' : ''} + ${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
                     <td class="text-center">
-                        <span th:if="${order.status == 'COMPLETED'}" class="badge bg-success">Hoàn thành</span>
+                        <span th:if="${order.transactionType == 'RETURN'}" class="badge bg-warning text-dark">Trả hàng</span>
+                        <span th:if="${order.transactionType == 'IMPORT'}" class="badge bg-info text-dark">Nhập hàng</span>
+                        <span th:if="${order.transactionType == 'SALE' and order.status == 'COMPLETED'}" class="badge bg-success">Hoàn thành</span>
+                        <span th:if="${order.transactionType == 'SALE' and order.status == 'RETURNED'}" class="badge bg-secondary">Đã bị hoàn</span>
                         <span th:if="${order.status == 'CANCELLED'}" class="badge bg-danger">Đã hủy</span>
-                        <span th:if="${order.status != 'COMPLETED' and order.status != 'CANCELLED'}" class="badge bg-secondary" th:text="${order.status}"></span>
+                        <span th:if="${order.transactionType == 'SALE' and order.status != 'COMPLETED' and order.status != 'CANCELLED' and order.status != 'RETURNED'}" class="badge bg-secondary" th:text="${order.status}"></span>
                     </td>
                     <td class="text-center">
                         <a th:href="@{/pos/sales-history/{id}(id=${order.id})}" class="btn btn-sm btn-outline-primary py-0" style="font-size: 11px;">

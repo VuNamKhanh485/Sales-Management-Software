@@ -1,11 +1,15 @@
 package com.g4fpt.sms.customer.controller;
 
+import com.g4fpt.sms.auth.dto.SessionUser;
+import com.g4fpt.sms.auth.util.SessionConstants;
 import com.g4fpt.sms.customer.dto.CustomerRequestDTO;
 import com.g4fpt.sms.customer.entity.Customer;
 import com.g4fpt.sms.customer.service.CustomerService;
+import com.g4fpt.sms.customer.repository.CustomerProjection;
 import com.g4fpt.sms.employee.utils.Gender;
 import com.g4fpt.sms.order.entity.OrderTransaction;
 import com.g4fpt.sms.order.repository.OrderTransactionRepository;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,7 +33,7 @@ public class CustomerController {
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "6") int size, Model model) {
 
-        Page<Customer> customerPage = customerService.getCustomers(keyword, page, size);
+        Page<CustomerProjection> customerPage = customerService.getCustomers(keyword, page, size);
         model.addAttribute("customerPage", customerPage);
         model.addAttribute("keyword", keyword);
         model.addAttribute("currentPage", page);
@@ -93,10 +97,12 @@ public class CustomerController {
     @PostMapping("/save")
     public String saveCustomer(
             @ModelAttribute("customerDTO") CustomerRequestDTO dto,
+            HttpSession httpSession,
             Model model,
             RedirectAttributes redirectAttributes) {
 
-        Long currentUserId = 1L;
+        SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
+        Long currentUserId = (user != null) ? user.getId() : 1L;
         try {
             if (dto.getId() == null) {
                 customerService.createCustomer(dto, currentUserId);
@@ -136,8 +142,12 @@ public class CustomerController {
     }
 
     @PostMapping("/popup-form")
-    public String popupFormSubmit(@ModelAttribute("customerDTO") CustomerRequestDTO dto, Model model) {
-        Long currentUserId = 1L; // Fake auth
+    public String popupFormSubmit(
+            @ModelAttribute("customerDTO") CustomerRequestDTO dto,
+            HttpSession httpSession,
+            Model model) {
+        SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
+        Long currentUserId = (user != null) ? user.getId() : 1L;
         try {
             Customer created = customerService.createCustomer(dto, currentUserId);
             model.addAttribute("success", true);

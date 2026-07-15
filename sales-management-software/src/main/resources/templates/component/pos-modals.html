@@ -67,19 +67,18 @@
                     </div>
                     <div class="modal-body bg-light">
                         <!-- Thiết kế biên lai hóa đơn bán hàng -->
-                        <div id="receiptPrintArea" class="bg-white p-4 shadow-sm rounded border receipt-container text-dark"
-                            style="font-family: 'Courier New', Courier, monospace; font-size: 13px; line-height: 1.4;">
+                        <div id="receiptPrintArea" class="bg-white p-4 shadow-sm rounded border receipt-container text-dark">
                             <div class="text-center mb-3">
-                                <h5 class="fw-bold mb-1" style="font-family: inherit;"
+                                <h5 class="fw-bold mb-1"
                                     th:text="${successBranch != null ? successBranch.name : 'SMS STORE'}">SMS STORE</h5>
-                                <p class="mb-0 text-muted" style="font-size: 11px;"
+                                <p class="mb-0 text-muted receipt-subtitle"
                                     th:text="${successBranch != null ? successBranch.address : '123 Đường Láng, Đống Đa, Hà Nội'}">
                                     123 Đường Láng, Đống Đa, Hà Nội</p>
-                                <p class="mb-0 text-muted" style="font-size: 11px;"
+                                <p class="mb-0 text-muted receipt-subtitle"
                                     th:text="${successBranch != null && successBranch.phone != null} ? 'SĐT: ' + ${successBranch.phone} : 'SĐT: 0987 654 321'">
                                     SĐT: 0987 654 321</p>
-                                <div class="my-2" style="border-top: 1px dashed #ccc;"></div>
-                                <h6 class="fw-bold my-2" style="font-family: inherit;">HÓA ĐƠN BÁN HÀNG</h6>
+                                <div class="my-2 receipt-divider"></div>
+                                <h6 class="fw-bold my-2">HÓA ĐƠN BÁN HÀNG</h6>
                             </div>
 
                             <div th:if="${successOrder != null}">
@@ -93,15 +92,15 @@
                                 </p>
                                 <p class="mb-1" th:if="${successOrder.customer != null}"><strong>SĐT:</strong> <span
                                         th:text="${successOrder.customer.phone}"></span></p>
-                                <div class="my-2" style="border-top: 1px dashed #ccc;"></div>
+                                <div class="my-2 receipt-divider"></div>
 
-                                <table class="w-100 mb-2" style="font-size: 12px; border-collapse: collapse;">
+                                <table class="w-100 mb-2 receipt-table">
                                     <thead>
-                                        <tr style="border-bottom: 1px solid #ddd;">
+                                        <tr>
                                             <th class="text-start pb-1">Tên SP</th>
-                                            <th class="text-center pb-1" style="width: 40px;">SL</th>
-                                            <th class="text-end pb-1" style="width: 80px;">Đơn giá</th>
-                                            <th class="text-end pb-1" style="width: 80px;">T.Tiền</th>
+                                            <th class="text-center pb-1 receipt-col-qty">SL</th>
+                                            <th class="text-end pb-1 receipt-col-price">Đơn giá</th>
+                                            <th class="text-end pb-1 receipt-col-price">T.Tiền</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -118,7 +117,7 @@
                                     </tbody>
                                 </table>
 
-                                <div class="my-2" style="border-top: 1px dashed #ccc;"></div>
+                                <div class="my-2 receipt-divider"></div>
 
                                 <div class="d-flex justify-content-between mb-1">
                                     <span>Tổng tiền hàng:</span>
@@ -127,17 +126,22 @@
                                 </div>
                                 <div class="d-flex justify-content-between mb-1 text-danger"
                                     th:if="${successOrder.discountAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
-                                    <span>Giảm giá:</span>
+                                    <span>Giảm giá voucher:</span>
                                     <span
                                         th:text="'-' + ${#numbers.formatDecimal(successOrder.discountAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1 text-danger"
+                                    th:if="${successOrder.pointDiscount != null && successOrder.pointDiscount.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                                    <span>Khấu trừ điểm:</span>
+                                    <span
+                                        th:text="'-' + ${#numbers.formatDecimal(successOrder.pointDiscount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-1">
                                     <span>Thuế VAT (2%):</span>
                                     <span
-                                        th:text="${#numbers.formatDecimal(successOrder.finalAmount.add(successOrder.discountAmount).subtract(successOrder.totalAmount), 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                        th:text="${#numbers.formatDecimal(successOrder.totalAmount.multiply(T(java.math.BigDecimal).valueOf(0.02)), 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
                                 </div>
-                                <div class="d-flex justify-content-between mb-1 fw-bold text-primary"
-                                    style="font-size: 14px;">
+                                <div class="d-flex justify-content-between mb-1 fw-bold text-primary receipt-total-highlight">
                                     <span>KHÁCH PHẢI TRẢ:</span>
                                     <span
                                         th:text="${#numbers.formatDecimal(successOrder.finalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
@@ -153,7 +157,7 @@
                                         th:text="${#numbers.formatDecimal(successOrder.changeAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
                                 </div>
 
-                                <div class="my-2" style="border-top: 1px dashed #ccc;"></div>
+                                <div class="my-2 receipt-divider"></div>
                                 <div class="text-center mt-3 small text-muted">
                                     <p class="mb-0">Cảm ơn quý khách. Hẹn gặp lại!</p>
                                 </div>

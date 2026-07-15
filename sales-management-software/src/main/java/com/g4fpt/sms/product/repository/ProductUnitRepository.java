@@ -47,9 +47,17 @@ public interface ProductUnitRepository extends JpaRepository<ProductUnit, Long> 
     """)
     boolean existInOrderTransaction(@Param("productUnitId") Long productUnitId);
 
-    // Lấy danh sách ProductUnit theo lịch sử nhập hàng của Nhà cung cấp
-    @Query("SELECT DISTINCT d.productUnit FROM OrderTransactionDetail d " +
-           "WHERE d.orderTransaction.supplier.id = :supplierId " +
-           "AND d.orderTransaction.transactionType = 'IMPORT'")
-    List<ProductUnit> findProductUnitsBySupplierImportHistory(@Param("supplierId") Long supplierId);
+
+
+    @Query("SELECT pu.id AS id, pu.sku AS sku, pu.price AS price, pu.product AS product, pu.unit AS unit " +
+           "FROM ProductUnit pu " +
+           "WHERE pu.product.status = com.g4fpt.sms.product.enums.ProductStatus.ACTIVE " +
+           "AND pu.product.category.status = com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE " +
+           "AND (:categoryId IS NULL OR pu.product.category.id = :categoryId) " +
+           "AND (:keyword IS NULL OR :keyword = '' OR " +
+           "     LOWER(pu.product.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "     LOWER(pu.sku) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    List<ProductUnitProjection> searchActiveProductUnits(
+            @Param("categoryId") Long categoryId,
+            @Param("keyword") String keyword);
 }

@@ -57,6 +57,14 @@ public class OrderTransaction {
     @Column(name = "discount_amount", nullable = false)
     private BigDecimal discountAmount;
 
+    /** Số điểm khách dùng để giảm trừ */
+    @Column(name = "points_used")
+    private Integer pointsUsed;
+
+    /** Số tiền giảm từ điểm (200đ / điểm) */
+    @Column(name = "point_discount")
+    private BigDecimal pointDiscount;
+
     @Column(name = "final_amount", nullable = false)
     private BigDecimal finalAmount;
 

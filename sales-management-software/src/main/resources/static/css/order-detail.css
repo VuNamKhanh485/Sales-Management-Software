@@ -94,3 +94,15 @@ body {
         margin: 0 !important;
     }
 }
+
+/* Inline Style Cleanups */
+.invoice-container-max {
+    max-width: 850px;
+}
+.sku-text-desc {
+    font-size: 11px;
+}
+.sms-footer-caption {
+    font-size: 10px;
+}
+

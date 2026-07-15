@@ -22,7 +22,7 @@
             Không tìm thấy sản phẩm
         </div>
         <div th:each="p : ${products}" class="col-6 col-md-4 col-lg-3">
-            <div class="product-card-modal" th:onclick="'window.parent.addById(' + ${p.id} + ')'">
+            <a th:href="@{/pos/add-by-id(productUnitId=${p.id})}" target="_parent" class="product-card-modal text-decoration-none">
                 <img th:src="${p.product.imageUrl != null ? p.product.imageUrl : 'https://via.placeholder.com/150x80?text=No+Image'}" alt="Img">
                 <div class="p-2">
                     <div class="small fw-semibold text-truncate" 
@@ -37,7 +37,7 @@
                               th:text="'Tồn: ' + ${(stockMap.get(p.id) != null ? stockMap.get(p.id) : 0)}"></span>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 </body>

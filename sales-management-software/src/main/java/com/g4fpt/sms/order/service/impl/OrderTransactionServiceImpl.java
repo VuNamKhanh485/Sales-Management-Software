@@ -34,6 +34,9 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
     private final CustomerService customerService;
     private final InventoryRepository inventoryRepository;
 
+    /** 1 điểm = 200đ */
+    private static final int POINT_VALUE = 200;
+
     @Override
     @Transactional
     public OrderTransaction processCheckout(POSCheckoutRequest request) {
@@ -63,33 +66,54 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             discountAmount = calculateVoucherDiscount(voucher, totalAmount);
         }
 
-        // 4. Tính tiền khách phải trả
-        BigDecimal finalAmount = totalAmount.add(vatAmount).subtract(discountAmount)
+        // 4. Tính tiền giảm từ điểm
+        BigDecimal pointDiscount = BigDecimal.ZERO;
+        int pointsUsed = 0;
+        if (request.isUsePoints() && request.getCustomerId() != null) {
+            Customer customer = customerRepository.findById(request.getCustomerId()).orElse(null);
+            if (customer != null && customer.getStatus() == com.g4fpt.sms.customer.enums.CustomerStatus.ACTIVE) {
+                int availablePoints = customer.getTotalPoint() - customer.getUsedPoint();
+                BigDecimal amountAfterVat = totalAmount.add(vatAmount).subtract(discountAmount).max(BigDecimal.ZERO);
+                int maxPointsCanUse = amountAfterVat.divide(
+                        BigDecimal.valueOf(POINT_VALUE), 0, RoundingMode.FLOOR).intValue();
+                pointsUsed = Math.min(availablePoints, maxPointsCanUse);
+                pointDiscount = BigDecimal.valueOf(pointsUsed * POINT_VALUE);
+            }
+        }
+
+        // 5. Tính tiền khách phải trả
+        BigDecimal finalAmount = totalAmount.add(vatAmount)
+                .subtract(discountAmount)
+                .subtract(pointDiscount)
                 .max(BigDecimal.ZERO);
 
-        // 5. Tính tiền thừa
+        // 6. Tính tiền thừa
         BigDecimal paidAmount = request.getPaidAmount() != null
                 ? request.getPaidAmount()
                 : finalAmount;
         BigDecimal changeAmount = paidAmount.subtract(finalAmount).max(BigDecimal.ZERO);
 
-        // 6. Tạo OrderTransaction
+        // 7. Tạo OrderTransaction
+        String orderCode = "ORD-" + java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
         OrderTransaction order = OrderTransaction.builder()
                 .branchId(request.getBranchId())
                 .createdBy(request.getEmployeeId())
-                .code("ORD-" + System.currentTimeMillis())
+                .code(orderCode)
                 .totalAmount(totalAmount)
                 .discountAmount(discountAmount)
                 .finalAmount(finalAmount)
                 .paidAmount(paidAmount)
                 .changeAmount(changeAmount)
+                .pointsUsed(pointsUsed > 0 ? pointsUsed : null)
+                .pointDiscount(pointDiscount.compareTo(BigDecimal.ZERO) > 0 ? pointDiscount : null)
                 .status("COMPLETED")
                 .transactionType("SALE")
                 .paymentMethodId(request.getPaymentMethodId())
                 .note(request.getNote())
                 .build();
 
-        // 7. Gán khách hàng
+        // 8. Gán khách hàng
         if (request.getCustomerId() != null) {
             Customer customer = customerRepository.findById(request.getCustomerId())
                     .orElse(null);
@@ -98,20 +122,30 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
                     throw new RuntimeException("Khách hàng này hiện đang ngừng hoạt động hoặc không tồn tại!");
                 }
                 order.setCustomer(customer);
-                // Cộng điểm: 10,000đ = 1 điểm
-                int pointEarned = finalAmount.divide(
+
+                // Trừ điểm đã dùng
+                if (pointsUsed > 0) {
+                    customer.setUsedPoint(customer.getUsedPoint() + pointsUsed);
+                }
+
+                // Cộng điểm mới: chỉ tính trên số tiền thực tế khách trả (đã trừ discount & pointDiscount)
+                // 10,000đ = 1 điểm
+                BigDecimal amountForPointEarning = finalAmount; // đã trừ hết giảm giá
+                int pointEarned = amountForPointEarning.divide(
                         new BigDecimal("10000"), 0, RoundingMode.FLOOR).intValue();
-                customer.setTotalPoint(customer.getTotalPoint() + pointEarned);
+                if (pointEarned > 0) {
+                    customer.setTotalPoint(customer.getTotalPoint() + pointEarned);
+                }
                 customer.setTotalRevenue(customer.getTotalRevenue().add(finalAmount));
             }
         }
 
-        // 8. Gán voucher
+        // 9. Gán voucher
         if (voucher != null) {
             order.setVoucher(voucher);
         }
 
-        // 9. Tạo OrderTransactionDetail và trừ tồn kho
+        // 10. Tạo OrderTransactionDetail và trừ tồn kho
         for (POSCartItemRequest item : request.getItems()) {
             ProductUnit pu = productUnitRepository.findById(item.getProductUnitId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
@@ -120,17 +154,16 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
                 throw new RuntimeException("Sản phẩm '" + (pu.getProduct() != null ? pu.getProduct().getName() : "Không tên") + "' đã ngưng hoạt động hoặc không tồn tại!");
             }
 
-            // Trừ tồn kho tại chi nhánh tương ứng
             Long branchId = request.getBranchId();
             Inventory inventory = inventoryRepository.findByBranchIdAndProductUnitId(branchId, pu.getId())
-                    .orElseThrow(() -> new RuntimeException("Sản phẩm '" + pu.getProduct().getName() 
-                            + "' [" + (pu.getUnit() != null ? pu.getUnit().getName() : "") 
+                    .orElseThrow(() -> new RuntimeException("Sản phẩm '" + pu.getProduct().getName()
+                            + "' [" + (pu.getUnit() != null ? pu.getUnit().getName() : "")
                             + "] chưa được khai báo tồn kho tại chi nhánh này!"));
 
             if (inventory.getStock() < item.getQuantity()) {
-                throw new RuntimeException("Sản phẩm '" + pu.getProduct().getName() 
-                        + "' [" + (pu.getUnit() != null ? pu.getUnit().getName() : "") 
-                        + "] không đủ tồn kho! (Yêu cầu: " + item.getQuantity() 
+                throw new RuntimeException("Sản phẩm '" + pu.getProduct().getName()
+                        + "' [" + (pu.getUnit() != null ? pu.getUnit().getName() : "")
+                        + "] không đủ tồn kho! (Yêu cầu: " + item.getQuantity()
                         + ", Hiện có: " + inventory.getStock() + ")");
             }
 
@@ -182,7 +215,7 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         // Kiểm tra điều kiện hạng thẻ của khách hàng
         if (voucher.getCustomerRank() != null) {
             if (customerId == null) {
-                throw new RuntimeException("Voucher này chỉ dành cho khách hàng hạng " 
+                throw new RuntimeException("Voucher này chỉ dành cho khách hàng hạng "
                         + voucher.getCustomerRank().getName() + " trở lên!");
             }
             Customer customer = customerRepository.findById(customerId)
@@ -190,16 +223,16 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             if (customer.getStatus() != com.g4fpt.sms.customer.enums.CustomerStatus.ACTIVE) {
                 throw new RuntimeException("Khách hàng này hiện đang ngừng hoạt động!");
             }
-            
+
             if (customer.getCustomerRank() == null) {
                 if (voucher.getCustomerRank().getConditionTotalRevenue().compareTo(BigDecimal.ZERO) > 0) {
-                    throw new RuntimeException("Voucher này chỉ dành cho khách hàng hạng " 
+                    throw new RuntimeException("Voucher này chỉ dành cho khách hàng hạng "
                             + voucher.getCustomerRank().getName() + " trở lên!");
                 }
             } else {
                 if (customer.getCustomerRank().getConditionTotalRevenue()
                         .compareTo(voucher.getCustomerRank().getConditionTotalRevenue()) < 0) {
-                    throw new RuntimeException("Voucher này chỉ dành cho khách hàng hạng " 
+                    throw new RuntimeException("Voucher này chỉ dành cho khách hàng hạng "
                             + voucher.getCustomerRank().getName() + " trở lên!");
                 }
             }
@@ -208,21 +241,23 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         return voucher;
     }
 
+    @Override
+    public BigDecimal calculateVoucherDiscount(String code, BigDecimal totalAmount, Long customerId) {
+        Voucher v = validateVoucher(code, totalAmount, customerId);
+        return calculateVoucherDiscount(v, totalAmount);
+    }
+
     private BigDecimal calculateVoucherDiscount(Voucher voucher, BigDecimal totalAmount) {
         BigDecimal discount;
-
         if (voucher.getDiscountType().name().equals("PERCENT")) {
             discount = totalAmount.multiply(voucher.getDiscountValue())
                     .divide(new BigDecimal("100"), 0, RoundingMode.HALF_UP);
-            // Giới hạn max discount nếu có
             if (voucher.getMaxDiscountAmount() != null) {
                 discount = discount.min(voucher.getMaxDiscountAmount());
             }
         } else {
-            // AMOUNT
             discount = voucher.getDiscountValue();
         }
-
-        return discount.min(totalAmount); // không giảm quá tổng tiền
+        return discount.min(totalAmount);
     }
 }

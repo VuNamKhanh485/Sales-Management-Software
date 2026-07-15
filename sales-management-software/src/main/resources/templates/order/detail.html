@@ -44,7 +44,7 @@
                     <i class="bi bi-shop me-2"></i><span th:text="${branch != null ? branch.name : 'SMS STORE'}">SMS STORE</span>
                 </div>
                 <div class="text-muted small" th:text="${branch != null ? branch.address : '123 Đường Láng, Đống Đa, Hà Nội'}">123 Đường Láng, Đống Đa, Hà Nội</div>
-                <div class="text-muted small">Điện thoại: 0987 654 321</div>
+                <div class="text-muted small">Điện thoại: <span th:text="${branch != null ? branch.phone : ''}">0987 654 321</span></div>
             </div>
             <div class="col-sm-6 text-sm-end">
                 <div class="invoice-title-text text-primary mb-1">HÓA ĐƠN BÁN HÀNG</div>

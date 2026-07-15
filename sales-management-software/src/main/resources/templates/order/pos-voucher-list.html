@@ -28,7 +28,7 @@
                     • Đơn từ <span th:text="${#numbers.formatDecimal(v.minOrderAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
                 </div>
             </div>
-            <form th:action="@{/pos/apply-voucher}" method="POST" target="_parent">
+            <form th:action="@{/pos/apply-voucher}" method="GET" target="_parent">
                 <input type="hidden" name="code" th:value="${v.code}">
                 <button type="submit" class="btn btn-sm btn-outline-success fw-bold px-2 py-1">Chọn</button>
             </form>
