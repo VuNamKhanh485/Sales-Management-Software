@@ -1,5 +1,7 @@
 package com.g4fpt.sms.customer.controller;
 
+import com.g4fpt.sms.auth.dto.SessionUser;
+import com.g4fpt.sms.auth.util.SessionConstants;
 import com.g4fpt.sms.customer.dto.CustomerRequestDTO;
 import com.g4fpt.sms.customer.entity.Customer;
 import com.g4fpt.sms.customer.service.CustomerService;
@@ -7,6 +9,7 @@ import com.g4fpt.sms.customer.repository.CustomerProjection;
 import com.g4fpt.sms.employee.utils.Gender;
 import com.g4fpt.sms.order.entity.OrderTransaction;
 import com.g4fpt.sms.order.repository.OrderTransactionRepository;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,8 +18,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import com.g4fpt.sms.auth.security.CustomUserDetails;
 
 @Controller
 @RequestMapping("/customers")
@@ -96,11 +97,12 @@ public class CustomerController {
     @PostMapping("/save")
     public String saveCustomer(
             @ModelAttribute("customerDTO") CustomerRequestDTO dto,
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+            HttpSession httpSession,
             Model model,
             RedirectAttributes redirectAttributes) {
 
-        Long currentUserId = (userDetails != null && userDetails.getEmployee() != null) ? userDetails.getEmployee().getId() : 1L;
+        SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
+        Long currentUserId = (user != null) ? user.getId() : 1L;
         try {
             if (dto.getId() == null) {
                 customerService.createCustomer(dto, currentUserId);
@@ -142,9 +144,10 @@ public class CustomerController {
     @PostMapping("/popup-form")
     public String popupFormSubmit(
             @ModelAttribute("customerDTO") CustomerRequestDTO dto,
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+            HttpSession httpSession,
             Model model) {
-        Long currentUserId = (userDetails != null && userDetails.getEmployee() != null) ? userDetails.getEmployee().getId() : 1L;
+        SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
+        Long currentUserId = (user != null) ? user.getId() : 1L;
         try {
             Customer created = customerService.createCustomer(dto, currentUserId);
             model.addAttribute("success", true);

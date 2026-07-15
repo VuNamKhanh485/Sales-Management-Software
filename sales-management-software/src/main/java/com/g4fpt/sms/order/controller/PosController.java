@@ -1,5 +1,7 @@
 package com.g4fpt.sms.order.controller;
 
+import com.g4fpt.sms.auth.dto.SessionUser;
+import com.g4fpt.sms.auth.util.SessionConstants;
 import com.g4fpt.sms.order.dto.*;
 import com.g4fpt.sms.order.entity.OrderTransaction;
 import com.g4fpt.sms.order.repository.OrderTransactionRepository;
@@ -10,14 +12,13 @@ import com.g4fpt.sms.voucher.repository.VoucherRepository;
 import com.g4fpt.sms.inventory.repository.InventoryRepository;
 import com.g4fpt.sms.customer.repository.CustomerRepository;
 import com.g4fpt.sms.branch.repository.BranchRepository;
-import com.g4fpt.sms.auth.security.CustomUserDetails;
 import com.g4fpt.sms.product.enums.ProductStatus;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -47,7 +48,8 @@ public class PosController {
     @GetMapping
     public String showPosScreen(@ModelAttribute("posSession") PosSessionData session,
             @RequestParam(required = false) Long successOrderId,
-            @AuthenticationPrincipal CustomUserDetails user, Model model) {
+            HttpSession httpSession, Model model) {
+        SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
         initSessionBranch(session, user);
         buildPosModel(session, user, model);
         if (successOrderId != null)
@@ -161,7 +163,8 @@ public class PosController {
     // ---------- Customer ----------
     @GetMapping("/search-customer")
     public String findCustomers(@RequestParam String phone, @ModelAttribute("posSession") PosSessionData session,
-            @AuthenticationPrincipal CustomUserDetails user, Model model) {
+            HttpSession httpSession, Model model) {
+        SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
         String kw = phone.trim().replaceAll("\\s+", " ");
         if (!kw.isEmpty()) {
             var result = customerRepository
@@ -248,7 +251,8 @@ public class PosController {
     // ---------- Branch ----------
     @GetMapping("/change-branch")
     public String changeBranch(@RequestParam Long branchId, @ModelAttribute("posSession") PosSessionData s,
-            @AuthenticationPrincipal CustomUserDetails user) {
+            HttpSession httpSession) {
+        SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
         if (user != null && user.hasRole("OWNER"))
             s.setActiveBranchId(branchId);
         return "redirect:/pos";
@@ -307,8 +311,9 @@ public class PosController {
 
     // ---------- Sales history ----------
     @GetMapping("/sales-history")
-    public String getSalesHistory(@AuthenticationPrincipal CustomUserDetails user,
+    public String getSalesHistory(HttpSession httpSession,
             @RequestParam(required = false) String date, Model model) {
+        SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
         if (user == null)
             return "redirect:/login";
         boolean isOwner = user.hasRole("OWNER");
@@ -316,7 +321,7 @@ public class PosController {
         var orders = isOwner
                 ? orderRepo.findByDateRange(ld.atStartOfDay(), ld.atTime(java.time.LocalTime.MAX))
                 : orderRepo.findByCreatedByAndDateRange(
-                        user.getEmployee().getId(), ld.atStartOfDay(), ld.atTime(java.time.LocalTime.MAX));
+                        user.getId(), ld.atStartOfDay(), ld.atTime(java.time.LocalTime.MAX));
         var branchIds = orders.stream().map(com.g4fpt.sms.order.entity.OrderTransaction::getBranchId)
                 .filter(Objects::nonNull).collect(Collectors.toSet());
         var branchNames = branchRepo.findAllById(branchIds).stream()
@@ -349,8 +354,9 @@ public class PosController {
             @RequestParam(required = false) String note,
             @RequestParam Long paymentMethodId,
             @RequestParam BigDecimal givenAmount,
-            @AuthenticationPrincipal CustomUserDetails user,
+            HttpSession httpSession,
             RedirectAttributes ra) {
+        SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
         var cart = s.getActiveCart();
         if (cart.getItems().isEmpty()) {
             ra.addFlashAttribute("error", "Giỏ hàng trống!");
@@ -369,7 +375,7 @@ public class PosController {
     }
 
     // ============== Private helpers ==============
-    private void initSessionBranch(PosSessionData s, CustomUserDetails user) {
+    private void initSessionBranch(PosSessionData s, SessionUser user) {
         if (s.getActiveBranchId() == null) {
             if (user != null && user.getBranchId() != null)
                 s.setActiveBranchId(user.getBranchId());
@@ -378,7 +384,7 @@ public class PosController {
         }
     }
 
-    private void buildPosModel(PosSessionData s, CustomUserDetails user, Model model) {
+    private void buildPosModel(PosSessionData s, SessionUser user, Model model) {
         if (s.getActiveBranchId() != null)
             branchRepo.findById(s.getActiveBranchId()).ifPresent(b -> model.addAttribute("activeBranch", b));
         boolean isOwner = user != null && user.hasRole("OWNER");
@@ -422,12 +428,12 @@ public class PosController {
 
     private POSCheckoutRequest buildCheckoutRequest(PosSessionData s, Long paymentMethodId,
             BigDecimal givenAmount, String note,
-            CustomUserDetails user) {
+            SessionUser user) {
         var cart = s.getActiveCart();
         var req = new POSCheckoutRequest();
-        if (user == null || user.getEmployee() == null)
+        if (user == null)
             throw new RuntimeException("Không tìm thấy thông tin nhân viên!");
-        req.setEmployeeId(user.getEmployee().getId());
+        req.setEmployeeId(user.getId());
         if (s.getActiveBranchId() == null)
             throw new RuntimeException("Vui lòng chọn chi nhánh trước khi thanh toán!");
         req.setBranchId(s.getActiveBranchId());
