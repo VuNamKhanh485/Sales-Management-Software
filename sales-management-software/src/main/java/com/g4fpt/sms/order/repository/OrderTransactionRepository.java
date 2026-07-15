@@ -37,4 +37,14 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
 
     @Query("SELECT o FROM OrderTransaction o LEFT JOIN FETCH o.details d LEFT JOIN FETCH d.productUnit pu LEFT JOIN FETCH pu.product WHERE o.id = :id")
     Optional<OrderTransaction> findByIdWithDetails(@Param("id") Long id);
+
+    @Query(value = "SELECT * FROM OrderTransaction " +
+            "WHERE transaction_type = 'IMPORT' " +
+            "AND (:status IS NULL OR status = :status) " +
+            "AND (:keyword IS NULL OR code LIKE %:keyword% OR note LIKE %:keyword%) " +
+            "ORDER BY created_at DESC",
+            nativeQuery = true)
+    List<OrderTransaction> searchImports(
+            @Param("status") String status,
+            @Param("keyword") String keyword);
 }
