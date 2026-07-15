@@ -319,9 +319,27 @@
                             <input type="file"
                                    class="form-input"
                                    th:field="*{imageFile}"
-                                   accept="image/*"/>
+                                   accept="image/*" onchange="previewImage(this)">
                         </label>
+
+                        <div style="display:flex; gap:20px; margin-bottom:10px;">
+                            <!-- Ảnh cũ: chỉ hiện khi đang update -->
+                            <div th:if="${id != null}">
+                                <p>Ảnh hiện tại</p>
+                                <img th:src="@{'/images/' + *{imageName}}"
+                                     alt="Ảnh cũ" style="max-width:200px;"/>
+                            </div>
+
+                            <!-- Ảnh mới: ẩn cho tới khi người dùng chọn file -->
+                            <div id="previewFrame" style="display:none">
+                                <p>Ảnh mới</p>
+                                <img id="imagePreview" src="#" alt="Ảnh mới"
+                                     style="max-width:200px;"/>
+                            </div>
+                        </div>
                     </div>
+
+                    <div class="field-error" th:if="${#fields.hasErrors('imageFile')}" th:errors="*{imageFile}"></div>
 
                     <div class="form-group form-group--full">
                         <label class="form-label">
@@ -534,6 +552,27 @@
         }
 
         document.getElementById(id).style.display = "flex";
+    }
+
+    let currentPreviewUrl = null;
+
+    function previewImage(input) {
+        const file = input.files[0];
+        const img = document.getElementById('imagePreview');
+        const display = document.getElementById('previewFrame');
+
+        if (currentPreviewUrl) {
+            URL.revokeObjectURL(currentPreviewUrl);
+            currentPreviewUrl = null;
+        }
+
+        if (file) {
+            currentPreviewUrl = URL.createObjectURL(file);
+            img.src = currentPreviewUrl;
+            display.style.display = 'block';
+        } else {
+            display.style.display = 'none';
+        }
     }
 
     function updateBarcodePreview(row){
