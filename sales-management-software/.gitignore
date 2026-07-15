@@ -33,6 +33,3 @@ build/
 .vscode/
 .env
 
-### folder ###
-product-image/*
-!product-image/.gitkeep
