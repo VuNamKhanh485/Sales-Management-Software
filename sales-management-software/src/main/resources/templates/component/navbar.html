@@ -9,6 +9,7 @@
         <li><a th:href="@{/product}" th:classappend="${page == 'product' ? 'active' : ''}">Sản phẩm</a></li>
         <li><a th:href="@{/inventory}" th:classappend="${page == 'inventory' ? 'active' : ''}">Kho hàng</a></li>
         <li><a th:href="@{/imports}" th:classappend="${page == 'imports' ? 'active' : ''}">Nhập hàng</a></li>
+        <li><a th:href="@{/supplier}" th:classappend="${page == 'supplier' ? 'active' : ''}">Nhà cung cấp</a></li>
         <li><a th:href="@{/vouchers}" th:classappend="${page == 'voucher' ? 'active' : ''}">Voucher</a></li>
         <li sec:authorize="hasAnyRole('OWNER', 'MANAGER', 'CASHIER')"><a th:href="@{/cashbook}" th:classappend="${page == 'cashbook' ? 'active' : ''}">Sổ quỹ</a></li>
         <li sec:authorize="hasAnyRole('OWNER', 'MANAGER')"><a th:href="@{/reports/profit}" th:classappend="${page == 'report' ? 'active' : ''}">Báo cáo</a></li>
@@ -52,6 +53,10 @@
 
         <a th:href="@{/imports}" th:class="${page == 'imports' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Nhập hàng</span>
+        </a>
+
+        <a th:href="@{/supplier}" th:class="${page == 'supplier' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
+            <span>Nhà cung cấp</span>
         </a>
 
         <a th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}"

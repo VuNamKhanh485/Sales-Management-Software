@@ -1,0 +1,79 @@
+/* supplier.css */
+.supplier-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.supplier-form-container {
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.header-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+.alert-success {
+    background-color: #E3FBE3;
+    color: #1F7A1F;
+}
+.alert-danger {
+    background-color: #FBE3E3;
+    color: #CC0000;
+}
+
+.delete-form {
+    margin: 0;
+}
+
+.btn-delete-action {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+    padding: 0;
+    font: inherit;
+}
+
+.empty-state-cell {
+    padding: 0;
+    border: none;
+}
+
+.pagination-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 24px;
+}
+
+.text-muted {
+    color: var(--ink-muted-48, #8E8E93);
+}
+
+.text-sm {
+    font-size: 12px;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+.required {
+    color: red;
+}
+
+.error-msg {
+    color: var(--danger, #ff3b30);
+    font-size: 13px;
+    margin-top: 4px;
+}
