@@ -46,7 +46,7 @@ public class SupplierController {
         return "supplier/list";
     }
 
-    @GetMapping("form{id}")
+    @GetMapping("/form/{id}")
     public String form(@PathVariable Long id, Model model,
                        RedirectAttributes redirectAttributes) {
         SupplierRequest supplierRequest = new SupplierRequest();
@@ -63,7 +63,7 @@ public class SupplierController {
         return "supplier/form";
     }
 
-    @PostMapping("form{id}")
+    @PostMapping("/form/{id}")
     public String form(@PathVariable Long id, Model model,
                        @Valid @ModelAttribute SupplierRequest supplierRequest,
                        BindingResult result, RedirectAttributes redirectAttributes) {
