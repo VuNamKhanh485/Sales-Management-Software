@@ -14,5 +14,5 @@ public class SupplierResponse {
     private String email;
     private String address;
     private SupplierStatus status;
-    private String Note;
+    private String note;
 }

@@ -47,4 +47,14 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
     List<OrderTransaction> searchImports(
             @Param("status") String status,
             @Param("keyword") String keyword);
+
+    @Query("SELECT o FROM OrderTransaction o WHERE " +
+           "(:branchId IS NULL OR o.branchId = :branchId) AND " +
+           "o.status = 'COMPLETED' AND " +
+           "o.createdAt >= :startDate AND o.createdAt <= :endDate " +
+           "ORDER BY o.createdAt ASC")
+    List<OrderTransaction> findCompletedTransactionsForReport(
+            @Param("branchId") Long branchId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 }

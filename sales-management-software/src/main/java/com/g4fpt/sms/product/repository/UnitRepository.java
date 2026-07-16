@@ -14,9 +14,9 @@ public interface UnitRepository extends JpaRepository<Unit, Long> {
     boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
     Page<Unit> findByNameContainingIgnoreCase(String name, Pageable pageable);
     @Query("""
-            SELECT CASE WHEN COUNT(otd) > 0 THEN true ELSE false END
-            FROM OrderTransactionDetail otd
-            WHERE otd.productUnit.unit.id = :unitId
+            SELECT CASE WHEN COUNT(pu) > 0 THEN true ELSE false END
+            FROM ProductUnit pu
+            WHERE pu.unit.id = :unitId
     """)
     boolean existInOrderTransaction(@Param("unitId") Long unitId);
 }

@@ -1,0 +1,23 @@
+/* Custom styles for Cashbook based on Apple Design */
+.value-cash {
+    color: var(--success);
+}
+
+.value-bank {
+    color: var(--primary);
+}
+
+.amount-cell {
+    font-family: var(--font-display);
+    font-weight: 600;
+}
+
+.form-title-custom {
+    margin-bottom: 24px;
+    font-size: 24px;
+}
+
+.text-danger {
+    color: var(--danger);
+}
+

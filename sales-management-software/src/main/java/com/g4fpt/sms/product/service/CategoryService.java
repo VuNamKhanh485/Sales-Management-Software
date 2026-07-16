@@ -13,4 +13,5 @@ public interface CategoryService {
     Page<CategoryResponse> findAll(String keyword, int page, int size, String sortField, String sortDirection);
     CategoryResponse findById(long id);
     List<CategoryResponse> findAll();
+    List<CategoryResponse> findAllActive();
 }

@@ -45,7 +45,7 @@ public class Product {
 
     @Size(max = 1000)
     @Column(name = "image_url", length = 1000)
-    private String imageUrl;
+    private String imageName;
 
     private String description;
 

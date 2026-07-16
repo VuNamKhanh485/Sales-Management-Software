@@ -107,6 +107,47 @@
             opacity: 0.4;
             pointer-events: none;
         }
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            background: var(--canvas);
+            border-radius: var(--r-lg);
+            width: auto;
+            min-width: 320px;
+            max-width: 90vw;
+            display: inline-block;
+            padding: var(--sp-xl);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .modal-header {
+            font-size: 18px; font-weight: 600; margin-bottom: var(--sp-md);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-close {
+            background: none; border: none; font-size: 20px; cursor: pointer; color: var(--ink-muted-48);
+        }
+        .icon-eye-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            color: var(--ink-muted-48);
+            display: inline-flex;
+            line-height: 0; /* tránh khoảng trắng thừa quanh icon */
+        }
+        .icon-eye {
+            width: 15px;
+            height: 15px;
+            color: var(--ink-muted-48);
+            transition: color 0.15s;
+        }
+        .icon-eye-btn:hover svg { color: var(--primary); }
     </style>
 </head>
 <body>
@@ -129,7 +170,26 @@
 
     <main class="page-content">
         <!-- Error/Success alerts could go here -->
+        <!-- Error/Success alerts -->
+        <div th:if="${errorMessage}"
+             style="display:flex; justify-content:space-between; align-items:center;
+                background:#fdecea; border:1px solid #f5c2c0; border-left:4px solid #d93025;
+                color:#7a1f16; padding:12px var(--sp-lg); border-radius:var(--r-sm);
+                margin-bottom:var(--sp-md); font-size:14px;">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" onclick="this.closest('div').remove()"
+                    style="background:none;border:none;cursor:pointer;color:inherit;font-size:18px;line-height:1;">×</button>
+        </div>
 
+        <div th:if="${successMessage}"
+             style="display:flex; justify-content:space-between; align-items:center;
+                background:#eafaf1; border:1px solid #b7e4c7; border-left:4px solid var(--success);
+                color:#166534; padding:12px var(--sp-lg); border-radius:var(--r-sm);
+                margin-bottom:var(--sp-md); font-size:14px;">
+            <span th:text="${successMessage}"></span>
+            <button type="button" onclick="this.closest('div').remove()"
+                    style="background:none;border:none;cursor:pointer;color:inherit;font-size:18px;line-height:1;">×</button>
+        </div>
         <!-- Filter Bar -->
         <form th:action="@{/product}" method="get" id="filterForm" class="search-bar">
             <!-- Keyword -->
@@ -137,22 +197,31 @@
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                     <path fill-rule="evenodd" d="M11.742 10.342a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
                 </svg>
-                <input type="text" name="keyword" class="search-input" placeholder="Tìm theo tên sản phẩm..." th:value="${filter.keyword}"/>
+                <input type="text" name="keyword" class="search-input" placeholder="Tìm theo tên sản phẩm, barcode, sku..." th:value="${filter.keyword}"/>
             </div>
             <!-- Brand -->
             <select name="brandId" class="filter-select">
                 <option value="">Thương hiệu</option>
-                <option th:each="b : ${brandList}" th:value="${b.id}" th:text="${b.name}" th:selected="${b.id == filter.brandId}"></option>
+                <option th:each="b : ${brandList}"
+                        th:value="${b.id}"
+                        th:text="${b.name}"
+                        th:selected="${b.id == filter.brandId}"></option>
             </select>
             <!-- Category -->
             <select name="categoryId" class="filter-select">
                 <option value="">Danh mục</option>
-                <option th:each="c : ${categoryList}" th:value="${c.id}" th:text="${c.name}" th:selected="${c.id == filter.categoryId}"></option>
+                <option th:each="c : ${categoryList}"
+                        th:value="${c.id}"
+                        th:text="${c.name}"
+                        th:selected="${c.id == filter.categoryId}"></option>
             </select>
             <!-- Status -->
             <select name="status" class="filter-select">
                 <option value="">Trạng thái</option>
-                <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == filter.status}"></option>
+                <option th:each="s : ${statuses}"
+                        th:value="${s}"
+                        th:text="${s}"
+                        th:selected="${s == filter.status}"></option>
             </select>
             
             <input type="hidden" name="page" value="0"/>
@@ -186,16 +255,76 @@
                             <th style="width:40px;">#</th>
                             <th style="width:52px;"></th>
                             <th>
-                                <a class="sort-link" th:href="@{/product(page=0,size=${size},keyword=${filter.keyword},brandId=${filter.brandId},categoryId=${filter.categoryId},status=${filter.status},sortField='name',sortDir=${sortField=='name'?reverseSortDir:'asc'})}">
+                                <a class="sort-link"
+                                   th:href="@{/product(
+                                   page=0,
+                                   size=${size},
+                                   keyword=${filter.keyword},
+                                   brandId=${filter.brandId},
+                                   categoryId=${filter.categoryId},
+                                   status=${filter.status},
+                                   sortField='name',
+                                   sortDir=${sortField=='name'?reverseSortDir:'asc'})}">
                                     Tên sản phẩm
                                     <span th:if="${sortField=='name'}" th:text="${sortDir=='asc'?'↑':'↓'}"></span>
                                 </a>
                             </th>
-                            <th>SKU cơ bản</th>
-                            <th>Danh mục</th>
-                            <th>Thương hiệu</th>
                             <th>
-                                <a class="sort-link" th:href="@{/product(page=0,size=${size},keyword=${filter.keyword},brandId=${filter.brandId},categoryId=${filter.categoryId},status=${filter.status},sortField='status',sortDir=${sortField=='status'?reverseSortDir:'asc'})}">
+                                <a class="sort-link"
+                                   th:href="@{/product(
+                                   page=0,
+                                   size=${size},
+                                   keyword=${filter.keyword},
+                                   brandId=${filter.brandId},
+                                   categoryId=${filter.categoryId},
+                                   status=${filter.status},
+                                   sortField='baseSku',
+                                   sortDir=${sortField=='baseSku'?reverseSortDir:'asc'})}">
+                                    SKU cơ bản
+                                    <span th:if="${sortField=='baseSku'}" th:text="${sortDir=='asc'?'↑':'↓'}"></span>
+                                </a>
+                            </th>
+                            <th>
+                                <a class="sort-link"
+                                   th:href="@{/product(
+                                   page=0,
+                                   size=${size},
+                                   keyword=${filter.keyword},
+                                   brandId=${filter.brandId},
+                                   categoryId=${filter.categoryId},
+                                   status=${filter.status},
+                                   sortField='category',
+                                   sortDir=${sortField=='category'?reverseSortDir:'asc'})}">
+                                    Danh mục
+                                    <span th:if="${sortField=='category'}" th:text="${sortDir=='asc'?'↑':'↓'}"></span>
+                                </a>
+                            </th>
+                            <th>
+                                <a class="sort-link"
+                                   th:href="@{/product(
+                                   page=0,
+                                   size=${size},
+                                   keyword=${filter.keyword},
+                                   brandId=${filter.brandId},
+                                   categoryId=${filter.categoryId},
+                                   status=${filter.status},
+                                   sortField='brand',
+                                   sortDir=${sortField=='brand'?reverseSortDir:'asc'})}">
+                                    Thương hiệu
+                                    <span th:if="${sortField=='brand'}" th:text="${sortDir=='asc'?'↑':'↓'}"></span>
+                                </a>
+                            </th>
+                            <th>
+                                <a class="sort-link"
+                                   th:href="@{/product(
+                                   page=0,
+                                   size=${size},
+                                   keyword=${filter.keyword},
+                                   brandId=${filter.brandId},
+                                   categoryId=${filter.categoryId},
+                                   status=${filter.status},
+                                   sortField='status',
+                                   sortDir=${sortField=='status'?reverseSortDir:'asc'})}">
                                     Trạng thái
                                     <span th:if="${sortField=='status'}" th:text="${sortDir=='asc'?'↑':'↓'}"></span>
                                 </a>
@@ -226,8 +355,10 @@
                                 </td>
                                 <td th:text="${currentPage * size + stat.index + 1}"></td>
                                 <td>
-                                    <img th:if="${p.imageUrl != null and !#strings.isEmpty(p.imageUrl)}" th:src="${p.imageUrl}" class="product-img" alt=""/>
-                                    <div th:unless="${p.imageUrl != null and !#strings.isEmpty(p.imageUrl)}" class="product-img-placeholder">
+                                    <img th:if="${p.imageName != null and !#strings.isEmpty(p.imageName)}"
+                                         th:src="@{'/images/' + ${p.imageName}}"
+                                         class="product-img" alt=""/>
+                                    <div th:unless="${p.imageName != null and !#strings.isEmpty(p.imageName)}" class="product-img-placeholder">
                                         IMG
                                     </div>
                                 </td>
@@ -282,7 +413,15 @@
                                                     <td th:text="${pu.unit != null ? pu.unit.name : '-'}"></td>
                                                     <td th:text="${pu.conventionValue}"></td>
                                                     <td th:text="${#numbers.formatDecimal(pu.price, 0, 'COMMA', 0, 'POINT') + ' đ'}"></td>
-                                                    <td style="font-family: monospace;" th:text="${pu.barcodeUnit}"></td>
+                                                    <td style="font-family: monospace;">
+                                                        <span class="barcode-value" th:text="${pu.barcodeUnit}"></span>
+                                                        <button type="button" class="icon-eye-btn" onclick="showBarcode(this)" title="Xem barcode">
+                                                            <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/>
+                                                                <circle cx="12" cy="12" r="3"/>
+                                                            </svg>
+                                                        </button>
+                                                    </td>
                                                     <td style="font-family: monospace;" th:text="${pu.sku}"></td>
                                                     <td>
                                                         <span th:if="${pu.isBaseUnit}" style="color:var(--success);">★ Có</span>
@@ -324,6 +463,25 @@
         </div>
     </main>
 
+
+    <!-- Model barcode -->
+    <div id="barcodeModal" class="modal-overlay">
+        <div class="modal-box" style="width:450px">
+            <div class="modal-header">
+                <span>Barcode</span>
+                <button onclick="closeModal('barcodeModal')">×</button>
+            </div>
+
+            <div style="text-align:center;padding:20px">
+                <svg id="barcodeSvg"></svg>
+                <div id="barcodeText"
+                     style="margin-top:15px;font-weight:bold">
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script th:src="@{/js/JsBarcode.all.min.js}"></script>
 <script th:inline="javascript">
     function toggleUnits(productId) {
         const row = document.getElementById('units-' + productId);
@@ -337,12 +495,65 @@
         }
     }
 
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        modal.style.display = "none";
+
+        const iframe = modal.querySelector("iframe");
+        if (iframe) {
+            iframe.contentWindow.location.reload();
+        }
+        if(id==="modalUnit"){
+            currentUnitSelect=null;
+        }
+    }
+
+    const barcodeModal = document.getElementById("barcodeModal");
+
+    barcodeModal.addEventListener("click", function (e) {
+        if (e.target === this) {
+            closeModal("barcodeModal");
+        }
+    });
+
+    function showBarcode(button){
+        const row = button.closest("tr");
+        const barcode = row
+            .querySelector(".barcode-value")
+            .innerText
+            .trim();
+
+        JsBarcode(
+            "#barcodeSvg",
+            barcode,
+            {
+                format:"CODE128",
+                width:1,
+                height:45,
+                displayValue:false
+            }
+        );
+        document
+            .getElementById("barcodeText")
+            .innerText = barcode;
+        document
+            .getElementById("barcodeModal")
+            .style.display="flex";
+
+    }
+
     function changeSize(newSize) {
         const form = document.getElementById('filterForm');
         form.querySelector('[name=size]').value = newSize;
         form.querySelector('[name=page]').value = 0;
         form.submit();
     }
+
+        setTimeout(() => {
+        document.querySelectorAll('.page-content > div[style*="border-left"]')
+            .forEach(el => el.remove());
+    }, 4000);
+
 </script>
 </body>
 </html>

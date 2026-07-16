@@ -10,11 +10,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Configuration
-public class WebConfig implements WebMvcConfigurer {
+public class AuthWebConfig implements WebMvcConfigurer {
 
     private final AuthInterceptor authInterceptor;
 
-    public WebConfig(AuthInterceptor authInterceptor) {
+    public AuthWebConfig(AuthInterceptor authInterceptor) {
         this.authInterceptor = authInterceptor;
     }
 

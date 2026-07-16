@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo Lợi nhuận — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/report.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div th:replace="~{component/navbar :: global-nav('report')}"></div>
+
+    <div class="sub-nav">
+        <h1 class="sub-nav__title">Báo cáo Lợi nhuận & Dòng tiền</h1>
+    </div>
+
+    <main class="page-content">
+
+        <form action="/reports/profit" method="get" class="search-bar search-bar-center">
+            <select name="branchId" class="filter-select">
+                <option value="">Tất cả chi nhánh</option>
+                <option th:each="b : ${branches}" th:value="${b.id}" th:text="${b.name}" th:selected="${b.id == selectedBranchId}"></option>
+            </select>
+            
+            <input type="date" name="startDate" class="filter-date" th:value="${startDate}">
+            <span class="date-separator">đến</span>
+            <input type="date" name="endDate" class="filter-date" th:value="${endDate}">
+            
+            <button type="submit" class="btn btn-primary btn-primary--sm">Xem báo cáo</button>
+        </form>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-card__label">Tổng Doanh Thu</div>
+                <div class="stat-card__value value-revenue" th:text="${#numbers.formatDecimal(reportData.totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card__label">Tổng Chi Phí</div>
+                <div class="stat-card__value value-expense" th:text="${#numbers.formatDecimal(reportData.totalExpense, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card__label">Lợi Nhuận Ròng</div>
+                <div class="stat-card__value value-profit" th:text="${#numbers.formatDecimal(reportData.netProfit, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="cashFlowChart"></canvas>
+        </div>
+
+    </main>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.reportData = {
+            labels: /*[[${reportData.labels}]]*/ [],
+            revenue: /*[[${reportData.revenueData}]]*/ [],
+            expense: /*[[${reportData.expenseData}]]*/ [],
+            profit: /*[[${reportData.profitData}]]*/ []
+        };
+        /*]]>*/
+    </script>
+    <script th:src="@{/js/report-profit.js}"></script>
+</body>
+</html>

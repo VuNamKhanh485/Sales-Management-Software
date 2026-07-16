@@ -102,6 +102,7 @@
                         <tr>
                             <th>Mã đơn</th>
                             <th>Ngày đặt</th>
+                            <th>Chi nhánh</th>
                             <th>Sản phẩm</th>
                             <th>Tổng tiền</th>
                             <th>Trạng thái</th>
@@ -110,7 +111,7 @@
                     </thead>
                     <tbody>
                         <tr th:if="${orderPage.totalElements == 0}">
-                            <td colspan="6">
+                            <td colspan="7">
                                 <div class="empty-state">
                                     <div class="empty-state__icon">🧾</div>
                                     <h3 class="empty-state__title">Chưa có giao dịch nào</h3>
@@ -120,6 +121,7 @@
                         <tr th:each="order : ${orderPage.content}">
                             <td><span class="code-chip" th:text="${order.code}"></span></td>
                             <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td><span class="badge" style="background:#e5e7eb;color:#374151" th:text="${branchMap[order.branchId] != null ? branchMap[order.branchId] : 'Không rõ'}"></span></td>
                             <td>
                                 <span th:each="detail, stat : ${order.details}" th:if="${stat.index < 2}"
                                     th:text="${detail.productUnit.product.name + (stat.index < 1 and order.details.size() > 1 ? ', ' : '')}">

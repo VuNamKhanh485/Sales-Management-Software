@@ -10,6 +10,8 @@
         <li><a th:href="@{/inventory}" th:classappend="${page == 'inventory' ? 'active' : ''}">Kho hàng</a></li>
         <li><a th:href="@{/imports}" th:classappend="${page == 'imports' ? 'active' : ''}">Nhập hàng</a></li>
         <li><a th:href="@{/vouchers}" th:classappend="${page == 'voucher' ? 'active' : ''}">Voucher</a></li>
+        <li sec:authorize="hasAnyRole('OWNER', 'MANAGER', 'CASHIER')"><a th:href="@{/cashbook}" th:classappend="${page == 'cashbook' ? 'active' : ''}">Sổ quỹ</a></li>
+        <li sec:authorize="hasAnyRole('OWNER', 'MANAGER')"><a th:href="@{/reports/profit}" th:classappend="${page == 'report' ? 'active' : ''}">Báo cáo</a></li>
         <li th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">
             <a th:href="@{/employee}" th:classappend="${page == 'employee' ? 'active' : ''}">Nhân viên</a>
         </li>
