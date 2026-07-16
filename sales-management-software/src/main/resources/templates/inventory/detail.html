@@ -3,241 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chi tiết kho chi nhánh</title>
-    <link rel="stylesheet" th:href="@{/css/admin.css}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <title>Chi tiết kho chi nhánh — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/cashbook.css}">
 </head>
 <body>
-<div class="admin-shell">
-    <div th:replace="~{component/navbar :: sidebar-component('inventory')}"></div>
-    <main class="admin-main">
-        <header class="admin-topbar">
-            <div>
-                <p class="admin-kicker">Admin Panel</p>
-                <h1>Chi tiết kho</h1>
-            </div>
-        </header>
-        <section class="admin-content p-4">
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="h4 mb-0">Thông tin kho chi nhánh</h2>
-                <div class="d-flex gap-2">
-                    <!-- Nút Thêm tồn kho mới vào chi nhánh này -->
-                    <a th:href="@{/inventory/create(branchId=${branch.id})}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> Nhập kho
-                    </a>
-                    <a th:href="@{/inventory}" class="btn btn-secondary">
-                        <i class="bi bi-arrow-left"></i> Quay lại danh sách kho
-                    </a>
+    <div th:replace="~{component/navbar :: global-nav('inventory')}"></div>
+
+    <div class="sub-nav">
+        <a href="/inventory" class="sub-nav__back">Quản lý kho</a>
+        <span class="sub-nav__sep">›</span>
+        <h1 class="sub-nav__title">Chi tiết kho: <span style="color: var(--primary);" th:text="${branch.name}">Chi nhánh</span></h1>
+        <div class="sub-nav__actions">
+            <a th:href="@{/inventory/create(branchId=${branch.id})}" class="btn btn-primary btn-primary--sm">
+                Nhập kho
+            </a>
+        </div>
+    </div>
+
+    <main class="page-content">
+
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="card-panel" style="margin-bottom: 24px;">
+            <div style="padding: 24px; display: flex; gap: 48px; border-bottom: 1px solid var(--hairline);">
+                <div>
+                    <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: 4px;">Mã kho</div>
+                    <div style="font-weight: 500;" th:text="${branch.branchCode}">BR001</div>
+                </div>
+                <div>
+                    <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: 4px;">Tên kho</div>
+                    <div style="font-weight: 500;" th:text="${branch.name}">Chi nhánh A</div>
+                </div>
+                <div>
+                    <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: 4px;">Trạng thái</div>
+                    <span th:if="${branch.status != null and branch.status.name() == 'ACTIVE'}" class="badge badge-active">ACTIVE</span>
+                    <span th:if="${branch.status != null and branch.status.name() == 'INACTIVE'}" class="badge badge-inactive">INACTIVE</span>
+                    <span th:if="${branch.status == null}" class="badge badge-inactive">N/A</span>
                 </div>
             </div>
 
-            <!-- Thông báo thành công hoặc lỗi (từ RedirectAttributes) -->
-            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle-fill"></i>
-                <span th:text="${successMessage}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-                <span th:text="${errorMessage}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
 
-            <!-- Thẻ Card hiển thị thông tin chi nhánh -->
-            <div class="card shadow mb-4">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <strong>Mã kho:</strong>
-                            <span th:text="${branch.branchCode}"></span>
-                        </div>
-                        <div class="col-md-4">
-                            <strong>Tên kho:</strong>
-                            <span th:text="${branch.name}"></span>
-                        </div>
-                        <div class="col-md-4">
-                            <strong>Trạng thái:</strong>
-                            <span th:if="${branch.status != null and branch.status.name() == 'ACTIVE'}" class="badge bg-success">ACTIVE</span>
-                            <span th:if="${branch.status != null and branch.status.name() == 'INACTIVE'}" class="badge bg-danger">INACTIVE</span>
-                            <span th:if="${branch.status == null}" class="badge bg-secondary">N/A</span>
-                        </div>
+
+            <div style="padding: 16px 24px;">
+                <form th:action="@{/inventory/{id}(id=${branch.id})}" method="get" class="search-bar" style="align-items: center; margin: 0; box-shadow: none; border: 1px solid var(--hairline);">
+                    <div class="search-input-wrap" style="flex: 2;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                        </svg>
+                        <input type="text"
+                               id="keyword"
+                               name="keyword"
+                               class="search-input"
+                               placeholder="Nhập tên sản phẩm hoặc SKU..."
+                               th:value="${keyword}" />
                     </div>
-                </div>
+
+                    <select id="filter" name="filter" class="filter-select" style="flex: 1;">
+                        <option value="" th:selected="${filter == null or filter == ''}">Tất cả sản phẩm</option>
+                        <option value="low_stock" th:selected="${filter == 'low_stock'}">Hàng sắp hết</option>
+                    </select>
+
+                    <button type="submit" class="btn btn-primary btn-primary--sm">Tìm kiếm</button>
+                    <a th:href="@{/inventory/{id}(id=${branch.id})}" class="btn btn-secondary btn-secondary--sm">Làm mới</a>
+                </form>
             </div>
-
-
-
-            <!-- Thanh tìm kiếm và lọc -->
-            <div class="card shadow mb-3">
-                <div class="card-body py-3">
-                    <form th:action="@{/inventory/{id}(id=${branch.id})}" method="get">
-                        <div class="row g-2 align-items-end">
-
-                            <!-- Ô tìm kiếm: tên sản phẩm hoặc SKU -->
-                            <div class="col-md-5">
-                                <label for="keyword" class="form-label mb-1 fw-semibold">
-                                    <i class="bi bi-search"></i> Tìm kiếm
-                                </label>
-                                <input type="text"
-                                       id="keyword"
-                                       name="keyword"
-                                       class="form-control"
-                                       placeholder="Nhập tên sản phẩm hoặc SKU..."
-                                       th:value="${keyword}" />
-                                <!--
-                                    th:value="${keyword}" => giữ lại từ khóa cũ sau khi tìm
-                                    để người dùng không phải gõ lại
-                                -->
-                            </div>
-
-                            <!-- Dropdown lọc: Tất cả / Hàng sắp hết -->
-                            <div class="col-md-3">
-                                <label for="filter" class="form-label mb-1 fw-semibold">
-                                    <i class="bi bi-funnel"></i> Lọc theo trạng thái
-                                </label>
-                                <select id="filter" name="filter" class="form-select">
-                                    <!--
-                                        th:selected => tự động chọn lại option đúng
-                                        dựa trên giá trị filter đang có trong Model
-                                    -->
-                                    <option value=""
-                                            th:selected="${filter == null or filter == ''}">
-                                        Tất cả sản phẩm
-                                    </option>
-                                    <option value="low_stock"
-                                            th:selected="${filter == 'low_stock'}">
-                                        Hàng sắp hết
-                                    </option>
-                                </select>
-                            </div>
-
-                            <!-- Nhóm nút bấm -->
-                            <div class="col-md-4 d-flex gap-2">
-                                <!-- Nút Tìm kiếm: submit form -->
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-search"></i> Tìm kiếm
-                                </button>
-                                <!-- Nút Làm mới: xóa tất cả param, load lại trang gốc -->
-                                <a th:href="@{/inventory/{id}(id=${branch.id})}"
-                                   class="btn btn-outline-secondary">
-                                    <i class="bi bi-arrow-clockwise"></i> Làm mới
-                                </a>
-                            </div>
-
-                        </div>
-                    </form>
-                </div>
-            </div>
+        </div>
             <!-- ============================================================ -->
 
-            <!-- Danh sách sản phẩm trong kho -->
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">Danh sách sản phẩm trong kho</h6>
+        <div class="card-panel">
+            <div style="padding: 16px 24px; border-bottom: 1px solid var(--hairline); display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="form-card__title" style="margin: 0;">Danh sách sản phẩm trong kho</h2>
 
-                    <span th:if="${keyword != null and keyword != ''}"
-                          class="badge bg-info text-dark">
-                        Kết quả tìm kiếm: "<span th:text="${keyword}"></span>"
+                <div style="display: flex; gap: 8px;">
+                    <span th:if="${keyword != null and keyword != ''}" class="badge badge-inactive" style="color: var(--primary);">
+                        KQ: "<span th:text="${keyword}"></span>"
                     </span>
-                    <span th:if="${filter == 'low_stock'}"
-                          class="badge bg-danger">
-                        <i class="bi bi-exclamation-triangle-fill"></i> Đang lọc: Hàng sắp hết
+                    <span th:if="${filter == 'low_stock'}" class="badge" style="background: var(--danger-light); color: var(--danger);">
+                        Đang lọc: Hàng sắp hết
                     </span>
-                </div>
-                <div class="card-body">
-                    <!-- Thông báo nếu kho trống hoặc không có kết quả -->
-                    <div th:if="${inventoryDetails == null or inventoryDetails.empty}"
-                         class="alert alert-info text-center" role="alert">
-                        <i class="bi bi-inbox"></i>
-                        <span th:if="${keyword != null and keyword != ''}">
-                            Không tìm thấy sản phẩm nào khớp với từ khóa "<strong th:text="${keyword}"></strong>".
-                        </span>
-                        <span th:if="${filter == 'low_stock' and (keyword == null or keyword == '')}">
-                            Không có sản phẩm nào sắp hết hàng.
-                        </span>
-                        <span th:if="${(keyword == null or keyword == '') and (filter == null or filter == '')}">
-                            Hiện tại không có sản phẩm nào trong kho của chi nhánh này.
-                        </span>
-                    </div>
-
-                    <!-- Bảng Responsive hiển thị sản phẩm -->
-                    <div class="table-responsive" th:if="${inventoryDetails != null and !inventoryDetails.empty}">
-                        <table class="table table-bordered table-hover w-100 align-middle">
-                            <thead class="table-light">
-                            <tr>
-                                <th class="text-center" style="width: 50px;">STT</th>
-                                <th>Tên sản phẩm</th>
-                                <th>SKU</th>
-                                <th>Đơn vị</th>
-                                <th class="text-end" style="width: 100px;">Tồn kho</th>
-                                <th class="text-end" style="width: 130px;">Giá bán</th>
-                                <th class="text-end" style="width: 150px;">Giá trị tồn kho</th>
-                                <th class="text-center" style="width: 130px;">Trạng thái</th>
-<!--                                <th class="text-center" style="width: 150px;">Hành động</th>-->
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="item, stat : ${inventoryDetails}">
-                                <td class="text-center" th:text="${(inventoryPage.number * inventoryPage.size) + stat.count}">1</td>
-                                <td th:text="${item.productName}">Tên sản phẩm</td>
-                                <td>
-                                    <span class="badge bg-secondary fw-normal" th:text="${item.sku}">SKU-001</span>
-                                </td>
-                                <td th:text="${item.unitName}">Cái</td>
-                                <td class="text-end font-weight-bold" th:text="${item.stock}">10</td>
-                                <td class="text-end" th:text="${#numbers.formatDecimal(item.price, 1, 'DEFAULT', 0, 'DEFAULT') + ' đ'}">10,000 đ</td>
-                                <td class="text-end fw-bold text-success" th:text="${#numbers.formatDecimal(item.totalValue, 1, 'DEFAULT', 0, 'DEFAULT') + ' đ'}">100,000 đ</td>
-                                <td class="text-center">
-                                    <span th:if="${item.stock <= item.minStock}" class="badge bg-danger">Sắp hết hàng</span>
-                                    <span th:if="${item.stock > item.minStock}" class="badge bg-success">Còn hàng</span>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Thanh phân trang Bootstrap -->
-                    <div th:if="${inventoryPage.totalPages > 0}" class="d-flex justify-content-center mt-3">
-                        <nav aria-label="Page navigation">
-                            <ul class="pagination">
-                                <!-- Nút Trước -->
-                                <li class="page-item" th:classappend="${inventoryPage.first} ? 'disabled'">
-                                    <a class="page-link"
-                                       th:href="@{/inventory/{id}(id=${branch.id}, page=${inventoryPage.first ? 0 : inventoryPage.number - 1}, keyword=${keyword}, filter=${filter}, size=${size})}"
-                                       aria-label="Previous">
-                                        <span aria-hidden="true">&laquo; Trước</span>
-                                    </a>
-                                </li>
-
-                                <!-- Các số trang -->
-                                <li class="page-item"
-                                    th:each="pageIdx : ${#numbers.sequence(0, inventoryPage.totalPages - 1)}"
-                                    th:classappend="${pageIdx == inventoryPage.number} ? 'active'">
-                                    <a class="page-link"
-                                       th:href="@{/inventory/{id}(id=${branch.id}, page=${pageIdx}, keyword=${keyword}, filter=${filter}, size=${size})}"
-                                       th:text="${pageIdx + 1}">1</a>
-                                </li>
-
-                                <!-- Nút Sau -->
-                                <li class="page-item" th:classappend="${inventoryPage.last} ? 'disabled'">
-                                    <a class="page-link"
-                                       th:href="@{/inventory/{id}(id=${branch.id}, page=${inventoryPage.last ? inventoryPage.totalPages - 1 : inventoryPage.number + 1}, keyword=${keyword}, filter=${filter}, size=${size})}"
-                                       aria-label="Next">
-                                        <span aria-hidden="true">Sau &raquo;</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
-
                 </div>
             </div>
-        </section>
-    </main>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                    <tr>
+                        <th style="width: 50px;">STT</th>
+                        <th>Tên sản phẩm</th>
+                        <th>SKU</th>
+                        <th>Đơn vị</th>
+                        <th>Tồn kho</th>
+                        <th>Giá bán</th>
+                        <th>Giá trị tồn kho</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${inventoryDetails == null or inventoryDetails.empty}">
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <h3 class="empty-state__title">Không tìm thấy sản phẩm nào khớp điều kiện.</h3>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:each="item, stat : ${inventoryDetails}" th:if="${inventoryDetails != null and !inventoryDetails.empty}">
+                        <td th:text="${(inventoryPage.number * inventoryPage.size) + stat.count}">1</td>
+                        <td style="font-weight: 500;" th:text="${item.productName}">Tên sản phẩm</td>
+                        <td>
+                            <span class="badge badge-inactive" th:text="${item.sku}">SKU-001</span>
+                        </td>
+                        <td th:text="${item.unitName}">Cái</td>
+                        <td style="font-weight: 600;" th:text="${item.stock}">10</td>
+                        <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">10,000 đ</td>
+                        <td class="value-cash" th:text="${#numbers.formatDecimal(item.totalValue, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</td>
+                        <td>
+                            <span th:if="${item.stock <= item.minStock}" class="badge" style="background: var(--danger-light); color: var(--danger);">Sắp hết hàng</span>
+                            <span th:if="${item.stock > item.minStock}" class="badge badge-active">Còn hàng</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div th:if="${inventoryPage.totalPages > 0}" class="pagination">
+                <a th:if="${!inventoryPage.first}" 
+                   th:href="@{/inventory/{id}(id=${branch.id}, page=${inventoryPage.number - 1}, keyword=${keyword}, filter=${filter}, size=${size})}"
+                   class="pagination-btn">Trước</a>
+                <span th:if="${inventoryPage.first}" class="pagination-btn disabled">Trước</span>
+
+                <div class="pagination-numbers">
+                    <a th:each="pageIdx : ${#numbers.sequence(0, inventoryPage.totalPages - 1)}"
+                       th:href="@{/inventory/{id}(id=${branch.id}, page=${pageIdx}, keyword=${keyword}, filter=${filter}, size=${size})}"
+                       th:classappend="${pageIdx == inventoryPage.number} ? 'active' : ''"
+                       th:text="${pageIdx + 1}">1</a>
+                </div>
+
+                <a th:if="${!inventoryPage.last}" 
+                   th:href="@{/inventory/{id}(id=${branch.id}, page=${inventoryPage.number + 1}, keyword=${keyword}, filter=${filter}, size=${size})}"
+                   class="pagination-btn">Sau</a>
+                <span th:if="${inventoryPage.last}" class="pagination-btn disabled">Sau</span>
+            </div>
+        </div>
+
+    </main>
+
 </body>
 </html>

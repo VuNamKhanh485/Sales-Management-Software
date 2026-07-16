@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sổ quỹ — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/cashbook.css}">
+</head>
+<body>
+
+    <div th:replace="~{component/navbar :: global-nav('cashbook')}"></div>
+
+    <div class="sub-nav">
+        <h1 class="sub-nav__title">Sổ quỹ</h1>
+        <div class="sub-nav__actions">
+            <a href="#" onclick="exportExcel()" class="btn btn-secondary btn-secondary--sm">Xuất Excel</a>
+            <a th:href="@{/cashbook/create}" class="btn btn-primary btn-primary--sm">Tạo phiếu thu/chi</a>
+        </div>
+    </div>
+
+    <main class="page-content">
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-card__label">Tồn quỹ tiền mặt</div>
+                <div class="stat-card__value value-cash" th:text="${#numbers.formatDecimal(cashBalance, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card__label">Tồn quỹ ngân hàng</div>
+                <div class="stat-card__value value-bank" th:text="${#numbers.formatDecimal(bankBalance, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+            </div>
+        </div>
+
+        <div class="card-panel">
+            <form action="/cashbook" method="get" class="search-bar">
+                <select name="branchId" class="filter-select" onchange="this.form.submit()">
+                    <option value="">Tất cả chi nhánh</option>
+                    <option th:each="b : ${branches}" th:value="${b.id}" th:text="${b.name}" th:selected="${b.id == selectedBranchId}"></option>
+                </select>
+                <select name="type" class="filter-select" onchange="this.form.submit()">
+                    <option value="">Loại phiếu (Tất cả)</option>
+                    <option value="IN" th:selected="${selectedType == 'IN'}">Phiếu Thu</option>
+                    <option value="OUT" th:selected="${selectedType == 'OUT'}">Phiếu Chi</option>
+                </select>
+                <select name="method" class="filter-select" onchange="this.form.submit()">
+                    <option value="">Phương thức (Tất cả)</option>
+                    <option value="CASH" th:selected="${selectedMethod == 'CASH'}">Tiền mặt</option>
+                    <option value="BANK" th:selected="${selectedMethod == 'BANK'}">Chuyển khoản</option>
+                </select>
+            </form>
+
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mã phiếu</th>
+                            <th>Ngày tạo</th>
+                            <th>Chi nhánh</th>
+                            <th>Loại phiếu</th>
+                            <th>Phương thức</th>
+                            <th>Giá trị</th>
+                            <th>Người tạo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${transactionPage.totalElements == 0}">
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <h3 class="empty-state__title">Không có giao dịch</h3>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:each="t : ${transactionPage.content}">
+                            <td><span class="code-chip" th:text="${t.referenceCode != null ? t.referenceCode : 'CB-' + t.id}"></span></td>
+                            <td th:text="${#temporals.format(t.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td th:text="${t.branch.name}"></td>
+                            <td>
+                                <span class="badge" th:classappend="${t.transactionType == 'IN'} ? 'badge-active' : 'badge-inactive'" th:text="${t.transactionType == 'IN' ? 'Thu' : 'Chi'}"></span>
+                            </td>
+                            <td th:text="${t.paymentMethod == 'CASH' ? 'Tiền mặt' : 'Chuyển khoản'}"></td>
+                            <td class="amount-cell" th:text="${#numbers.formatDecimal(t.amount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                            <td th:text="${t.creator != null ? t.creator.fullName : ''}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div th:if="${transactionPage.totalPages > 1}" class="pagination-bar">
+                <nav>
+                    <ul class="pagination">
+                        <li th:each="i : ${#numbers.sequence(1, totalPages)}" th:classappend="${i == currentPage} ? 'active'">
+                            <a th:href="@{/cashbook(page=${i}, branchId=${selectedBranchId}, type=${selectedType}, method=${selectedMethod})}" th:text="${i}"></a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </main>
+
+    <script th:src="@{/js/cashbook-list.js}"></script>
+</body>
+</html>

@@ -3,112 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý kho theo chi nhánh</title>
-    <link rel="stylesheet" th:href="@{/css/admin.css}">
-    <!-- Bootstrap CSS included since the requirement explicitly asks for it, though admin.css might cover it -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <title>Quản lý kho theo chi nhánh — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/cashbook.css}">
 </head>
 <body>
-<div class="admin-shell">
-    <div th:replace="~{component/navbar :: sidebar-component('inventory')}"></div>
-    <main class="admin-main">
-        <header class="admin-topbar">
-            <div>
-                <p class="admin-kicker">Admin Panel</p>
-                <h1>Quản lý kho</h1>
-            </div>
-        </header>
-        <section class="admin-content p-4">
+
+    <div th:replace="~{component/navbar :: global-nav('inventory')}"></div>
+
+    <div class="sub-nav">
+        <h1 class="sub-nav__title">Quản lý kho</h1>
+        <div class="sub-nav__actions">
+            <a th:href="@{/inventory}" class="btn btn-primary btn-primary--sm">
+                Làm mới
+            </a>
+        </div>
+    </div>
+
+    <main class="page-content">
             
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="h4 mb-0 text-gray-800">Danh sách kho theo chi nhánh</h2>
-                <a th:href="@{/inventory}" class="btn btn-primary">
-                    <i class="bi bi-arrow-clockwise"></i> Làm mới
-                </a>
+        <div class="card-panel">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                    <tr>
+                        <th style="width: 50px;">STT</th>
+                        <th>Mã kho</th>
+                        <th>Tên kho</th>
+                        <th>Trạng thái</th>
+                        <th>Số mặt hàng</th>
+                        <th style="width: 130px;">Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${branches == null or branches.empty}">
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <h3 class="empty-state__title">Không có dữ liệu kho chi nhánh.</h3>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:each="branch, stat : ${branches}" th:if="${branches != null and !branches.empty}">
+                        <td th:text="${(branchesPage.number * branchesPage.size) + stat.count}">1</td>
+                        <td><span class="code-chip" th:text="${branch.branchCode}">BR001</span></td>
+                        <td th:text="${branch.branchName}">Chi nhánh trung tâm</td>
+                        <td>
+                            <span th:if="${branch.status != null and branch.status.name() == 'ACTIVE'}" class="badge badge-active">ACTIVE</span>
+                            <span th:if="${branch.status != null and branch.status.name() == 'INACTIVE'}" class="badge badge-inactive">INACTIVE</span>
+                            <span th:if="${branch.status == null}" class="badge badge-inactive">N/A</span>
+                        </td>
+                        <td style="font-weight: 600;" th:text="${branch.totalProductCount}">150</td>
+                        <td>
+                            <div class="actions">
+                                <a th:href="@{/inventory/{id}(id=${branch.branchId})}" class="btn btn-secondary btn-secondary--sm">Xem chi tiết</a>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
 
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Dữ liệu kho</h6>
+            <div th:if="${branchesPage.totalPages > 0}" class="pagination">
+                <a th:if="${!branchesPage.first}" 
+                   th:href="@{/inventory(page=${branchesPage.number - 1}, size=${size})}"
+                   class="pagination-btn">Trước</a>
+                <span th:if="${branchesPage.first}" class="pagination-btn disabled">Trước</span>
+
+                <div class="pagination-numbers">
+                    <a th:each="pageIdx : ${#numbers.sequence(0, branchesPage.totalPages - 1)}"
+                       th:href="@{/inventory(page=${pageIdx}, size=${size})}"
+                       th:classappend="${pageIdx == branchesPage.number} ? 'active' : ''"
+                       th:text="${pageIdx + 1}">1</a>
                 </div>
-                <div class="card-body">
-                    <div th:if="${branches == null or branches.empty}" class="alert alert-warning text-center" role="alert">
-                        Không có dữ liệu kho chi nhánh.
-                    </div>
-                    
-                    <div class="table-responsive" th:if="${branches != null and !branches.empty}">
-                        <table class="table table-bordered table-hover w-100 align-middle">
-                            <thead class="table-light">
-                            <tr>
-                                <th class="text-center" style="width: 50px;">STT</th>
-                                <th>Mã kho</th>
-                                <th>Tên kho</th>
-                                <th class="text-center">Trạng thái</th>
-                                <th class="text-end">Số mặt hàng</th>
-                                <th class="text-center" style="width: 130px;">Hành động</th>
-                            </tr>
-                            </thead>
-                             <tbody>
-                             <tr th:each="branch, stat : ${branches}">
-                                 <td class="text-center" th:text="${(branchesPage.number * branchesPage.size) + stat.count}">1</td>
-                                 <td th:text="${branch.branchCode}">BR001</td>
-                                 <td th:text="${branch.branchName}">Chi nhánh trung tâm</td>
-                                 <td class="text-center">
-                                     <span th:if="${branch.status != null and branch.status.name() == 'ACTIVE'}" class="badge bg-success">ACTIVE</span>
-                                     <span th:if="${branch.status != null and branch.status.name() == 'INACTIVE'}" class="badge bg-danger">INACTIVE</span>
-                                     <span th:if="${branch.status == null}" class="badge bg-secondary">N/A</span>
-                                 </td>
-                                 <td class="text-end" th:text="${branch.totalProductCount}">150</td>
-                                 <td class="text-center">
-                                     <a th:href="@{/inventory/{id}(id=${branch.branchId})}" class="btn btn-sm btn-outline-info">
-                                         <i class="bi bi-eye"></i> Xem chi tiết
-                                     </a>
-                                 </td>
-                             </tr>
-                             </tbody>
-                         </table>
-                     </div>
 
-                     <!-- Thanh phân trang Bootstrap -->
-                     <div th:if="${branchesPage.totalPages > 0}" class="d-flex justify-content-center mt-3">
-                         <nav aria-label="Page navigation">
-                             <ul class="pagination">
-                                 <!-- Nút Trước -->
-                                 <li class="page-item" th:classappend="${branchesPage.first} ? 'disabled'">
-                                     <a class="page-link"
-                                        th:href="@{/inventory(page=${branchesPage.first ? 0 : branchesPage.number - 1}, size=${size})}"
-                                        aria-label="Previous">
-                                         <span aria-hidden="true">&laquo; Trước</span>
-                                     </a>
-                                 </li>
-
-                                 <!-- Các số trang -->
-                                 <li class="page-item"
-                                     th:each="pageIdx : ${#numbers.sequence(0, branchesPage.totalPages - 1)}"
-                                     th:classappend="${pageIdx == branchesPage.number} ? 'active'">
-                                     <a class="page-link"
-                                        th:href="@{/inventory(page=${pageIdx}, size=${size})}"
-                                        th:text="${pageIdx + 1}">1</a>
-                                 </li>
-
-                                 <!-- Nút Sau -->
-                                 <li class="page-item" th:classappend="${branchesPage.last} ? 'disabled'">
-                                     <a class="page-link"
-                                        th:href="@{/inventory(page=${branchesPage.last ? branchesPage.totalPages - 1 : branchesPage.number + 1}, size=${size})}"
-                                        aria-label="Next">
-                                         <span aria-hidden="true">Sau &raquo;</span>
-                                     </a>
-                                 </li>
-                             </ul>
-                         </nav>
-                     </div>
-                </div>
+                <a th:if="${!branchesPage.last}" 
+                   th:href="@{/inventory(page=${branchesPage.number + 1}, size=${size})}"
+                   class="pagination-btn">Sau</a>
+                <span th:if="${branchesPage.last}" class="pagination-btn disabled">Sau</span>
             </div>
-        </section>
+        </div>
     </main>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

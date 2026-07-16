@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo phiếu Sổ quỹ — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
+</head>
+<body>
+
+    <div th:replace="~{component/navbar :: global-nav('cashbook')}"></div>
+
+    <div class="sub-nav">
+        <a href="/cashbook" class="sub-nav__back">Sổ quỹ</a>
+        <span class="sub-nav__sep">›</span>
+        <h1 class="sub-nav__title">Tạo phiếu Thu/Chi</h1>
+    </div>
+
+    <main class="page-content form-page">
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="form-card">
+            <h2 class="form-card__title form-title-custom">Thông tin phiếu</h2>
+            <form th:action="@{/cashbook/save}" th:object="${cashbookDTO}" method="post" class="form-grid">
+                
+                <div class="form-group">
+                    <label class="form-label">Chi nhánh <span class="required text-danger">*</span></label>
+                    <select class="form-select" th:field="*{branchId}" required>
+                        <option value="">-- Chọn chi nhánh --</option>
+                        <option th:each="b : ${branches}" th:value="${b.id}" th:text="${b.name}"></option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Loại phiếu <span class="required text-danger">*</span></label>
+                    <select class="form-select" th:field="*{transactionType}" required>
+                        <option value="IN">Phiếu Thu</option>
+                        <option value="OUT">Phiếu Chi</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Phương thức <span class="required text-danger">*</span></label>
+                    <select class="form-select" th:field="*{paymentMethod}" required>
+                        <option value="CASH">Tiền mặt</option>
+                        <option value="BANK">Chuyển khoản</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Số tiền (VNĐ) <span class="required text-danger">*</span></label>
+                    <input type="number" class="form-input" th:field="*{amount}" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mã tham chiếu</label>
+                    <input type="text" class="form-input" th:field="*{referenceCode}" placeholder="VD: Hóa đơn điện nước, tiền rác...">
+                </div>
+
+                <div class="form-group form-group--full">
+                    <label class="form-label">Ghi chú</label>
+                    <textarea class="form-textarea" th:field="*{description}" rows="3"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-primary--sm">Lưu phiếu</button>
+                    <a href="/cashbook" class="btn btn-secondary btn-secondary--sm">Hủy</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+</body>
+</html>

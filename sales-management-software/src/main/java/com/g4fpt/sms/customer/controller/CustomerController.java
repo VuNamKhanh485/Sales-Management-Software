@@ -9,6 +9,11 @@ import com.g4fpt.sms.customer.repository.CustomerProjection;
 import com.g4fpt.sms.employee.utils.Gender;
 import com.g4fpt.sms.order.entity.OrderTransaction;
 import com.g4fpt.sms.order.repository.OrderTransactionRepository;
+import com.g4fpt.sms.branch.entity.Branch;
+import com.g4fpt.sms.branch.service.BranchService;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,6 +31,7 @@ public class CustomerController {
 
     private final CustomerService customerService;
     private final OrderTransactionRepository orderTransactionRepository;
+    private final BranchService branchService;
 
     @GetMapping
     public String listCustomers(
@@ -56,6 +62,11 @@ public class CustomerController {
         model.addAttribute("orderPage", orderPage);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", orderPage.getTotalPages());
+
+        List<Branch> branches = branchService.getAll();
+        Map<Long, String> branchMap = branches.stream()
+                .collect(Collectors.toMap(Branch::getId, Branch::getName));
+        model.addAttribute("branchMap", branchMap);
 
         return "customer/detail";
     }
