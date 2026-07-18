@@ -57,6 +57,17 @@
                                 </svg>
                             </a>
                         </th>
+
+                        <th>
+                            <a class="sort-link" th:href="@{/unit(keyword=${keyword},page=${currentPage},size=${size},sortField='status',sortDir=${reverseSortDir})}">
+                                Trạng thái
+                                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" th:if="${sortField == 'status'}">
+                                    <path th:if="${sortDir == 'asc'}" d="M5.5 8V3m0 0L3 5.5m2.5-2.5L8 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path th:if="${sortDir == 'desc'}" d="M5.5 3v5m0 0L3 5.5m2.5 2.5L8 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </a>
+                        </th>
+
                         <th style="width:120px" th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">Thao tác</th>
                     </tr>
                 </thead>
@@ -64,6 +75,10 @@
                     <tr th:each="u, stat : ${unitPage.content}">
                         <td th:text="${currentPage * size + stat.index + 1}" style="color:var(--ink-muted-48);font-size:12px;"></td>
                         <td><span style="font-weight: 600;" th:text="${u.name}"></span></td>
+                        <td>
+                            <span th:class="${u.status.name() == 'ACTIVE'} ? 'badge badge-active' : 'badge badge-inactive'"
+                                  th:text="${u.status.name() == 'ACTIVE'} ? 'Hoạt động' : 'Ngừng hoạt động'"></span>
+                        </td>
                         <td th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">
                             <div class="actions">
                                 <a th:href="@{/unit/form/{id}(id=${u.id})}" class="action-edit">

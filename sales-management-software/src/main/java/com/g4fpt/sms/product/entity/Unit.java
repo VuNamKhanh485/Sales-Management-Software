@@ -1,5 +1,6 @@
 package com.g4fpt.sms.product.entity;
 
+import com.g4fpt.sms.product.enums.UnitStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -35,6 +36,10 @@ public class Unit {
     @Column(name = "name", nullable = false)
     @ToString.Include
     private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UnitStatus status;
 
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp

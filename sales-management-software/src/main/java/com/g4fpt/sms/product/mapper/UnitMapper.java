@@ -18,6 +18,7 @@ public class UnitMapper {
         Unit unit = new Unit();
 
         unit.setName(request.getName().trim());
+        unit.setStatus(request.getStatus());
 
         return unit;
     }
@@ -31,6 +32,7 @@ public class UnitMapper {
 
         response.setId(unit.getId());
         response.setName(unit.getName());
+        response.setStatus(unit.getStatus());
 
         return response;
     }
