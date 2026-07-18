@@ -1,0 +1,83 @@
+/* Profile Custom Styling */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.profile-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: #ffffff;
+}
+
+.profile-card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Custom form control for readonly mode */
+.form-control[readonly].editable-field:not(:focus), 
+textarea.form-control[readonly].editable-field:not(:focus) {
+    background-color: transparent;
+    border-color: transparent;
+    padding-left: 0;
+    padding-right: 0;
+    box-shadow: none;
+    color: #212529;
+    font-weight: 500;
+}
+
+select.form-select[disabled].editable-field {
+    background-color: transparent;
+    border-color: transparent;
+    padding-left: 0;
+    padding-right: 0;
+    box-shadow: none;
+    color: #212529;
+    font-weight: 500;
+    /* Hide the dropdown arrow */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: none;
+}
+
+/* Form inputs styling */
+.form-control, .form-select {
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+/* Ensure JS validation errors are hidden by default and shown when invalid */
+.js-error, .js-pwd-error, .js-email-error {
+    display: none;
+    font-size: 0.875em;
+    color: #dc3545;
+    margin-top: 0.25rem;
+}
+.is-invalid ~ .js-error, 
+.is-invalid ~ .js-pwd-error, 
+.is-invalid ~ .js-email-error {
+    display: block;
+}
+
+/* Toggle password button styling */
+.toggle-password {
+    border-radius: 0 0.5rem 0.5rem 0 !important;
+}
+.toggle-password:hover {
+    background-color: #e9ecef;
+}
+
+/* Rounded Buttons */
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
