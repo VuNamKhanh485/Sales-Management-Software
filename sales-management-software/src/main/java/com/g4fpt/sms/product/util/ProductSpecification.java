@@ -6,6 +6,10 @@ import com.g4fpt.sms.product.enums.ProductStatus;
 import org.springframework.data.jpa.domain.Specification;
 
 public class ProductSpecification {
+    private ProductSpecification() {
+        /* This utility class should not be instantiated */
+    }
+
 
     public static Specification<Product> hasKeyword(String keyword){
         return (root, query, cb) ->

@@ -1,8 +1,6 @@
 package com.g4fpt.sms.product.repository;
 
 import com.g4fpt.sms.product.entity.Product;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
