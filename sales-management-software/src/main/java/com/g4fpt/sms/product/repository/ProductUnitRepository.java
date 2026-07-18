@@ -46,8 +46,6 @@ public interface ProductUnitRepository extends JpaRepository<ProductUnit, Long> 
     """)
     boolean existInOrderTransaction(@Param("productUnitId") Long productUnitId);
 
-
-
     @Query("SELECT pu.id AS id, pu.sku AS sku, pu.price AS price, pu.product AS product, pu.unit AS unit " +
            "FROM ProductUnit pu " +
            "WHERE pu.product.status = com.g4fpt.sms.product.enums.ProductStatus.ACTIVE " +
