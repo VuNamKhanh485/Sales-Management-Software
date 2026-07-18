@@ -23,6 +23,4 @@ public interface ProductRepository extends JpaRepository<Product, Long>,
             WHERE otd.productUnit.product.id = :productId
     """)
     boolean existInOrderTransaction(@Param("productId") Long productId);
-
-
 }
