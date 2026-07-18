@@ -10,7 +10,6 @@ public class ProductSpecification {
         /* This utility class should not be instantiated */
     }
 
-
     public static Specification<Product> hasKeyword(String keyword){
         return (root, query, cb) ->
                 (keyword == null || keyword.isBlank())
