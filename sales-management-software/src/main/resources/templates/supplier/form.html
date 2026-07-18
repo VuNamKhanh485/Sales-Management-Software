@@ -1,10 +1,91 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết Nhà cung cấp — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/supplier.css}">
 </head>
 <body>
+    <div th:replace="~{component/navbar :: global-nav('supplier')}"></div>
 
+    <div class="sub-nav">
+        <div class="supplier-form-container header-layout">
+            <span class="sub-nav__title" th:text="${id == 0 ? 'Thêm Nhà cung cấp mới' : 'Cập nhật Nhà cung cấp'}"></span>
+            <div class="sub-nav__actions">
+                <a th:href="@{/supplier}" class="btn-cancel">Quay lại</a>
+            </div>
+        </div>
+    </div>
+
+    <main class="page-wrap supplier-form-container">
+        <div class="form-card">
+            <div class="form-card__header">
+                <h2 class="form-card__title">Thông tin cơ bản</h2>
+            </div>
+
+            <form id="supplierForm" th:action="@{/supplier/form/{id}(id=${id})}" th:object="${supplierRequest}" method="post">
+                <div class="form-grid">
+                    
+                    <div class="form-group">
+                        <label class="form-label">Mã nhà cung cấp</label>
+                        <input type="text" id="supplierCode" class="form-input" th:field="*{code}" placeholder="Để trống để tự động tạo" />
+                        <div th:if="${#fields.hasErrors('code')}" th:errors="*{code}" class="error-msg"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tên nhà cung cấp <span class="required">*</span></label>
+                        <input type="text" id="supplierName" class="form-input" th:field="*{name}" placeholder="VD: Công ty TNHH Vinamilk..." required />
+                        <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="error-msg"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="text" id="supplierPhone" class="form-input" th:field="*{phone}" placeholder="VD: 0987654321" />
+                        <div th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="error-msg"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="supplierEmail" class="form-input" th:field="*{email}" placeholder="VD: info@vinamilk.com" />
+                        <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="error-msg"></div>
+                    </div>
+
+                    <div class="form-group form-group--full">
+                        <label class="form-label">Địa chỉ</label>
+                        <input type="text" id="supplierAddress" class="form-input" th:field="*{address}" placeholder="Địa chỉ nhà cung cấp" />
+                        <div th:if="${#fields.hasErrors('address')}" th:errors="*{address}" class="error-msg"></div>
+                    </div>
+                    
+                    <div class="form-group form-group--full">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea id="supplierNote" class="form-input" th:field="*{note}" rows="3" placeholder="Ghi chú thêm..."></textarea>
+                        <div th:if="${#fields.hasErrors('note')}" th:errors="*{note}" class="error-msg"></div>
+                    </div>
+
+                    <div class="form-group form-group--full">
+                        <label class="form-label">Trạng thái <span class="required">*</span></label>
+                        <select id="supplierStatus" class="form-select-field" th:field="*{status}" required>
+                            <option value="">-- Chọn trạng thái --</option>
+                            <option th:each="st : ${T(com.g4fpt.sms.supplier.enums.SupplierStatus).values()}"
+                                    th:value="${st}"
+                                    th:text="${st.name() == 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động'}">
+                            </option>
+                        </select>
+                        <div th:if="${#fields.hasErrors('status')}" th:errors="*{status}" class="error-msg"></div>
+                    </div>
+
+                </div>
+
+                <div class="form-actions">
+                    <a th:href="@{/supplier}" class="btn-cancel">Hủy</a>
+                    <button type="submit" class="btn-primary" id="btnSubmit">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script th:src="@{/js/supplier-form.js}"></script>
 </body>
 </html>
