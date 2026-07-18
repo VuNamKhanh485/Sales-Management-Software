@@ -4,6 +4,7 @@ import com.g4fpt.sms.order.entity.OrderTransaction;
 import com.g4fpt.sms.order.repository.OrderTransactionRepository;
 import com.g4fpt.sms.payment.entity.CashbookTransaction;
 import com.g4fpt.sms.payment.repository.CashbookTransactionRepository;
+import com.g4fpt.sms.report.dto.EmployeeSalesDTO;
 import com.g4fpt.sms.report.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -105,5 +106,15 @@ public class ReportServiceImpl implements ReportService {
         result.put("profitData", profitData);
 
         return result;
+    }
+
+    @Override
+    public List<EmployeeSalesDTO> getEmployeeSalesReport(Long branchId, LocalDateTime startDate, LocalDateTime endDate) {
+        return orderTransactionRepository.getEmployeeSalesReport(branchId, startDate, endDate);
+    }
+
+    @Override
+    public List<OrderTransaction> getEmployeeSalesDetails(Long employeeId, Long branchId, LocalDateTime startDate, LocalDateTime endDate) {
+        return orderTransactionRepository.findEmployeeSalesDetails(employeeId, branchId, startDate, endDate);
     }
 }

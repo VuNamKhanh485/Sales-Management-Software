@@ -57,4 +57,28 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
             @Param("branchId") Long branchId,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT new com.g4fpt.sms.report.dto.EmployeeSalesDTO(e.id, e.employeeCode, e.fullName, COUNT(o), SUM(o.finalAmount)) " +
+           "FROM OrderTransaction o JOIN Employee e ON o.createdBy = e.id " +
+           "WHERE (:branchId IS NULL OR o.branchId = :branchId) AND " +
+           "o.transactionType = 'SALE' AND o.status = 'COMPLETED' AND " +
+           "o.createdAt >= :startDate AND o.createdAt <= :endDate " +
+           "GROUP BY e.id, e.employeeCode, e.fullName " +
+           "ORDER BY SUM(o.finalAmount) DESC")
+    List<com.g4fpt.sms.report.dto.EmployeeSalesDTO> getEmployeeSalesReport(
+            @Param("branchId") Long branchId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT o FROM OrderTransaction o WHERE " +
+           "o.createdBy = :employeeId AND " +
+           "(:branchId IS NULL OR o.branchId = :branchId) AND " +
+           "o.transactionType = 'SALE' AND o.status = 'COMPLETED' AND " +
+           "o.createdAt >= :startDate AND o.createdAt <= :endDate " +
+           "ORDER BY o.createdAt DESC")
+    List<OrderTransaction> findEmployeeSalesDetails(
+            @Param("employeeId") Long employeeId,
+            @Param("branchId") Long branchId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 }
