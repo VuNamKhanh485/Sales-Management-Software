@@ -20,7 +20,7 @@
     <main class="page-content">
 
         <form action="/reports/overview" method="get" class="search-bar search-bar-center mb-4">
-            <select name="branchId" class="filter-select">
+            <select name="branchId" class="filter-select" th:if="${isManager}">
                 <option value="">Tất cả chi nhánh</option>
                 <option th:each="b : ${branches}" th:value="${b.id}" th:text="${b.name}" th:selected="${b.id == selectedBranchId}"></option>
             </select>
@@ -33,26 +33,28 @@
         </form>
 
         <!-- Phần Lợi nhuận và Dòng tiền -->
-        <h2 class="mb-3 mt-4" style="font-size: 1.25rem; font-weight: 600;">Lợi nhuận & Dòng tiền</h2>
-        
-        <div class="stats-row">
-            <div class="stat-card">
-                <div class="stat-card__label">Tổng Doanh Thu</div>
-                <div class="stat-card__value value-revenue" th:text="${#numbers.formatDecimal(profitData.totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+        <th:block th:if="${isManager}">
+            <h2 class="mb-3 mt-4" style="font-size: 1.25rem; font-weight: 600;">Lợi nhuận & Dòng tiền</h2>
+            
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-card__label">Tổng Doanh Thu</div>
+                    <div class="stat-card__value value-revenue" th:text="${#numbers.formatDecimal(profitData.totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__label">Tổng Chi Phí</div>
+                    <div class="stat-card__value value-expense" th:text="${#numbers.formatDecimal(profitData.totalExpense, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__label">Lợi Nhuận Ròng</div>
+                    <div class="stat-card__value value-profit" th:text="${#numbers.formatDecimal(profitData.netProfit, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-card__label">Tổng Chi Phí</div>
-                <div class="stat-card__value value-expense" th:text="${#numbers.formatDecimal(profitData.totalExpense, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-card__label">Lợi Nhuận Ròng</div>
-                <div class="stat-card__value value-profit" th:text="${#numbers.formatDecimal(profitData.netProfit, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
-            </div>
-        </div>
 
-        <div class="chart-container">
-            <canvas id="cashFlowChart"></canvas>
-        </div>
+            <div class="chart-container">
+                <canvas id="cashFlowChart"></canvas>
+            </div>
+        </th:block>
 
         <!-- Phần Doanh số Nhân viên -->
         <h2 class="mb-3 mt-5" style="font-size: 1.25rem; font-weight: 600;">Thành tích Nhân viên</h2>

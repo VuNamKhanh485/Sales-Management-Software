@@ -136,12 +136,20 @@ public class ReportController {
         List<EmployeeSalesDTO> employeeSalesData = reportService.getEmployeeSalesReport(branchId, startDateTime, endDateTime);
         List<Branch> branches = branchService.getAll();
 
+        boolean isManager = user != null && ("OWNER".equals(user.getRoleName()) || "MANAGER".equals(user.getRoleName()) || "BRANCH_MANAGER".equals(user.getRoleName()));
+        if (!isManager && user != null) {
+            employeeSalesData = employeeSalesData.stream()
+                    .filter(dto -> dto.getEmployeeId().equals(user.getId()))
+                    .toList();
+        }
+
         model.addAttribute("profitData", profitData);
         model.addAttribute("employeeSalesData", employeeSalesData);
         model.addAttribute("branches", branches);
         model.addAttribute("selectedBranchId", branchId);
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
+        model.addAttribute("isManager", isManager);
 
         return "report/overview";
     }
