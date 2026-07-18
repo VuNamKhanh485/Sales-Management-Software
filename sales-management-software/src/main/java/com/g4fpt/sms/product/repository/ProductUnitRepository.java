@@ -49,7 +49,8 @@ public interface ProductUnitRepository extends JpaRepository<ProductUnit, Long> 
 
 
 
-    @Query("SELECT pu.id AS id, pu.sku AS sku, pu.price AS price, pu.product AS product, pu.unit AS unit " +
+    @Query("SELECT pu.id AS id, pu.sku AS sku, pu.price AS price, " +
+           "pu.product.name AS productName, pu.product.imageName AS imageName, pu.unit.name AS unitName " +
            "FROM ProductUnit pu " +
            "WHERE pu.product.status = com.g4fpt.sms.product.enums.ProductStatus.ACTIVE " +
            "AND pu.product.category.status = com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE " +

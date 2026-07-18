@@ -21,13 +21,13 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
     boolean existsByVoucherId(Long voucherId);
 
 
-    @Query(value = "SELECT * FROM OrderTransaction WHERE created_by = :createdBy AND created_at BETWEEN :start AND :end ORDER BY created_at DESC", nativeQuery = true)
+    @Query("SELECT o FROM OrderTransaction o WHERE o.createdBy = :createdBy AND o.createdAt BETWEEN :start AND :end ORDER BY o.createdAt DESC")
     List<OrderTransaction> findByCreatedByAndDateRange(
             @Param("createdBy") Long createdBy,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
 
-    @Query(value = "SELECT * FROM OrderTransaction WHERE created_at BETWEEN :start AND :end ORDER BY created_at DESC", nativeQuery = true)
+    @Query("SELECT o FROM OrderTransaction o WHERE o.createdAt BETWEEN :start AND :end ORDER BY o.createdAt DESC")
     List<OrderTransaction> findByDateRange(
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
@@ -38,12 +38,11 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
     @Query("SELECT o FROM OrderTransaction o LEFT JOIN FETCH o.details d LEFT JOIN FETCH d.productUnit pu LEFT JOIN FETCH pu.product WHERE o.id = :id")
     Optional<OrderTransaction> findByIdWithDetails(@Param("id") Long id);
 
-    @Query(value = "SELECT * FROM OrderTransaction " +
-            "WHERE transaction_type = 'IMPORT' " +
-            "AND (:status IS NULL OR status = :status) " +
-            "AND (:keyword IS NULL OR code LIKE %:keyword% OR note LIKE %:keyword%) " +
-            "ORDER BY created_at DESC",
-            nativeQuery = true)
+    @Query("SELECT o FROM OrderTransaction o WHERE " +
+           "o.transactionType = 'IMPORT' AND " +
+           "(:status IS NULL OR o.status = :status) AND " +
+           "(:keyword IS NULL OR o.code LIKE %:keyword% OR o.note LIKE %:keyword%) " +
+           "ORDER BY o.createdAt DESC")
     List<OrderTransaction> searchImports(
             @Param("status") String status,
             @Param("keyword") String keyword);

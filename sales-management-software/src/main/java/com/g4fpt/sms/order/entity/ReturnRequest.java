@@ -40,6 +40,7 @@ public class ReturnRequest {
     @Column(name = "reviewed_by")
     private Long reviewedBy;
 
+    @Column(name = "reviewed_at")
     private LocalDateTime reviewedAt;
 
     @Column(name = "reject_reason", columnDefinition = "TEXT")

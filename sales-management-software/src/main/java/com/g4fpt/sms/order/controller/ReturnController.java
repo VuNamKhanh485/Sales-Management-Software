@@ -6,20 +6,17 @@ import com.g4fpt.sms.order.repository.OrderTransactionRepository;
 import com.g4fpt.sms.order.service.ReturnRequestService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 import com.g4fpt.sms.auth.dto.SessionUser;
 import com.g4fpt.sms.auth.util.SessionConstants;
 
@@ -31,88 +28,63 @@ public class ReturnController {
     private final ReturnRequestService returnRequestService;
     private final OrderTransactionRepository orderTransactionRepository;
 
+    @Value("${upload.path}")
+    private String uploadDir;
+
     private SessionUser getCurrentUser(HttpSession session) {
         return (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
     }
 
-    // Hiển thị trang tạo yêu cầu trả hàng (cho nhân viên POS)
+    // Hiển thị trang tạo yêu cầu trả hàng & Tìm kiếm đơn hàng
     @GetMapping
     public String returnPage(@RequestParam(required = false) String orderCode, Model model) {
         model.addAttribute("autoOrderCode", orderCode != null && !orderCode.isBlank() ? orderCode : "");
+        
+        if (orderCode != null && !orderCode.trim().isEmpty()) {
+            try {
+                OrderTransaction order = returnRequestService.searchOrderByCode(orderCode.trim());
+                model.addAttribute("order", order);
+            } catch (RuntimeException e) {
+                model.addAttribute("error", e.getMessage());
+            }
+        }
+        
         return "order/return-request";
     }
 
-    // API: tìm đơn hàng theo mã
-    @GetMapping("/api/search-order")
-    @ResponseBody
-    public ResponseEntity<?> searchOrder(@RequestParam("code") String code) {
-        try {
-            OrderTransaction order = returnRequestService.searchOrderByCode(code);
-            Map<String, Object> data = new LinkedHashMap<>();
-            data.put("id", order.getId());
-            data.put("code", order.getCode());
-            data.put("createdAt", order.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
-            data.put("customerName", order.getCustomer() != null ? order.getCustomer().getFullName() : "Khách lẻ");
-            data.put("status", order.getStatus());
-
-            List<Map<String, Object>> details = new ArrayList<>();
-            for (var d : order.getDetails()) {
-                Map<String, Object> det = new LinkedHashMap<>();
-                det.put("id", d.getId());
-                det.put("productName", d.getProductUnit().getProduct().getName());
-                det.put("unitName", d.getProductUnit().getUnit() != null ? d.getProductUnit().getUnit().getName() : "");
-                det.put("quantity", d.getQuantity());
-                det.put("salePrice", d.getSalePrice());
-                det.put("totalAmount", d.getTotalAmount());
-                details.add(det);
-            }
-            data.put("details", details);
-
-            return ResponseEntity.ok(data);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
-
-    // API: tạo yêu cầu trả hàng mới
-    @PostMapping("/api/create")
-    @ResponseBody
-    public ResponseEntity<?> createReturnRequest(
+    // Xử lý Form gửi yêu cầu trả hàng
+    @PostMapping("/create")
+    public String createReturnRequest(
             @RequestParam("orderId") Long orderId,
             @RequestParam("reason") String reason,
-            @RequestParam(value = "detailIds", required = false) String detailIdsStr,
-            @RequestParam(value = "quantities", required = false) String quantitiesStr,
+            @RequestParam(value = "detailIds", required = false) List<Long> detailIds,
+            @RequestParam(value = "quantities", required = false) List<Integer> quantities,
             @RequestParam(value = "images", required = false) List<MultipartFile> images,
-            HttpSession session) {
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
 
         try {
             SessionUser user = getCurrentUser(session);
             Long employeeId = user.getId();
 
-            // Parse detailIds và quantities
             List<ReturnRequestService.ReturnItemInput> items = new ArrayList<>();
-            if (detailIdsStr != null && quantitiesStr != null) {
-                String[] ids = detailIdsStr.split(",");
-                String[] qtys = quantitiesStr.split(",");
-                for (int i = 0; i < ids.length; i++) {
-                    items.add(new ReturnRequestService.ReturnItemInput(
-                            Long.parseLong(ids[i]), Integer.parseInt(qtys[i])));
+            if (detailIds != null && quantities != null && detailIds.size() == quantities.size()) {
+                for (int i = 0; i < detailIds.size(); i++) {
+                    items.add(new ReturnRequestService.ReturnItemInput(detailIds.get(i), quantities.get(i)));
                 }
             }
 
             if (items.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Chọn ít nhất 1 sản phẩm để trả"));
+                redirectAttributes.addFlashAttribute("error", "Chọn ít nhất 1 sản phẩm để trả");
+                return "redirect:/return";
             }
 
-            // Lấy branchId từ đơn hàng gốc
             OrderTransaction order = orderTransactionRepository.findByIdWithDetails(orderId)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
             Long branchId = order.getBranchId();
 
-            // Upload ảnh
             List<String> imageUrls = new ArrayList<>();
             if (images != null) {
-                String uploadDir = System.getProperty("user.dir") + "/return-image/";
                 Path uploadPath = Paths.get(uploadDir);
                 if (!Files.exists(uploadPath)) {
                     Files.createDirectories(uploadPath);
@@ -131,93 +103,62 @@ public class ReturnController {
             ReturnRequest request = returnRequestService.createReturnRequest(
                     orderId, branchId, employeeId, reason, items, imageUrls);
 
-            return ResponseEntity.ok(Map.of("success", true, "id", request.getId()));
+            redirectAttributes.addFlashAttribute("success", "Đã tạo yêu cầu trả hàng mã #" + request.getId());
+            return "redirect:/return";
+            
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/return";
         }
     }
 
-    // Hiển thị trang quản lý yêu cầu trả hàng (cho Shop Manager)
+    // Hiển thị trang quản lý yêu cầu trả hàng
     @GetMapping("/manage")
-    public String managePage(Model model) {
+    public String managePage(@RequestParam(required = false) Long viewId, Model model) {
         List<ReturnRequest> requests = returnRequestService.getAllRequests();
         model.addAttribute("requests", requests);
         model.addAttribute("pendingCount", returnRequestService.countPendingRequests());
+        
+        // Trực tiếp load data lên Modal nếu viewId được truyền vào URL
+        if (viewId != null) {
+            try {
+                ReturnRequest detailRequest = returnRequestService.getById(viewId);
+                model.addAttribute("detailRequest", detailRequest);
+            } catch (Exception e) {
+                model.addAttribute("error", e.getMessage());
+            }
+        }
+        
         return "order/return-manage";
     }
 
-    // API: lấy chi tiết yêu cầu trả hàng
-    @GetMapping("/api/requests/{id}")
-    @ResponseBody
-    public ResponseEntity<?> getRequestDetail(@PathVariable Long id) {
-        try {
-            ReturnRequest req = returnRequestService.getById(id);
-            Map<String, Object> data = new LinkedHashMap<>();
-            data.put("id", req.getId());
-            data.put("reason", req.getReason());
-            data.put("status", req.getStatus());
-            data.put("createdAt", req.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
-            data.put("orderCode", req.getOrder().getCode());
-            data.put("customerName",
-                    req.getOrder().getCustomer() != null ? req.getOrder().getCustomer().getFullName() : "Khách lẻ");
-
-            List<Map<String, Object>> items = new ArrayList<>();
-            for (var item : req.getItems()) {
-                Map<String, Object> it = new LinkedHashMap<>();
-                it.put("productName", item.getProductUnit().getProduct().getName());
-                it.put("quantity", item.getQuantity());
-                it.put("salePrice", item.getSalePrice());
-                items.add(it);
-            }
-            data.put("items", items);
-
-            List<String> images = req.getImages().stream()
-                    .map(img -> img.getImageUrl())
-                    .collect(Collectors.toList());
-            data.put("images", images);
-
-            if (req.getReviewedBy() != null) {
-                data.put("reviewedBy", req.getReviewedBy());
-                data.put("reviewedAt",
-                        req.getReviewedAt() != null
-                                ? req.getReviewedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
-                                : null);
-                data.put("rejectReason", req.getRejectReason());
-            }
-
-            return ResponseEntity.ok(data);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
-
-    // API: duyệt yêu cầu trả hàng
-    @PostMapping("/api/requests/{id}/approve")
-    @ResponseBody
-    public ResponseEntity<?> approveRequest(@PathVariable Long id, HttpSession session) {
+    // Xử lý Form duyệt yêu cầu trả hàng
+    @PostMapping("/manage/{id}/approve")
+    public String approveRequest(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
         try {
             SessionUser user = getCurrentUser(session);
             Long employeeId = user.getId();
             returnRequestService.approveRequest(id, employeeId);
-            return ResponseEntity.ok(Map.of("success", true));
+            redirectAttributes.addFlashAttribute("success", "Đã duyệt yêu cầu #" + id + " thành công!");
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/return/manage";
     }
 
-    // API: từ chối yêu cầu trả hàng
-    @PostMapping("/api/requests/{id}/reject")
-    @ResponseBody
-    public ResponseEntity<?> rejectRequest(@PathVariable Long id,
+    // Xử lý Form từ chối yêu cầu trả hàng
+    @PostMapping("/manage/{id}/reject")
+    public String rejectRequest(@PathVariable Long id,
             @RequestParam("reason") String reason,
-            HttpSession session) {
+            HttpSession session, RedirectAttributes redirectAttributes) {
         try {
             SessionUser user = getCurrentUser(session);
             Long employeeId = user.getId();
             returnRequestService.rejectRequest(id, employeeId, reason);
-            return ResponseEntity.ok(Map.of("success", true));
+            redirectAttributes.addFlashAttribute("success", "Đã từ chối yêu cầu #" + id);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/return/manage";
     }
 }

@@ -244,6 +244,10 @@ public class PosController {
             ra.addFlashAttribute("error", "Vui lòng chọn khách hàng trước khi áp dụng điểm!");
             return "redirect:/pos";
         }
+        if (enabled && cart.getCustomerAvailablePoints() <= 0) {
+            ra.addFlashAttribute("error", "Khách hàng không có điểm tích luỹ khả dụng!");
+            return "redirect:/pos";
+        }
         cart.setUsePoints(enabled);
         return "redirect:/pos";
     }
@@ -267,7 +271,9 @@ public class PosController {
         var products = productUnitRepo.searchActiveProductUnits(categoryId, kw);
         Long branchId = s.getActiveBranchId();
         if (branchId == null) {
-            branchId = branchRepo.findAll().stream().findFirst()
+            branchId = branchRepo.findAll().stream()
+                    .filter(b -> b.getStatus() == com.g4fpt.sms.branch.entity.BranchStatus.ACTIVE)
+                    .findFirst()
                     .map(com.g4fpt.sms.branch.entity.Branch::getId).orElse(null);
             s.setActiveBranchId(branchId);
         }
@@ -380,7 +386,9 @@ public class PosController {
             if (user != null && user.getBranchId() != null)
                 s.setActiveBranchId(user.getBranchId());
             else
-                branchRepo.findAll().stream().findFirst().ifPresent(b -> s.setActiveBranchId(b.getId()));
+                branchRepo.findAll().stream()
+                        .filter(b -> b.getStatus() == com.g4fpt.sms.branch.entity.BranchStatus.ACTIVE)
+                        .findFirst().ifPresent(b -> s.setActiveBranchId(b.getId()));
         }
     }
 
@@ -390,7 +398,8 @@ public class PosController {
         boolean isOwner = user != null && user.hasRole("OWNER");
         model.addAttribute("isOwner", isOwner);
         if (isOwner)
-            model.addAttribute("branches", branchRepo.findAll());
+            model.addAttribute("branches", branchRepo.findAll().stream()
+                    .filter(b -> b.getStatus() == com.g4fpt.sms.branch.entity.BranchStatus.ACTIVE).toList());
         model.addAttribute("posData", s);
         model.addAttribute("cart", s.getActiveCart());
         model.addAttribute("categories", categoryRepository.findAll().stream()

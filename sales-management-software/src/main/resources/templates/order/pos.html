@@ -238,7 +238,7 @@
                     </div>
 
                     <!-- Điểm tích luỹ -->
-                    <div th:if="${cart.customerId != null and cart.customerAvailablePoints > 0}"
+                    <div th:if="${cart.customerId != null}"
                          class="points-row mt-2">
                         <div class="d-flex align-items-center gap-2">
                             <i class="bi bi-star-fill text-warning"></i>
@@ -250,6 +250,7 @@
                                 <input class="form-check-input" type="checkbox" role="switch"
                                        id="usePointsSwitch"
                                        th:checked="${cart.usePoints}"
+                                       th:disabled="${cart.customerAvailablePoints == 0}"
                                        onchange="window.location.href='/pos/toggle-points?enabled=' + this.checked">
                                 <label class="form-check-label small" for="usePointsSwitch">
                                     Dùng điểm
