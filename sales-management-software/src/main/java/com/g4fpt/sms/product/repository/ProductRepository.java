@@ -1,6 +1,9 @@
 package com.g4fpt.sms.product.repository;
 
+import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
 import com.g4fpt.sms.product.entity.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -23,4 +26,42 @@ public interface ProductRepository extends JpaRepository<Product, Long>,
             WHERE otd.productUnit.product.id = :productId
     """)
     boolean existInOrderTransaction(@Param("productId") Long productId);
+
+    @Query("""
+    SELECT p
+    FROM Product p
+    JOIN p.productUnits pu
+    WHERE pu.isBaseUnit = true
+    AND (:#{#filter.keyword} IS NULL
+         OR LOWER(p.name) LIKE LOWER(CONCAT('%', :#{#filter.keyword}, '%')))
+    AND (:#{#filter.brandId} IS NULL
+         OR p.brand.id = :#{#filter.brandId})
+    AND (:#{#filter.categoryId} IS NULL
+         OR p.category.id = :#{#filter.categoryId})
+    AND (:#{#filter.status} IS NULL
+         OR p.status = :#{#filter.status})
+    ORDER BY pu.sku ASC
+    """)
+    Page<Product> findAllOrderByBaseSkuAsc(
+            @Param("filter") ProductFilterRequest filter,
+            Pageable pageable);
+
+    @Query("""
+    SELECT p
+    FROM Product p
+    JOIN p.productUnits pu
+    WHERE pu.isBaseUnit = true
+    AND (:#{#filter.keyword} IS NULL
+         OR LOWER(p.name) LIKE LOWER(CONCAT('%', :#{#filter.keyword}, '%')))
+    AND (:#{#filter.brandId} IS NULL
+         OR p.brand.id = :#{#filter.brandId})
+    AND (:#{#filter.categoryId} IS NULL
+         OR p.category.id = :#{#filter.categoryId})
+    AND (:#{#filter.status} IS NULL
+         OR p.status = :#{#filter.status})
+    ORDER BY pu.sku DESC
+    """)
+    Page<Product> findAllOrderByBaseSkuDesc(
+            @Param("filter") ProductFilterRequest filter,
+            Pageable pageable);
 }
