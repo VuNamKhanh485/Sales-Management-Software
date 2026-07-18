@@ -242,7 +242,9 @@ CREATE TABLE Voucher (
 
     start_at DATETIME NOT NULL,
     end_at DATETIME NOT NULL,
-
+    
+	customer_rank_id BIGINT NULL,
+    
     status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
 
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -256,7 +258,10 @@ CREATE TABLE Voucher (
                 OR discount_value <= 100
             )
         ),
-
+	CONSTRAINT fk_voucher_customer_rank
+		FOREIGN KEY (customer_rank_id) 
+        REFERENCES CustomerRank(id),
+        
     CONSTRAINT chk_voucher_min_order
         CHECK (min_order_amount >= 0),
 
@@ -390,11 +395,13 @@ CREATE TABLE OrderTransaction (
 
     total_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
     discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+    points_used DECIMAL(12,2) DEFAULT NULL,
+    point_discount DECIMAL(12,2) DEFAULT NULL,
     final_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
 
     paid_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
     change_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
-
+    
     status ENUM(
         'PENDING',
         'COMPLETED',
@@ -456,6 +463,12 @@ CREATE TABLE OrderTransaction (
         FOREIGN KEY (to_branch_id)
         REFERENCES Branch(id),
 
+	CONSTRAINT chk_points_non_negative 
+		CHECK (
+			points_used >= 0 
+            AND point_discount >= 0
+		),
+        
     CONSTRAINT chk_order_amount
         CHECK (
             total_amount >= 0
@@ -558,17 +571,6 @@ CREATE TABLE return_request_image (
     CONSTRAINT fk_return_image_request
         FOREIGN KEY (return_request_id) REFERENCES return_request(id) ON DELETE CASCADE
 );
-
-ALTER TABLE Voucher
-ADD COLUMN customer_rank_id BIGINT NULL AFTER status,
-ADD CONSTRAINT fk_voucher_customer_rank
-FOREIGN KEY (customer_rank_id) REFERENCES CustomerRank(id);
-
-ALTER TABLE OrderTransaction
-ADD COLUMN points_used INT NULL AFTER discount_amount,
-ADD COLUMN point_discount DECIMAL(12,2) NULL AFTER points_used,
-ADD CONSTRAINT chk_points_non_negative 
-CHECK (points_used >= 0 AND point_discount >= 0);
 
 CREATE TABLE cashbook_transaction (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
