@@ -507,3 +507,81 @@ CREATE TABLE OrderTransactionDetail (
             AND total_amount >= 0
         )
 );
+
+-- Bảng return_request
+CREATE TABLE return_request (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id BIGINT NOT NULL,
+    branch_id BIGINT NOT NULL,
+    requested_by BIGINT NOT NULL,
+    reason TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    reviewed_by BIGINT NULL,
+    reviewedAt DATETIME NULL,
+    reject_reason TEXT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_return_request_order
+        FOREIGN KEY (order_id) REFERENCES OrderTransaction(id),
+    CONSTRAINT fk_return_request_branch
+        FOREIGN KEY (branch_id) REFERENCES Branch(id),
+    CONSTRAINT fk_return_request_requested_by
+        FOREIGN KEY (requested_by) REFERENCES Employee(id),
+    CONSTRAINT fk_return_request_reviewed_by
+        FOREIGN KEY (reviewed_by) REFERENCES Employee(id)
+);
+
+-- Bảng return_request_item
+CREATE TABLE return_request_item (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    return_request_id BIGINT NOT NULL,
+    order_detail_id BIGINT NOT NULL,
+    product_unit_id BIGINT NOT NULL,
+    quantity INT NOT NULL,
+    sale_price DECIMAL(19,2) NOT NULL,
+
+    CONSTRAINT fk_return_item_request
+        FOREIGN KEY (return_request_id) REFERENCES return_request(id) ON DELETE CASCADE,
+    CONSTRAINT fk_return_item_order_detail
+        FOREIGN KEY (order_detail_id) REFERENCES OrderTransactionDetail(id),
+    CONSTRAINT fk_return_item_product_unit
+        FOREIGN KEY (product_unit_id) REFERENCES ProductUnit(id)
+);
+
+-- Bảng return_request_image
+CREATE TABLE return_request_image (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    return_request_id BIGINT NOT NULL,
+    imageName VARCHAR(500) NOT NULL,
+
+    CONSTRAINT fk_return_image_request
+        FOREIGN KEY (return_request_id) REFERENCES return_request(id) ON DELETE CASCADE
+);
+
+ALTER TABLE Voucher
+ADD COLUMN customer_rank_id BIGINT NULL AFTER status,
+ADD CONSTRAINT fk_voucher_customer_rank
+FOREIGN KEY (customer_rank_id) REFERENCES CustomerRank(id);
+
+ALTER TABLE OrderTransaction
+ADD COLUMN points_used INT NULL AFTER discount_amount,
+ADD COLUMN point_discount DECIMAL(12,2) NULL AFTER points_used,
+ADD CONSTRAINT chk_points_non_negative 
+CHECK (points_used >= 0 AND point_discount >= 0);
+
+CREATE TABLE cashbook_transaction (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    branch_id BIGINT NOT NULL,
+    transaction_type VARCHAR(50) NOT NULL, -- 'IN' (Thu) hoặc 'OUT' (Chi)
+    payment_method VARCHAR(50) NOT NULL,   -- 'CASH' (Tiền mặt) hoặc 'BANK' (Chuyển khoản)
+    amount DECIMAL(19, 2) NOT NULL,
+    reference_code VARCHAR(255),           -- Mã tham chiếu (Mã đơn hàng, mã phiếu nhập...)
+    description VARCHAR(255),              -- Lý do thu/chi
+    created_by BIGINT NOT NULL,            -- ID của nhân viên tạo phiếu
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Khóa ngoại (Tuỳ chọn: Nếu bạn có bảng branch và employee)
+    CONSTRAINT fk_cashbook_branch FOREIGN KEY (branch_id) REFERENCES branch(id),
+    CONSTRAINT fk_cashbook_employee FOREIGN KEY (created_by) REFERENCES employee(id)
+);
