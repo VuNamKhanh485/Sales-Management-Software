@@ -330,7 +330,7 @@
                                     <span th:if="${sortField=='status'}" th:text="${sortDir=='asc'?'↑':'↓'}"></span>
                                 </a>
                             </th>
-                            <th style="text-align:right;">Thao tác</th>
+                            <th style="text-align:right;" th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -63,7 +63,7 @@
                                 Trạng thái
                             </a>
                         </th>
-                        <th style="width:120px">Thao tác</th>
+                        <th style="width:120px" th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
