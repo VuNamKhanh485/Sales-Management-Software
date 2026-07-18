@@ -41,7 +41,7 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
     @Transactional
     public OrderTransaction processCheckout(POSCheckoutRequest request) {
 
-        // 1. Tính tổng tiền hàng
+        // Tính tổng tiền hàng
         BigDecimal totalAmount = BigDecimal.ZERO;
         for (POSCartItemRequest item : request.getItems()) {
             ProductUnit pu = productUnitRepository.findById(item.getProductUnitId())
@@ -51,14 +51,14 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             );
         }
 
-        // 2. Tính VAT
+        // Tính VAT
         BigDecimal vatRate = request.getVatRate() != null
                 ? request.getVatRate()
                 : new BigDecimal("0.02");
         BigDecimal vatAmount = totalAmount.multiply(vatRate)
                 .setScale(0, RoundingMode.HALF_UP);
 
-        // 3. Tính giảm giá từ voucher
+        // Tính giảm giá từ voucher
         BigDecimal discountAmount = BigDecimal.ZERO;
         Voucher voucher = null;
         if (request.getVoucherCode() != null && !request.getVoucherCode().isBlank()) {
@@ -66,7 +66,7 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             discountAmount = calculateVoucherDiscount(voucher, totalAmount);
         }
 
-        // 4. Tính tiền giảm từ điểm
+        // Tính tiền giảm từ điểm
         BigDecimal pointDiscount = BigDecimal.ZERO;
         int pointsUsed = 0;
         if (request.isUsePoints() && request.getCustomerId() != null) {
@@ -81,19 +81,19 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             }
         }
 
-        // 5. Tính tiền khách phải trả
+        // Tính tiền khách phải trả
         BigDecimal finalAmount = totalAmount.add(vatAmount)
                 .subtract(discountAmount)
                 .subtract(pointDiscount)
                 .max(BigDecimal.ZERO);
 
-        // 6. Tính tiền thừa
+        // Tính tiền thừa
         BigDecimal paidAmount = request.getPaidAmount() != null
                 ? request.getPaidAmount()
                 : finalAmount;
         BigDecimal changeAmount = paidAmount.subtract(finalAmount).max(BigDecimal.ZERO);
 
-        // 7. Tạo OrderTransaction
+        // Tạo OrderTransaction
         String orderCode = "ORD-" + java.time.LocalDateTime.now()
                 .format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
         OrderTransaction order = OrderTransaction.builder()
@@ -113,7 +113,7 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
                 .note(request.getNote())
                 .build();
 
-        // 8. Gán khách hàng
+        // Gán khách hàng và cập nhật điểm/doanh thu
         if (request.getCustomerId() != null) {
             Customer customer = customerRepository.findById(request.getCustomerId())
                     .orElse(null);
@@ -140,12 +140,12 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             }
         }
 
-        // 9. Gán voucher
+        // Gán voucher cho đơn hàng
         if (voucher != null) {
             order.setVoucher(voucher);
         }
 
-        // 10. Tạo OrderTransactionDetail và trừ tồn kho
+        // Tạo chi tiết đơn hàng và trừ tồn kho
         for (POSCartItemRequest item : request.getItems()) {
             ProductUnit pu = productUnitRepository.findById(item.getProductUnitId())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));

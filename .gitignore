@@ -8,3 +8,6 @@ target/
 product-image/*
 !product-image/.gitkeep
 
+return-image/*
+!return-image/.gitkeep
+

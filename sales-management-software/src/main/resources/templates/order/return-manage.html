@@ -10,14 +10,22 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/apple-design.css}">
     <link rel="stylesheet" th:href="@{/css/return.css}">
-    <meta name="_csrf" th:content="${_csrf.token}" />
-    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 </head>
 
 <body>
     <div th:replace="~{component/navbar :: global-nav('returns')}"></div>
     <div class="main-container">
         <div class="content">
+            <!-- Thông báo -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-1"></i><span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-1"></i><span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h4 class="fw-bold mb-1"><i class="bi bi-arrow-return-left me-2"></i>Quản lý yêu cầu trả hàng</h4>
@@ -56,10 +64,10 @@
                                         th:text="${req.status}"></span>
                                 </td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-primary"
-                                        th:onclick="'viewDetail(' + ${req.id} + ')'">
+                                    <!-- Link xem chi tiết: tải lại trang kèm viewId -->
+                                    <a th:href="@{/return/manage(viewId=${req.id})}" class="btn btn-sm btn-outline-primary">
                                         <i class="bi bi-eye"></i>
-                                    </button>
+                                    </a>
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(requests)}">
@@ -72,197 +80,102 @@
         </div>
     </div>
 
-    <!-- Modal chi tiết -->
-    <div class="modal fade" id="detailModal" tabindex="-1">
+    <!-- Modal chi tiết (dữ liệu được render sẵn từ server) -->
+    <div th:if="${detailRequest != null}" class="modal fade" id="detailModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h6 class="modal-title fw-bold"><i class="bi bi-info-circle me-1"></i>Chi tiết yêu cầu</h6>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <h6 class="modal-title fw-bold"><i class="bi bi-info-circle me-1"></i>Chi tiết yêu cầu #<span th:text="${detailRequest.id}"></span></h6>
+                    <a th:href="@{/return/manage}" class="btn-close btn-close-white"></a>
                 </div>
                 <div class="modal-body">
-                    <div id="detailContent"></div>
-                </div>
-                <div class="modal-footer" id="actionFooter">
-                    <button type="button" class="btn btn-danger" onclick="rejectRequest()">
-                        <i class="bi bi-x-circle me-1"></i>Từ chối
-                    </button>
-                    <button type="button" class="btn btn-success" onclick="approveRequest()">
-                        <i class="bi bi-check-circle me-1"></i>Duyệt
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal duyệt -->
-    <div class="modal fade" id="approveModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h6 class="modal-title fw-bold"><i class="bi bi-check-circle me-1"></i>Duyệt yêu cầu</h6>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <p class="mb-0 fs-6">Bạn có chắc chắn muốn <strong>duyệt</strong> yêu cầu trả hàng này?</p>
-                        <p class="text-muted small mt-2 mb-0"><i class="bi bi-info-circle me-1"></i> Hàng hóa sẽ được
-                            hoàn lại vào kho tự động.</p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-success" onclick="confirmApprove()">Xác nhận Duyệt</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal từ chối -->
-    <div class="modal fade" id="rejectModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h6 class="modal-title fw-bold"><i class="bi bi-x-circle me-1"></i>Từ chối yêu cầu</h6>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="fw-semibold mb-1">Lý do từ chối <span class="text-danger">*</span></label>
-                        <textarea id="rejectReason" class="form-control" rows="3"
-                            placeholder="Nhập lý do..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-danger" onclick="confirmReject()">Xác nhận từ chối</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-        let currentRequestId = null;
-
-        function viewDetail(id) {
-            currentRequestId = id;
-            fetch('/return/api/requests/' + id)
-                .then(r => r.json())
-                .then(data => {
-                    if (data.error) { alert(data.error); return; }
-
-                    const isPending = data.status === 'PENDING';
-                    document.getElementById('actionFooter').style.display = isPending ? '' : 'none';
-
-                    let html = `
-                    <div class="row mb-2">
-                        <div class="col-4 detail-label">Mã yêu cầu</div>
-                        <div class="col-8 detail-value fw-bold">#` + data.id + `</div>
-                    </div>
                     <div class="row mb-2">
                         <div class="col-4 detail-label">Đơn hàng</div>
-                        <div class="col-8 detail-value">` + data.orderCode + `</div>
+                        <div class="col-8 detail-value fw-bold" th:text="${detailRequest.order.code}"></div>
                     </div>
                     <div class="row mb-2">
                         <div class="col-4 detail-label">Khách hàng</div>
-                        <div class="col-8 detail-value">` + data.customerName + `</div>
+                        <div class="col-8 detail-value" th:text="${detailRequest.order.customer != null ? detailRequest.order.customer.fullName : 'Khách lẻ'}"></div>
                     </div>
                     <div class="row mb-2">
                         <div class="col-4 detail-label">Ngày tạo</div>
-                        <div class="col-8 detail-value">` + data.createdAt + `</div>
+                        <div class="col-8 detail-value" th:text="${#temporals.format(detailRequest.createdAt, 'dd/MM/yyyy HH:mm')}"></div>
                     </div>
                     <div class="row mb-2">
                         <div class="col-4 detail-label">Lý do</div>
-                        <div class="col-8 detail-value">` + data.reason + `</div>
+                        <div class="col-8 detail-value" th:text="${detailRequest.reason}"></div>
                     </div>
                     <hr>
                     <h6 class="fw-bold mb-2">Sản phẩm trả lại</h6>
                     <table class="table table-sm item-table">
                         <thead><tr><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead>
                         <tbody>
-                `;
-                    data.items.forEach(i => {
-                        html += `<tr><td>` + i.productName + `</td><td>` + i.quantity + `</td><td>` + i.salePrice.toLocaleString() + `đ</td><td>` + (i.salePrice * i.quantity).toLocaleString() + `đ</td></tr>`;
-                    });
-                    html += `</tbody></table>`;
+                            <tr th:each="item : ${detailRequest.items}">
+                                <td th:text="${item.productUnit.product.name}"></td>
+                                <td th:text="${item.quantity}"></td>
+                                <td th:text="${#numbers.formatDecimal(item.salePrice, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                                <td th:text="${#numbers.formatDecimal(item.salePrice * item.quantity, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                            </tr>
+                        </tbody>
+                    </table>
 
-                    if (data.images && data.images.length > 0) {
-                        html += `<h6 class="fw-bold mb-2">Hình ảnh</h6><div class="d-flex flex-wrap gap-2 mb-2">`;
-                        data.images.forEach(img => {
-                            html += `<img src="/uploads/returns/` + img + `" class="return-image" onclick="window.open(this.src)">`;
-                        });
-                        html += `</div>`;
-                    }
+                    <div th:if="${#lists.size(detailRequest.images) > 0}">
+                        <h6 class="fw-bold mb-2">Hình ảnh</h6>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <a th:each="img : ${detailRequest.images}"
+                               th:href="@{'/return-image/' + ${img.imageUrl}}" target="_blank">
+                                <img th:src="@{'/return-image/' + ${img.imageUrl}}" class="return-image" style="height:80px;object-fit:cover;border-radius:8px;border:1px solid #dee2e6;">
+                            </a>
+                        </div>
+                    </div>
 
-                    if (data.status !== 'PENDING') {
-                        html += `<hr><div class="row mb-2"><div class="col-4 detail-label">Xử lý bởi</div><div class="col-8 detail-value">` + (data.reviewedBy || '') + `</div></div>`;
-                        html += `<div class="row mb-2"><div class="col-4 detail-label">Thời gian</div><div class="col-8 detail-value">` + (data.reviewedAt || '') + `</div></div>`;
-                        if (data.rejectReason) {
-                            html += `<div class="row mb-2"><div class="col-4 detail-label">Lý do từ chối</div><div class="col-8 detail-value text-danger">` + data.rejectReason + `</div></div>`;
-                        }
-                    }
+                    <div th:if="${detailRequest.status != 'PENDING'}">
+                        <hr>
+                        <div class="row mb-2">
+                            <div class="col-4 detail-label">Xử lý bởi</div>
+                            <div class="col-8 detail-value" th:text="${detailRequest.reviewedBy}"></div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-4 detail-label">Thời gian</div>
+                            <div class="col-8 detail-value" th:text="${detailRequest.reviewedAt != null ? #temporals.format(detailRequest.reviewedAt, 'dd/MM/yyyy HH:mm') : ''}"></div>
+                        </div>
+                        <div th:if="${detailRequest.rejectReason}" class="row mb-2">
+                            <div class="col-4 detail-label">Lý do từ chối</div>
+                            <div class="col-8 detail-value text-danger" th:text="${detailRequest.rejectReason}"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" th:if="${detailRequest.status == 'PENDING'}">
+                    <!-- Form từ chối -->
+                    <form method="POST" th:action="@{/return/manage/{id}/reject(id=${detailRequest.id})}"
+                          class="d-inline" onsubmit="return confirm('Nhập lý do từ chối trong form bên dưới?')">
+                        <div class="input-group">
+                            <input type="text" name="reason" class="form-control form-control-sm" placeholder="Lý do từ chối..." required>
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="bi bi-x-circle me-1"></i>Từ chối
+                            </button>
+                        </div>
+                    </form>
+                    <!-- Form duyệt -->
+                    <form method="POST" th:action="@{/return/manage/{id}/approve(id=${detailRequest.id})}"
+                          class="d-inline" onsubmit="return confirm('Xác nhận duyệt yêu cầu trả hàng này?')">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle me-1"></i>Duyệt
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    document.getElementById('detailContent').innerHTML = html;
-                    bootstrap.Modal.getOrCreateInstance(document.getElementById('detailModal')).show();
-                });
-        }
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-        function approveRequest() {
-            const detailModalEl = document.getElementById('detailModal');
-            const detailModal = bootstrap.Modal.getOrCreateInstance(detailModalEl);
-
-            // Chờ modal chi tiết đóng hẳn mới mở modal xác nhận duyệt
-            detailModalEl.addEventListener('hidden.bs.modal', function onHidden() {
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('approveModal')).show();
-                detailModalEl.removeEventListener('hidden.bs.modal', onHidden);
-            }, { once: true });
-
-            detailModal.hide();
-        }
-
-        function confirmApprove() {
-            fetch('/return/api/requests/' + currentRequestId + '/approve', { method: 'POST', headers: { [csrfHeader]: csrfToken } })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.error) { alert(data.error); return; }
-                    alert('Đã duyệt yêu cầu thành công!');
-                    location.reload();
-                })
-                .catch(() => alert('Lỗi hệ thống khi duyệt yêu cầu.'));
-        }
-
-        function rejectRequest() {
-            const detailModalEl = document.getElementById('detailModal');
-            const detailModal = bootstrap.Modal.getOrCreateInstance(detailModalEl);
-
-            // Chờ modal chi tiết đóng hẳn mới mở modal từ chối
-            detailModalEl.addEventListener('hidden.bs.modal', function onHidden() {
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('rejectModal')).show();
-                detailModalEl.removeEventListener('hidden.bs.modal', onHidden);
-            }, { once: true });
-
-            detailModal.hide();
-        }
-
-        function confirmReject() {
-            const reason = document.getElementById('rejectReason').value.trim();
-            if (!reason) { alert('Nhập lý do từ chối'); return; }
-            fetch('/return/api/requests/' + currentRequestId + '/reject', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded', [csrfHeader]: csrfToken },
-                body: 'reason=' + encodeURIComponent(reason)
-            })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.error) { alert(data.error); return; }
-                    alert('Đã từ chối yêu cầu');
-                    location.reload();
-                })
-                .catch(() => alert('Lỗi'));
-        }
+    <!-- Tự động mở modal nếu có detailRequest -->
+    <script th:if="${detailRequest != null}">
+        document.addEventListener('DOMContentLoaded', function() {
+            var modal = new bootstrap.Modal(document.getElementById('detailModal'));
+            modal.show();
+        });
     </script>
 </body>
 

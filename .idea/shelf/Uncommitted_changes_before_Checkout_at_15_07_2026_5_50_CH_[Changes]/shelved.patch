@@ -1,0 +1,1017 @@
+Index: sales-management-software/src/main/java/com/g4fpt/sms/order/controller/PosController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.g4fpt.sms.order.controller;\r\n\r\nimport com.g4fpt.sms.branch.repository.BranchRepository;\r\nimport com.g4fpt.sms.customer.entity.Customer;\r\nimport com.g4fpt.sms.customer.repository.CustomerRepository;\r\nimport com.g4fpt.sms.customer.enums.CustomerStatus;\r\nimport com.g4fpt.sms.order.dto.*;\r\nimport com.g4fpt.sms.order.entity.OrderTransaction;\r\nimport com.g4fpt.sms.order.repository.OrderTransactionRepository;\r\nimport com.g4fpt.sms.order.service.OrderTransactionService;\r\nimport com.g4fpt.sms.product.entity.Category;\r\nimport com.g4fpt.sms.product.entity.ProductUnit;\r\nimport com.g4fpt.sms.product.enums.ProductStatus;\r\nimport com.g4fpt.sms.product.repository.CategoryRepository;\r\nimport com.g4fpt.sms.product.repository.ProductUnitRepository;\r\nimport com.g4fpt.sms.voucher.entity.Voucher;\r\nimport com.g4fpt.sms.voucher.repository.VoucherRepository;\r\nimport com.g4fpt.sms.inventory.entity.Inventory;\r\nimport com.g4fpt.sms.inventory.repository.InventoryRepository;\r\nimport java.time.LocalDateTime;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.http.HttpStatus;\r\nimport org.springframework.http.ResponseEntity;\r\nimport org.springframework.stereotype.Controller;\r\nimport org.springframework.ui.Model;\r\nimport org.springframework.web.bind.annotation.*;\r\nimport org.springframework.web.servlet.mvc.support.RedirectAttributes;\r\nimport org.springframework.security.core.annotation.AuthenticationPrincipal;\r\nimport com.g4fpt.sms.auth.security.CustomUserDetails;\r\nimport java.time.LocalDate;\r\nimport java.time.LocalTime;\r\n\r\nimport java.math.BigDecimal;\r\nimport java.util.HashMap;\r\nimport java.util.List;\r\nimport java.util.Map;\r\nimport java.util.stream.Collectors;\r\n\r\n@Controller\r\n@RequestMapping(\"/pos\")\r\n@SessionAttributes(\"posSession\")\r\n@RequiredArgsConstructor\r\npublic class PosController {\r\n\r\n    private final OrderTransactionService posService;\r\n    private final ProductUnitRepository productUnitRepo;\r\n    private final CategoryRepository categoryRepository;\r\n    private final CustomerRepository customerRepository;\r\n    private final OrderTransactionRepository orderTransactionRepository;\r\n    private final BranchRepository branchRepository;\r\n    private final VoucherRepository voucherRepository;\r\n    private final InventoryRepository inventoryRepository;\r\n\r\n    @ModelAttribute(\"posSession\")\r\n    public PosSessionData setupSession() {\r\n        return new PosSessionData();\r\n    }\r\n\r\n    // =============================================\r\n    // 1. Màn hình POS chính\r\n    // =============================================\r\n    @GetMapping\r\n    public String showPosScreen(\r\n            @ModelAttribute(\"posSession\") PosSessionData session,\r\n            @RequestParam(required = false) Long successOrderId,\r\n            @AuthenticationPrincipal CustomUserDetails userDetails,\r\n            Model model) {\r\n\r\n        if (session.getActiveBranchId() == null && userDetails != null) {\r\n            Long defaultBranchId = userDetails.getBranchId();\r\n            session.setActiveBranchId(defaultBranchId != null ? defaultBranchId : 1L);\r\n        }\r\n\r\n        if (session.getActiveBranchId() != null) {\r\n            branchRepository.findById(session.getActiveBranchId()).ifPresent(branch -> {\r\n                model.addAttribute(\"activeBranch\", branch);\r\n            });\r\n        }\r\n\r\n        boolean isOwner = userDetails != null && userDetails.hasRole(\"OWNER\");\r\n        model.addAttribute(\"isOwner\", isOwner);\r\n        if (isOwner) {\r\n            model.addAttribute(\"branches\", branchRepository.findAll());\r\n        }\r\n\r\n        // Đổi tên từ \"session\" thành \"posData\"\r\n        model.addAttribute(\"posData\", session);\r\n        model.addAttribute(\"cart\", session.getActiveCart());\r\n\r\n        List<Category> categories = categoryRepository.findAll().stream()\r\n                .filter(c -> c.getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE)\r\n                .collect(Collectors.toList());\r\n        model.addAttribute(\"categories\", categories);\r\n\r\n        if (successOrderId != null) {\r\n            orderTransactionRepository.findById(successOrderId).ifPresent(order -> {\r\n                model.addAttribute(\"successOrder\", order);\r\n                if (order.getBranchId() != null) {\r\n                    branchRepository.findById(order.getBranchId()).ifPresent(branch -> {\r\n                        model.addAttribute(\"successBranch\", branch);\r\n                    });\r\n                }\r\n            });\r\n        }\r\n\r\n        populateDropdownUnits(session, model);\r\n        return \"order/pos\";\r\n    }\r\n\r\n    // =============================================\r\n    // 2. Thêm đơn mới\r\n    // =============================================\r\n    @GetMapping(\"/new-order\")\r\n    public String newOrder(\r\n            @ModelAttribute(\"posSession\") PosSessionData session,\r\n            RedirectAttributes ra) {\r\n\r\n        if (!session.canAddOrder()) {\r\n            ra.addFlashAttribute(\"error\", \"Tối đa 5 đơn hàng cùng lúc!\");\r\n        } else {\r\n            session.addNewOrder();\r\n        }\r\n        return \"redirect:/pos\";\r\n    }\r\n\r\n    // =============================================\r\n    // 3. Chuyển đơn\r\n    // =============================================\r\n    @GetMapping(\"/switch/{index}\")\r\n    public String switchOrder(\r\n            @PathVariable int index,\r\n            @ModelAttribute(\"posSession\") PosSessionData session) {\r\n\r\n        session.switchOrder(index);\r\n        return \"redirect:/pos\";\r\n    }\r\n\r\n    @GetMapping(\"/change-branch\")\r\n    public String changeBranch(\r\n            @RequestParam Long branchId,\r\n            @ModelAttribute(\"posSession\") PosSessionData session,\r\n            @AuthenticationPrincipal CustomUserDetails userDetails) {\r\n\r\n        if (userDetails != null && userDetails.hasRole(\"OWNER\")) {\r\n            session.setActiveBranchId(branchId);\r\n        }\r\n        return \"redirect:/pos\";\r\n    }\r\n\r\n    // =============================================\r\n    // 4. Đóng đơn\r\n    // =============================================\r\n    @GetMapping(\"/close/{index}\")\r\n    public String closeOrder(\r\n            @PathVariable int index,\r\n            @ModelAttribute(\"posSession\") PosSessionData session) {\r\n\r\n        session.removeOrder(index);\r\n        return \"redirect:/pos\";\r\n    }\r\n\r\n    // =============================================\r\n    // 5. Thêm sản phẩm bằng SKU/barcode\r\n    // =============================================\r\n    @GetMapping(\"/add\")\r\n    public String addToCart(\r\n            @RequestParam String keyword,\r\n            @ModelAttribute(\"posSession\") PosSessionData session,\r\n            RedirectAttributes ra) {\r\n\r\n        String kw = keyword.trim();\r\n        ProductUnit pu = productUnitRepo.findBySku(kw)\r\n                .orElseGet(() -> productUnitRepo.findByBarcodeUnit(kw).orElse(null));\r\n\r\n        if (pu != null && pu.getProduct() != null && pu.getProduct().getStatus() == ProductStatus.ACTIVE) {\r\n            addProductToCart(session.getActiveCart(), pu);\r\n        } else {\r\n            ra.addFlashAttribute(\"error\", \"Không tìm thấy sản phẩm hoặc sản phẩm đã ngưng hoạt động: \" + kw);\r\n        }\r\n        return \"redirect:/pos\";\r\n    }\r\n\r\n    // =============================================\r\n    // 6. Thêm sản phẩm bằng ID (từ modal)\r\n    // =============================================\r\n    @GetMapping(\"/add-by-id\")\r\n    public String addToCartById(\r\n            @RequestParam Long productUnitId,\r\n            @ModelAttribute(\"posSession\") PosSessionData session,\r\n            RedirectAttributes ra) {\r\n\r\n        ProductUnit pu = productUnitRepo.findById(productUnitId).orElse(null);\r\n        if (pu != null && pu.getProduct() != null && pu.getProduct().getStatus() == ProductStatus.ACTIVE) {\r\n            addProductToCart(session.getActiveCart(), pu);\r\n        } else {\r\n            ra.addFlashAttribute(\"error\", \"Không tìm thấy sản phẩm hoặc sản phẩm đã ngưng hoạt động!\");\r\n        }\r\n        return \"redirect:/pos\";\r\n    }\r\n\r\n    // =============================================\r\n    // 7. Cập nhật số lượng\r\n    // =============================================\r\n    @GetMapping(\"/update-qty\")\r\n    public String updateQuantity(\r\n            @RequestParam int index,\r\n            @RequestParam int quantity,\r\n            @ModelAttribute(\"posSession\") PosSessionData session) {\r\n\r\n        PosCart cart = session.getActiveCart();\r\n        if (index >= 0 && index < cart.getItems().size()) {\r\n            if (quantity <= 0) {\r\n                cart.getItems().remove(index);\r\n            } else {\r\n                cart.getItems().get(index).setQuantity(quantity);\r\n            }\r\n        }\r\n        return \"redirect:/pos\";\r\n    }\r\n\r\n    @GetMapping(\"/update-unit\")\r\n    public String updateUnit(\r\n            @RequestParam int index,\r\n            @RequestParam Long productUnitId,\r\n            @ModelAttribute(\"posSession\") PosSessionData session) {\r\n\r\n        PosCart cart = session.getActiveCart();\r\n        if (index >= 0 && index < cart.getItems().size()) {\r\n            ProductUnit pu = productUnitRepo.findById(productUnitId).orElse(null);\r\n            if (pu != null) {\r\n                PosCartItem item = cart.getItems().get(index);\r\n                item.setProductUnitId(pu.getId());\r\n                item.setSku(pu.getSku());\r\n                item.setPrice(pu.getPrice());\r\n                item.setUnitName(pu.getUnit() != null ? pu.getUnit().getName() : \"\");\r\n            }\r\n        }\r\n        return \"redirect:/pos\";\r\n    }\r\n\r\n    // =============================================\r\n    // 8. Xóa sản phẩm\r\n    // =============================================\r\n    @GetMapping(\"/remove\")\r\n    public String removeCartItem(\r\n            @RequestParam int index,\r\n            @ModelAttribute(\"posSession\") PosSessionData session) {\r\n\r\n        PosCart cart = session.getActiveCart();\r\n        if (index >= 0 && index < cart.getItems().size()) {\r\n            cart.getItems().remove(index);\r\n        }\r\n        return \"redirect:/pos\";\r\n    }\r\n\r\n    // =============================================\r\n    // 9. Xóa hết giỏ\r\n    // =============================================\r\n    @GetMapping(\"/clear\")\r\n    public String clearCart(@ModelAttribute(\"posSession\") PosSessionData session) {\r\n        PosCart cart = session.getActiveCart();\r\n        cart.getItems().clear();\r\n        cart.setCustomerId(null);\r\n        cart.setCustomerName(null);\r\n        cart.setCustomerPhone(null);\r\n        cart.setVoucherCode(null);\r\n        cart.setVoucherDiscount(BigDecimal.ZERO);\r\n        cart.setGivenAmount(BigDecimal.ZERO);\r\n        return \"redirect:/pos\";\r\n    }\r\n\r\n    @GetMapping(\"/search-customer\")\r\n    public String findCustomers(\r\n            @RequestParam String phone,\r\n            @ModelAttribute(\"posSession\") PosSessionData session,\r\n            @AuthenticationPrincipal CustomUserDetails userDetails,\r\n            Model model) {\r\n\r\n        String keyword = phone.trim();\r\n        if (keyword.isEmpty()) {\r\n            return \"redirect:/pos\";\r\n        }\r\n\r\n        // Tìm kiếm khách hàng\r\n        org.springframework.data.domain.Page<Customer> page = customerRepository\r\n                .searchActiveByPhoneOrName(\r\n                        CustomerStatus.ACTIVE.name(), keyword,\r\n                        org.springframework.data.domain.PageRequest.of(0, 5));\r\n\r\n        List<Customer> result = page.getContent();\r\n        if (result.isEmpty()) {\r\n            model.addAttribute(\"customerSearchError\", \"Không tìm thấy khách hàng\");\r\n        } else {\r\n            // Force init lazy-loaded customerRank to avoid LazyInitializationException\r\n            result.forEach(c -> {\r\n                if (c.getCustomerRank() != null) {\r\n                    c.getCustomerRank().getName();\r\n                }\r\n            });\r\n            model.addAttribute(\"customerSearchResults\", result);\r\n        }\r\n        model.addAttribute(\"searchedPhone\", phone);\r\n\r\n        // === Setup các model attributes giống showPosScreen ===\r\n        if (session.getActiveBranchId() == null && userDetails != null) {\r\n            Long defaultBranchId = userDetails.getBranchId();\r\n            session.setActiveBranchId(defaultBranchId != null ? defaultBranchId : 1L);\r\n        }\r\n        if (session.getActiveBranchId() != null) {\r\n            branchRepository.findById(session.getActiveBranchId()).ifPresent(branch -> {\r\n                model.addAttribute(\"activeBranch\", branch);\r\n            });\r\n        }\r\n        boolean isOwner = userDetails != null && userDetails.hasRole(\"OWNER\");\r\n        model.addAttribute(\"isOwner\", isOwner);\r\n        if (isOwner) {\r\n            model.addAttribute(\"branches\", branchRepository.findAll());\r\n        }\r\n        model.addAttribute(\"posData\", session);\r\n        model.addAttribute(\"cart\", session.getActiveCart());\r\n        List<Category> categories = categoryRepository.findAll().stream()\r\n                .filter(c -> c.getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE)\r\n                .collect(Collectors.toList());\r\n        model.addAttribute(\"categories\", categories);\r\n\r\n        populateDropdownUnits(session, model);\r\n        return \"order/pos\";\r\n    }\r\n\r\n    @GetMapping(\"/sales-history\")\r\n    public String getSalesHistory(\r\n            @AuthenticationPrincipal CustomUserDetails userDetails,\r\n            @RequestParam(required = false) String date,\r\n            Model model) {\r\n\r\n        if (userDetails == null) {\r\n            return \"redirect:/login\";\r\n        }\r\n\r\n        boolean isOwner = userDetails.hasRole(\"OWNER\");\r\n        LocalDate localDate = (date != null && !date.isBlank())\r\n                ? LocalDate.parse(date)\r\n                : LocalDate.now();\r\n\r\n        LocalDateTime startOfDay = localDate.atStartOfDay();\r\n        LocalDateTime endOfDay = localDate.atTime(LocalTime.MAX);\r\n\r\n        List<OrderTransaction> orders;\r\n        if (isOwner) {\r\n            orders = orderTransactionRepository.findByDateRange(startOfDay, endOfDay);\r\n        } else {\r\n            orders = orderTransactionRepository.findByCreatedByAndCreatedAtBetweenOrderByCreatedAtDesc(\r\n                    userDetails.getEmployee().getId(), startOfDay, endOfDay);\r\n        }\r\n\r\n        Map<Long, String> branchNames = new HashMap<>();\r\n        orders.forEach(order -> {\r\n            if (order.getBranchId() != null) {\r\n                branchNames.computeIfAbsent(order.getBranchId(),\r\n                        id -> branchRepository.findById(id).map(b -> b.getName()).orElse(\"SMS STORE\"));\r\n            }\r\n        });\r\n\r\n        model.addAttribute(\"isOwner\", isOwner);\r\n        model.addAttribute(\"orders\", orders);\r\n        model.addAttribute(\"branchNames\", branchNames);\r\n        model.addAttribute(\"filterDate\", localDate.toString());\r\n\r\n        return \"order/pos-history\";\r\n    }\r\n\r\n    @GetMapping(\"/sales-history/{id}\")\r\n    public String getOrderDetail(@PathVariable Long id, Model model) {\r\n        OrderTransaction order = orderTransactionRepository.findById(id)\r\n                .orElseThrow(() -> new RuntimeException(\"Không tìm thấy đơn hàng\"));\r\n\r\n        model.addAttribute(\"order\", order);\r\n\r\n        String branchName = \"SMS STORE\";\r\n        String branchAddress = \"123 Đường Láng, Đống Đa, Hà Nội\";\r\n        String branchPhone = \"0987 654 321\";\r\n        if (order.getBranchId() != null) {\r\n            var branchOpt = branchRepository.findById(order.getBranchId());\r\n            if (branchOpt.isPresent()) {\r\n                branchName = branchOpt.get().getName();\r\n                branchAddress = branchOpt.get().getAddress();\r\n                branchPhone = branchOpt.get().getPhone();\r\n            }\r\n        }\r\n        model.addAttribute(\"branchName\", branchName);\r\n        model.addAttribute(\"branchAddress\", branchAddress);\r\n        model.addAttribute(\"branchPhone\", branchPhone);\r\n\r\n        return \"order/pos-history-detail\";\r\n    }\r\n\r\n    // =============================================\r\n    // 11. Gán khách hàng\r\n    // =============================================\r\n    @GetMapping(\"/set-customer\")\r\n    public String setCustomer(\r\n            @RequestParam Long customerId,\r\n            @RequestParam String customerName,\r\n            @RequestParam String customerPhone,\r\n            @ModelAttribute(\"posSession\") PosSessionData session,\r\n            RedirectAttributes ra) {\r\n\r\n        Customer customer = customerRepository.findById(customerId).orElse(null);\r\n        if (customer == null || customer.getStatus() != com.g4fpt.sms.customer.enums.CustomerStatus.ACTIVE) {\r\n            ra.addFlashAttribute(\"error\", \"Khách hàng này hiện đang ngừng hoạt động hoặc không tồn tại!\");\r\n            return \"redirect:/pos\";\r\n        }\r\n\r\n        PosCart cart = session.getActiveCart();\r\n        cart.setCustomerId(customerId);\r\n        cart.setCustomerName(customerName);\r\n        cart.setCustomerPhone(customerPhone);\r\n        return \"redirect:/pos\";\r\n    }\r\n\r\n    // =============================================\r\n    // 12. Xóa khách hàng\r\n    // =============================================\r\n    @GetMapping(\"/remove-customer\")\r\n    public String removeCustomer(@ModelAttribute(\"posSession\") PosSessionData session) {\r\n        PosCart cart = session.getActiveCart();\r\n        cart.setCustomerId(null);\r\n        cart.setCustomerName(null);\r\n        cart.setCustomerPhone(null);\r\n        return \"redirect:/pos\";\r\n    }\r\n\r\n    // =============================================\r\n    // 13. API kiểm tra voucher\r\n    // =============================================\r\n    @PostMapping(\"/apply-voucher\")\r\n    public String applyVoucher(\r\n            @RequestParam String code,\r\n            @ModelAttribute(\"posSession\") PosSessionData session,\r\n            RedirectAttributes ra) {\r\n\r\n        PosCart cart = session.getActiveCart();\r\n        try {\r\n            Voucher voucher = posService.validateVoucher(code, cart.getTotalAmount(), cart.getCustomerId());\r\n            BigDecimal discount;\r\n            if (voucher.getDiscountType().name().equals(\"PERCENT\")) {\r\n                discount = cart.getTotalAmount()\r\n                        .multiply(voucher.getDiscountValue())\r\n                        .divide(new BigDecimal(\"100\"));\r\n                if (voucher.getMaxDiscountAmount() != null) {\r\n                    discount = discount.min(voucher.getMaxDiscountAmount());\r\n                }\r\n            } else {\r\n                discount = voucher.getDiscountValue();\r\n            }\r\n            cart.setVoucherCode(code);\r\n            cart.setVoucherDiscount(discount);\r\n            ra.addFlashAttribute(\"voucherSuccess\", \"Áp dụng thành công! Giảm \" + discount + \"đ\");\r\n        } catch (Exception e) {\r\n            ra.addFlashAttribute(\"voucherError\", e.getMessage());\r\n        }\r\n        return \"redirect:/pos\";\r\n    }\r\n\r\n    // =============================================\r\n    // 14. Xóa voucher\r\n    // =============================================\r\n    @GetMapping(\"/remove-voucher\")\r\n    public String removeVoucher(@ModelAttribute(\"posSession\") PosSessionData session) {\r\n        PosCart cart = session.getActiveCart();\r\n        cart.setVoucherCode(null);\r\n        cart.setVoucherDiscount(BigDecimal.ZERO);\r\n        return \"redirect:/pos\";\r\n    }\r\n\r\n    // =============================================\r\n    // 15. API lấy sản phẩm theo category (cho modal)\r\n    // =============================================\r\n    @GetMapping(\"/product-list\")\r\n    public String getProductList(\r\n            @ModelAttribute(\"posSession\") PosSessionData session,\r\n            @RequestParam(required = false) Long categoryId,\r\n            @RequestParam(required = false) String keyword,\r\n            Model model) {\r\n\r\n        List<ProductUnit> all = productUnitRepo.findAll().stream()\r\n                .filter(pu -> pu.getProduct() != null\r\n                        && pu.getProduct().getStatus() == ProductStatus.ACTIVE\r\n                        && pu.getProduct().getCategory() != null\r\n                        && pu.getProduct().getCategory().getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE)\r\n                .collect(Collectors.toList());\r\n\r\n        if (keyword != null && !keyword.isBlank()) {\r\n            String kw = keyword.trim().toLowerCase();\r\n            all = all.stream()\r\n                    .filter(pu -> pu.getProduct().getName().toLowerCase().contains(kw)\r\n                            || pu.getSku().toLowerCase().contains(kw))\r\n                    .collect(Collectors.toList());\r\n        } else if (categoryId != null) {\r\n            all = all.stream()\r\n                    .filter(pu -> pu.getProduct().getCategory() != null\r\n                            && pu.getProduct().getCategory().getId().equals(categoryId))\r\n                    .collect(Collectors.toList());\r\n        }\r\n\r\n        // Lấy tồn kho thực tế cho từng sản phẩm tại chi nhánh đang chọn\r\n        Long branchId = session.getActiveBranchId();\r\n        Map<Long, Integer> stockMap = new HashMap<>();\r\n        if (branchId != null) {\r\n            for (ProductUnit pu : all) {\r\n                int stock = inventoryRepository.findByBranchIdAndProductUnitId(branchId, pu.getId())\r\n                        .map(Inventory::getStock)\r\n                        .orElse(0);\r\n                stockMap.put(pu.getId(), stock);\r\n            }\r\n        }\r\n\r\n        model.addAttribute(\"products\", all);\r\n        model.addAttribute(\"stockMap\", stockMap);\r\n\r\n        List<Category> categories = categoryRepository.findAll().stream()\r\n                .filter(c -> c.getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE)\r\n                .collect(Collectors.toList());\r\n        model.addAttribute(\"categories\", categories);\r\n        model.addAttribute(\"keyword\", keyword);\r\n        model.addAttribute(\"categoryId\", categoryId);\r\n\r\n        return \"order/pos-product-list\";\r\n    }\r\n\r\n    // =============================================\r\n    // 15b. API lấy danh sách voucher khả dụng theo khách hàng\r\n    // =============================================\r\n    @GetMapping(\"/voucher-list\")\r\n    public String getAvailableVouchers(\r\n            @ModelAttribute(\"posSession\") PosSessionData session,\r\n            Model model) {\r\n\r\n        Long customerId = session.getActiveCart().getCustomerId();\r\n        if (customerId == null) {\r\n            model.addAttribute(\"vouchers\", new java.util.ArrayList<>());\r\n            return \"order/pos-voucher-list\";\r\n        }\r\n\r\n        LocalDateTime now = LocalDateTime.now();\r\n        List<Voucher> activeVouchers = voucherRepository.findAll().stream()\r\n                .filter(v -> v.getStatus() == com.g4fpt.sms.voucher.enums.VoucherStatus.ACTIVE)\r\n                .filter(v -> v.getStartAt().isBefore(now) && v.getEndAt().isAfter(now))\r\n                .collect(Collectors.toList());\r\n\r\n        Customer customer = customerRepository.findById(customerId).orElse(null);\r\n        final Customer finalCust = customer;\r\n\r\n        List<Voucher> result = activeVouchers.stream()\r\n                .filter(v -> {\r\n                    if (v.getCustomerRank() == null) return true;\r\n                    if (finalCust == null || finalCust.getCustomerRank() == null) {\r\n                        return v.getCustomerRank().getConditionTotalRevenue().compareTo(BigDecimal.ZERO) == 0;\r\n                    }\r\n                    return finalCust.getCustomerRank().getConditionTotalRevenue()\r\n                            .compareTo(v.getCustomerRank().getConditionTotalRevenue()) >= 0;\r\n                })\r\n                .collect(Collectors.toList());\r\n\r\n        model.addAttribute(\"vouchers\", result);\r\n        return \"order/pos-voucher-list\";\r\n    }\r\n\r\n    // =============================================\r\n    // 16. Thanh toán\r\n    // =============================================\r\n    @PostMapping(\"/checkout\")\r\n    public String checkoutOrder(\r\n            @ModelAttribute(\"posSession\") PosSessionData session,\r\n            @RequestParam(required = false) String note,\r\n            @RequestParam Long paymentMethodId,\r\n            @RequestParam BigDecimal givenAmount,\r\n            @AuthenticationPrincipal CustomUserDetails userDetails,\r\n            RedirectAttributes ra) {\r\n\r\n        PosCart cart = session.getActiveCart();\r\n        if (cart.getItems().isEmpty()) {\r\n            ra.addFlashAttribute(\"error\", \"Giỏ hàng trống!\");\r\n            return \"redirect:/pos\";\r\n        }\r\n\r\n        try {\r\n            POSCheckoutRequest request = new POSCheckoutRequest();\r\n            if (userDetails != null && userDetails.getEmployee() != null) {\r\n                request.setEmployeeId(userDetails.getEmployee().getId());\r\n                Long branchId = session.getActiveBranchId();\r\n                if (branchId == null) {\r\n                    branchId = userDetails.getBranchId();\r\n                }\r\n                request.setBranchId(branchId != null ? branchId : 1L);\r\n            } else {\r\n                request.setEmployeeId(1L);\r\n                request.setBranchId(session.getActiveBranchId() != null ? session.getActiveBranchId() : 1L);\r\n            }\r\n            request.setCustomerId(cart.getCustomerId());\r\n            request.setVoucherCode(cart.getVoucherCode());\r\n            request.setPaymentMethodId(paymentMethodId);\r\n            request.setPaidAmount(givenAmount);\r\n            request.setVatRate(cart.getVatRate());\r\n            request.setNote(note);\r\n            request.setItems(cart.getItems().stream().map(item -> {\r\n                POSCartItemRequest req = new POSCartItemRequest();\r\n                req.setProductUnitId(item.getProductUnitId());\r\n                req.setQuantity(item.getQuantity());\r\n                return req;\r\n            }).collect(Collectors.toList()));\r\n\r\n            OrderTransaction savedOrder = posService.processCheckout(request);\r\n\r\n            // Đóng đơn hiện tại sau khi thanh toán\r\n            session.removeOrder(session.getActiveIndex());\r\n\r\n            ra.addFlashAttribute(\"success\",\r\n                    \"Thanh toán thành công! Mã đơn: \" + savedOrder.getCode());\r\n            return \"redirect:/pos?successOrderId=\" + savedOrder.getId();\r\n\r\n        } catch (Exception e) {\r\n            ra.addFlashAttribute(\"error\", e.getMessage());\r\n            return \"redirect:/pos\";\r\n        }\r\n    }\r\n\r\n    // =============================================\r\n    // Helper\r\n    // =============================================\r\n    private void addProductToCart(PosCart cart, ProductUnit pu) {\r\n        PosCartItem existing = cart.getItems().stream()\r\n                .filter(i -> i.getProductUnitId().equals(pu.getId()))\r\n                .findFirst().orElse(null);\r\n\r\n        if (existing != null) {\r\n            existing.setQuantity(existing.getQuantity() + 1);\r\n        } else {\r\n            PosCartItem newItem = new PosCartItem();\r\n            newItem.setProductUnitId(pu.getId());\r\n            newItem.setSku(pu.getSku());\r\n            newItem.setName(pu.getProduct().getName());\r\n            newItem.setPrice(pu.getPrice());\r\n            newItem.setQuantity(1);\r\n            newItem.setUnitName(pu.getUnit() != null ? pu.getUnit().getName() : \"\");\r\n            newItem.setImageUrl(pu.getProduct().getImageUrl());\r\n            cart.getItems().add(newItem);\r\n        }\r\n    }\r\n\r\n    private void populateDropdownUnits(PosSessionData session, Model model) {\r\n        Map<Long, List<ProductUnit>> cartItemUnitsMap = new HashMap<>();\r\n        for (PosCartItem item : session.getActiveCart().getItems()) {\r\n            productUnitRepo.findById(item.getProductUnitId()).ifPresent(pu -> {\r\n                if (pu.getProduct() != null) {\r\n                    List<ProductUnit> units = productUnitRepo.findByProductIdWithUnit(pu.getProduct().getId());\r\n                    cartItemUnitsMap.put(item.getProductUnitId(), units);\r\n                }\r\n            });\r\n        }\r\n        model.addAttribute(\"cartItemUnitsMap\", cartItemUnitsMap);\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/sales-management-software/src/main/java/com/g4fpt/sms/order/controller/PosController.java b/sales-management-software/src/main/java/com/g4fpt/sms/order/controller/PosController.java
+--- a/sales-management-software/src/main/java/com/g4fpt/sms/order/controller/PosController.java	(revision abeeab21299c8a2c9307d820c2ecf7bbe45584dc)
++++ b/sales-management-software/src/main/java/com/g4fpt/sms/order/controller/PosController.java	(date 1784112327500)
+@@ -1,39 +1,27 @@
+ package com.g4fpt.sms.order.controller;
+ 
+-import com.g4fpt.sms.branch.repository.BranchRepository;
+-import com.g4fpt.sms.customer.entity.Customer;
+-import com.g4fpt.sms.customer.repository.CustomerRepository;
+-import com.g4fpt.sms.customer.enums.CustomerStatus;
++import com.g4fpt.sms.auth.dto.SessionUser;
++import com.g4fpt.sms.auth.util.SessionConstants;
+ import com.g4fpt.sms.order.dto.*;
+ import com.g4fpt.sms.order.entity.OrderTransaction;
+ import com.g4fpt.sms.order.repository.OrderTransactionRepository;
+ import com.g4fpt.sms.order.service.OrderTransactionService;
+-import com.g4fpt.sms.product.entity.Category;
+ import com.g4fpt.sms.product.entity.ProductUnit;
+-import com.g4fpt.sms.product.enums.ProductStatus;
+-import com.g4fpt.sms.product.repository.CategoryRepository;
+ import com.g4fpt.sms.product.repository.ProductUnitRepository;
+-import com.g4fpt.sms.voucher.entity.Voucher;
+ import com.g4fpt.sms.voucher.repository.VoucherRepository;
+-import com.g4fpt.sms.inventory.entity.Inventory;
+ import com.g4fpt.sms.inventory.repository.InventoryRepository;
+-import java.time.LocalDateTime;
++import com.g4fpt.sms.customer.repository.CustomerRepository;
++import com.g4fpt.sms.branch.repository.BranchRepository;
++import com.g4fpt.sms.product.enums.ProductStatus;
++import jakarta.servlet.http.HttpSession;
+ import lombok.RequiredArgsConstructor;
+-import org.springframework.http.HttpStatus;
+-import org.springframework.http.ResponseEntity;
+ import org.springframework.stereotype.Controller;
+ import org.springframework.ui.Model;
+ import org.springframework.web.bind.annotation.*;
+ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+-import com.g4fpt.sms.auth.security.CustomUserDetails;
+-import java.time.LocalDate;
+-import java.time.LocalTime;
+ 
+ import java.math.BigDecimal;
+-import java.util.HashMap;
+-import java.util.List;
+-import java.util.Map;
++import java.util.*;
+ import java.util.stream.Collectors;
+ 
+ @Controller
+@@ -44,11 +32,11 @@
+ 
+     private final OrderTransactionService posService;
+     private final ProductUnitRepository productUnitRepo;
+-    private final CategoryRepository categoryRepository;
++    private final com.g4fpt.sms.product.repository.CategoryRepository categoryRepository;
+     private final CustomerRepository customerRepository;
+-    private final OrderTransactionRepository orderTransactionRepository;
+-    private final BranchRepository branchRepository;
+-    private final VoucherRepository voucherRepository;
++    private final OrderTransactionRepository orderRepo;
++    private final BranchRepository branchRepo;
++    private final com.g4fpt.sms.voucher.repository.VoucherRepository voucherRepository;
+     private final InventoryRepository inventoryRepository;
+ 
+     @ModelAttribute("posSession")
+@@ -56,403 +44,180 @@
+         return new PosSessionData();
+     }
+ 
+-    // =============================================
+-    // 1. Màn hình POS chính
+-    // =============================================
++    // ============== Main ==============
+     @GetMapping
+-    public String showPosScreen(
+-            @ModelAttribute("posSession") PosSessionData session,
++    public String showPosScreen(@ModelAttribute("posSession") PosSessionData session,
+             @RequestParam(required = false) Long successOrderId,
+-            @AuthenticationPrincipal CustomUserDetails userDetails,
+-            Model model) {
+-
+-        if (session.getActiveBranchId() == null && userDetails != null) {
+-            Long defaultBranchId = userDetails.getBranchId();
+-            session.setActiveBranchId(defaultBranchId != null ? defaultBranchId : 1L);
+-        }
+-
+-        if (session.getActiveBranchId() != null) {
+-            branchRepository.findById(session.getActiveBranchId()).ifPresent(branch -> {
+-                model.addAttribute("activeBranch", branch);
+-            });
+-        }
+-
+-        boolean isOwner = userDetails != null && userDetails.hasRole("OWNER");
+-        model.addAttribute("isOwner", isOwner);
+-        if (isOwner) {
+-            model.addAttribute("branches", branchRepository.findAll());
+-        }
+-
+-        // Đổi tên từ "session" thành "posData"
+-        model.addAttribute("posData", session);
+-        model.addAttribute("cart", session.getActiveCart());
+-
+-        List<Category> categories = categoryRepository.findAll().stream()
+-                .filter(c -> c.getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE)
+-                .collect(Collectors.toList());
+-        model.addAttribute("categories", categories);
+-
+-        if (successOrderId != null) {
+-            orderTransactionRepository.findById(successOrderId).ifPresent(order -> {
++            HttpSession httpSession, Model model) {
++        SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
++        initSessionBranch(session, user);
++        buildPosModel(session, user, model);
++        if (successOrderId != null)
++            orderRepo.findById(successOrderId).ifPresent(order -> {
+                 model.addAttribute("successOrder", order);
+-                if (order.getBranchId() != null) {
+-                    branchRepository.findById(order.getBranchId()).ifPresent(branch -> {
+-                        model.addAttribute("successBranch", branch);
+-                    });
+-                }
++                if (order.getBranchId() != null)
++                    branchRepo.findById(order.getBranchId()).ifPresent(b -> model.addAttribute("successBranch", b));
+             });
+-        }
+-
+-        populateDropdownUnits(session, model);
+         return "order/pos";
+     }
+ 
+-    // =============================================
+-    // 2. Thêm đơn mới
+-    // =============================================
++    // ---------- Order tabs ----------
+     @GetMapping("/new-order")
+-    public String newOrder(
+-            @ModelAttribute("posSession") PosSessionData session,
+-            RedirectAttributes ra) {
+-
+-        if (!session.canAddOrder()) {
++    public String newOrder(@ModelAttribute("posSession") PosSessionData s, RedirectAttributes ra) {
++        if (!s.canAddOrder())
+             ra.addFlashAttribute("error", "Tối đa 5 đơn hàng cùng lúc!");
+-        } else {
+-            session.addNewOrder();
+-        }
++        else
++            s.addNewOrder();
+         return "redirect:/pos";
+     }
+ 
+-    // =============================================
+-    // 3. Chuyển đơn
+-    // =============================================
+     @GetMapping("/switch/{index}")
+-    public String switchOrder(
+-            @PathVariable int index,
+-            @ModelAttribute("posSession") PosSessionData session) {
+-
+-        session.switchOrder(index);
++    public String switchOrder(@PathVariable int index, @ModelAttribute("posSession") PosSessionData s) {
++        s.switchOrder(index);
+         return "redirect:/pos";
+     }
+ 
+-    @GetMapping("/change-branch")
+-    public String changeBranch(
+-            @RequestParam Long branchId,
+-            @ModelAttribute("posSession") PosSessionData session,
+-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+-
+-        if (userDetails != null && userDetails.hasRole("OWNER")) {
+-            session.setActiveBranchId(branchId);
+-        }
++    @GetMapping("/close/{index}")
++    public String closeOrder(@PathVariable int index, @ModelAttribute("posSession") PosSessionData s) {
++        s.removeOrder(index);
+         return "redirect:/pos";
+     }
+ 
+-    // =============================================
+-    // 4. Đóng đơn
+-    // =============================================
+-    @GetMapping("/close/{index}")
+-    public String closeOrder(
+-            @PathVariable int index,
+-            @ModelAttribute("posSession") PosSessionData session) {
+-
+-        session.removeOrder(index);
++    @GetMapping("/clear")
++    public String clearCart(@ModelAttribute("posSession") PosSessionData s) {
++        var cart = s.getActiveCart();
++        cart.getItems().clear();
++        cart.setCustomerId(null);
++        cart.setCustomerName(null);
++        cart.setCustomerPhone(null);
++        cart.setCustomerAvailablePoints(0);
++        cart.setUsePoints(false);
++        cart.setVoucherCode(null);
++        cart.setVoucherDiscount(BigDecimal.ZERO);
++        cart.setGivenAmount(BigDecimal.ZERO);
+         return "redirect:/pos";
+     }
+ 
+-    // =============================================
+-    // 5. Thêm sản phẩm bằng SKU/barcode
+-    // =============================================
++    // ---------- Cart (add/update/remove items) ----------
+     @GetMapping("/add")
+-    public String addToCart(
+-            @RequestParam String keyword,
+-            @ModelAttribute("posSession") PosSessionData session,
++    public String addToCart(@RequestParam("keyword") String keyword, @ModelAttribute("posSession") PosSessionData s,
+             RedirectAttributes ra) {
+-
+         String kw = keyword.trim();
+         ProductUnit pu = productUnitRepo.findBySku(kw)
+                 .orElseGet(() -> productUnitRepo.findByBarcodeUnit(kw).orElse(null));
+-
+-        if (pu != null && pu.getProduct() != null && pu.getProduct().getStatus() == ProductStatus.ACTIVE) {
+-            addProductToCart(session.getActiveCart(), pu);
+-        } else {
++        if (pu != null && pu.getProduct() != null && pu.getProduct().getStatus() == ProductStatus.ACTIVE)
++            addProductToCart(s.getActiveCart(), pu);
++        else
+             ra.addFlashAttribute("error", "Không tìm thấy sản phẩm hoặc sản phẩm đã ngưng hoạt động: " + kw);
+-        }
+         return "redirect:/pos";
+     }
+ 
+-    // =============================================
+-    // 6. Thêm sản phẩm bằng ID (từ modal)
+-    // =============================================
+     @GetMapping("/add-by-id")
+-    public String addToCartById(
+-            @RequestParam Long productUnitId,
+-            @ModelAttribute("posSession") PosSessionData session,
+-            RedirectAttributes ra) {
+-
++    public String addToCartById(@RequestParam Long productUnitId,
++            @ModelAttribute("posSession") PosSessionData s, RedirectAttributes ra) {
+         ProductUnit pu = productUnitRepo.findById(productUnitId).orElse(null);
+         if (pu != null && pu.getProduct() != null && pu.getProduct().getStatus() == ProductStatus.ACTIVE) {
+-            addProductToCart(session.getActiveCart(), pu);
+-        } else {
++            addProductToCart(s.getActiveCart(), pu);
++            ra.addFlashAttribute("success", "Đã thêm sản phẩm \"" + pu.getProduct().getName() + "\" vào giỏ hàng!");
++        } else
+             ra.addFlashAttribute("error", "Không tìm thấy sản phẩm hoặc sản phẩm đã ngưng hoạt động!");
+-        }
+         return "redirect:/pos";
+     }
+ 
+-    // =============================================
+-    // 7. Cập nhật số lượng
+-    // =============================================
+     @GetMapping("/update-qty")
+-    public String updateQuantity(
+-            @RequestParam int index,
+-            @RequestParam int quantity,
+-            @ModelAttribute("posSession") PosSessionData session) {
+-
+-        PosCart cart = session.getActiveCart();
+-        if (index >= 0 && index < cart.getItems().size()) {
+-            if (quantity <= 0) {
+-                cart.getItems().remove(index);
+-            } else {
+-                cart.getItems().get(index).setQuantity(quantity);
+-            }
++    public String updateQuantity(@RequestParam int index, @RequestParam int quantity,
++            @ModelAttribute("posSession") PosSessionData s) {
++        var items = s.getActiveCart().getItems();
++        if (index >= 0 && index < items.size()) {
++            if (quantity <= 0)
++                items.remove(index);
++            else
++                items.get(index).setQuantity(quantity);
+         }
+         return "redirect:/pos";
+     }
+ 
+     @GetMapping("/update-unit")
+-    public String updateUnit(
+-            @RequestParam int index,
+-            @RequestParam Long productUnitId,
+-            @ModelAttribute("posSession") PosSessionData session) {
+-
+-        PosCart cart = session.getActiveCart();
+-        if (index >= 0 && index < cart.getItems().size()) {
+-            ProductUnit pu = productUnitRepo.findById(productUnitId).orElse(null);
+-            if (pu != null) {
+-                PosCartItem item = cart.getItems().get(index);
++    public String updateUnit(@RequestParam int index, @RequestParam Long productUnitId,
++            @ModelAttribute("posSession") PosSessionData s) {
++        var items = s.getActiveCart().getItems();
++        if (index >= 0 && index < items.size())
++            productUnitRepo.findById(productUnitId).ifPresent(pu -> {
++                var item = items.get(index);
+                 item.setProductUnitId(pu.getId());
+                 item.setSku(pu.getSku());
+                 item.setPrice(pu.getPrice());
+                 item.setUnitName(pu.getUnit() != null ? pu.getUnit().getName() : "");
+-            }
+-        }
++            });
+         return "redirect:/pos";
+     }
+ 
+-    // =============================================
+-    // 8. Xóa sản phẩm
+-    // =============================================
+     @GetMapping("/remove")
+-    public String removeCartItem(
+-            @RequestParam int index,
+-            @ModelAttribute("posSession") PosSessionData session) {
+-
+-        PosCart cart = session.getActiveCart();
+-        if (index >= 0 && index < cart.getItems().size()) {
+-            cart.getItems().remove(index);
+-        }
++    public String removeCartItem(@RequestParam int index, @ModelAttribute("posSession") PosSessionData s) {
++        var items = s.getActiveCart().getItems();
++        if (index >= 0 && index < items.size())
++            items.remove(index);
+         return "redirect:/pos";
+     }
+ 
+-    // =============================================
+-    // 9. Xóa hết giỏ
+-    // =============================================
+-    @GetMapping("/clear")
+-    public String clearCart(@ModelAttribute("posSession") PosSessionData session) {
+-        PosCart cart = session.getActiveCart();
+-        cart.getItems().clear();
+-        cart.setCustomerId(null);
+-        cart.setCustomerName(null);
+-        cart.setCustomerPhone(null);
+-        cart.setVoucherCode(null);
+-        cart.setVoucherDiscount(BigDecimal.ZERO);
+-        cart.setGivenAmount(BigDecimal.ZERO);
+-        return "redirect:/pos";
+-    }
+-
++    // ---------- Customer ----------
+     @GetMapping("/search-customer")
+-    public String findCustomers(
+-            @RequestParam String phone,
+-            @ModelAttribute("posSession") PosSessionData session,
+-            @AuthenticationPrincipal CustomUserDetails userDetails,
+-            Model model) {
+-
+-        String keyword = phone.trim();
+-        if (keyword.isEmpty()) {
+-            return "redirect:/pos";
+-        }
+-
+-        // Tìm kiếm khách hàng
+-        org.springframework.data.domain.Page<Customer> page = customerRepository
+-                .searchActiveByPhoneOrName(
+-                        CustomerStatus.ACTIVE.name(), keyword,
+-                        org.springframework.data.domain.PageRequest.of(0, 5));
+-
+-        List<Customer> result = page.getContent();
+-        if (result.isEmpty()) {
+-            model.addAttribute("customerSearchError", "Không tìm thấy khách hàng");
+-        } else {
+-            // Force init lazy-loaded customerRank to avoid LazyInitializationException
+-            result.forEach(c -> {
+-                if (c.getCustomerRank() != null) {
+-                    c.getCustomerRank().getName();
+-                }
+-            });
+-            model.addAttribute("customerSearchResults", result);
++    public String findCustomers(@RequestParam String phone, @ModelAttribute("posSession") PosSessionData session,
++            HttpSession httpSession, Model model) {
++        SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
++        String kw = phone.trim().replaceAll("\\s+", " ");
++        if (!kw.isEmpty()) {
++            var result = customerRepository
++                    .searchActiveByPhoneOrName(kw, org.springframework.data.domain.PageRequest.of(0, 5)).getContent();
++            if (result.isEmpty())
++                model.addAttribute("customerSearchError", "Không tìm thấy khách hàng");
++            else
++                model.addAttribute("customerSearchResults", result);
+         }
+         model.addAttribute("searchedPhone", phone);
+-
+-        // === Setup các model attributes giống showPosScreen ===
+-        if (session.getActiveBranchId() == null && userDetails != null) {
+-            Long defaultBranchId = userDetails.getBranchId();
+-            session.setActiveBranchId(defaultBranchId != null ? defaultBranchId : 1L);
+-        }
+-        if (session.getActiveBranchId() != null) {
+-            branchRepository.findById(session.getActiveBranchId()).ifPresent(branch -> {
+-                model.addAttribute("activeBranch", branch);
+-            });
+-        }
+-        boolean isOwner = userDetails != null && userDetails.hasRole("OWNER");
+-        model.addAttribute("isOwner", isOwner);
+-        if (isOwner) {
+-            model.addAttribute("branches", branchRepository.findAll());
+-        }
+-        model.addAttribute("posData", session);
+-        model.addAttribute("cart", session.getActiveCart());
+-        List<Category> categories = categoryRepository.findAll().stream()
+-                .filter(c -> c.getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE)
+-                .collect(Collectors.toList());
+-        model.addAttribute("categories", categories);
+-
+-        populateDropdownUnits(session, model);
++        initSessionBranch(session, user);
++        buildPosModel(session, user, model);
+         return "order/pos";
+     }
+ 
+-    @GetMapping("/sales-history")
+-    public String getSalesHistory(
+-            @AuthenticationPrincipal CustomUserDetails userDetails,
+-            @RequestParam(required = false) String date,
+-            Model model) {
+-
+-        if (userDetails == null) {
+-            return "redirect:/login";
+-        }
+-
+-        boolean isOwner = userDetails.hasRole("OWNER");
+-        LocalDate localDate = (date != null && !date.isBlank())
+-                ? LocalDate.parse(date)
+-                : LocalDate.now();
+-
+-        LocalDateTime startOfDay = localDate.atStartOfDay();
+-        LocalDateTime endOfDay = localDate.atTime(LocalTime.MAX);
+-
+-        List<OrderTransaction> orders;
+-        if (isOwner) {
+-            orders = orderTransactionRepository.findByDateRange(startOfDay, endOfDay);
+-        } else {
+-            orders = orderTransactionRepository.findByCreatedByAndCreatedAtBetweenOrderByCreatedAtDesc(
+-                    userDetails.getEmployee().getId(), startOfDay, endOfDay);
+-        }
+-
+-        Map<Long, String> branchNames = new HashMap<>();
+-        orders.forEach(order -> {
+-            if (order.getBranchId() != null) {
+-                branchNames.computeIfAbsent(order.getBranchId(),
+-                        id -> branchRepository.findById(id).map(b -> b.getName()).orElse("SMS STORE"));
+-            }
+-        });
+-
+-        model.addAttribute("isOwner", isOwner);
+-        model.addAttribute("orders", orders);
+-        model.addAttribute("branchNames", branchNames);
+-        model.addAttribute("filterDate", localDate.toString());
+-
+-        return "order/pos-history";
+-    }
+-
+-    @GetMapping("/sales-history/{id}")
+-    public String getOrderDetail(@PathVariable Long id, Model model) {
+-        OrderTransaction order = orderTransactionRepository.findById(id)
+-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+-
+-        model.addAttribute("order", order);
+-
+-        String branchName = "SMS STORE";
+-        String branchAddress = "123 Đường Láng, Đống Đa, Hà Nội";
+-        String branchPhone = "0987 654 321";
+-        if (order.getBranchId() != null) {
+-            var branchOpt = branchRepository.findById(order.getBranchId());
+-            if (branchOpt.isPresent()) {
+-                branchName = branchOpt.get().getName();
+-                branchAddress = branchOpt.get().getAddress();
+-                branchPhone = branchOpt.get().getPhone();
+-            }
+-        }
+-        model.addAttribute("branchName", branchName);
+-        model.addAttribute("branchAddress", branchAddress);
+-        model.addAttribute("branchPhone", branchPhone);
+-
+-        return "order/pos-history-detail";
+-    }
+-
+-    // =============================================
+-    // 11. Gán khách hàng
+-    // =============================================
+     @GetMapping("/set-customer")
+-    public String setCustomer(
+-            @RequestParam Long customerId,
+-            @RequestParam String customerName,
+-            @RequestParam String customerPhone,
+-            @ModelAttribute("posSession") PosSessionData session,
++    public String setCustomer(@RequestParam Long customerId, @RequestParam String customerName,
++            @RequestParam String customerPhone, @ModelAttribute("posSession") PosSessionData s,
+             RedirectAttributes ra) {
+-
+-        Customer customer = customerRepository.findById(customerId).orElse(null);
+-        if (customer == null || customer.getStatus() != com.g4fpt.sms.customer.enums.CustomerStatus.ACTIVE) {
++        var c = customerRepository.findById(customerId).orElse(null);
++        if (c == null || c.getStatus() != com.g4fpt.sms.customer.enums.CustomerStatus.ACTIVE) {
+             ra.addFlashAttribute("error", "Khách hàng này hiện đang ngừng hoạt động hoặc không tồn tại!");
+             return "redirect:/pos";
+         }
+-
+-        PosCart cart = session.getActiveCart();
++        var cart = s.getActiveCart();
+         cart.setCustomerId(customerId);
+         cart.setCustomerName(customerName);
+         cart.setCustomerPhone(customerPhone);
++        // Tổng điểm khả dụng = totalPoint - usedPoint
++        int availablePoints = c.getTotalPoint() - c.getUsedPoint();
++        cart.setCustomerAvailablePoints(Math.max(0, availablePoints));
++        cart.setUsePoints(false);
+         return "redirect:/pos";
+     }
+ 
+-    // =============================================
+-    // 12. Xóa khách hàng
+-    // =============================================
+     @GetMapping("/remove-customer")
+-    public String removeCustomer(@ModelAttribute("posSession") PosSessionData session) {
+-        PosCart cart = session.getActiveCart();
++    public String removeCustomer(@ModelAttribute("posSession") PosSessionData s) {
++        var cart = s.getActiveCart();
+         cart.setCustomerId(null);
+         cart.setCustomerName(null);
+         cart.setCustomerPhone(null);
++        cart.setCustomerAvailablePoints(0);
++        cart.setUsePoints(false);
+         return "redirect:/pos";
+     }
+ 
+-    // =============================================
+-    // 13. API kiểm tra voucher
+-    // =============================================
+-    @PostMapping("/apply-voucher")
+-    public String applyVoucher(
+-            @RequestParam String code,
+-            @ModelAttribute("posSession") PosSessionData session,
++    // ---------- Voucher ----------
++    @GetMapping("/apply-voucher")
++    public String applyVoucher(@RequestParam String code, @ModelAttribute("posSession") PosSessionData s,
+             RedirectAttributes ra) {
+-
+-        PosCart cart = session.getActiveCart();
++        var cart = s.getActiveCart();
+         try {
+-            Voucher voucher = posService.validateVoucher(code, cart.getTotalAmount(), cart.getCustomerId());
+-            BigDecimal discount;
+-            if (voucher.getDiscountType().name().equals("PERCENT")) {
+-                discount = cart.getTotalAmount()
+-                        .multiply(voucher.getDiscountValue())
+-                        .divide(new BigDecimal("100"));
+-                if (voucher.getMaxDiscountAmount() != null) {
+-                    discount = discount.min(voucher.getMaxDiscountAmount());
+-                }
+-            } else {
+-                discount = voucher.getDiscountValue();
+-            }
++            var discount = posService.calculateVoucherDiscount(code, cart.getTotalAmount(), cart.getCustomerId());
+             cart.setVoucherCode(code);
+             cart.setVoucherDiscount(discount);
+             ra.addFlashAttribute("voucherSuccess", "Áp dụng thành công! Giảm " + discount + "đ");
+@@ -462,202 +227,229 @@
+         return "redirect:/pos";
+     }
+ 
+-    // =============================================
+-    // 14. Xóa voucher
+-    // =============================================
+     @GetMapping("/remove-voucher")
+-    public String removeVoucher(@ModelAttribute("posSession") PosSessionData session) {
+-        PosCart cart = session.getActiveCart();
++    public String removeVoucher(@ModelAttribute("posSession") PosSessionData s) {
++        var cart = s.getActiveCart();
+         cart.setVoucherCode(null);
+         cart.setVoucherDiscount(BigDecimal.ZERO);
+         return "redirect:/pos";
+     }
+ 
+-    // =============================================
+-    // 15. API lấy sản phẩm theo category (cho modal)
+-    // =============================================
++    // ---------- Points ----------
++    @GetMapping("/toggle-points")
++    public String togglePoints(@ModelAttribute("posSession") PosSessionData s,
++            @RequestParam boolean enabled, RedirectAttributes ra) {
++        var cart = s.getActiveCart();
++        if (cart.getCustomerId() == null) {
++            ra.addFlashAttribute("error", "Vui lòng chọn khách hàng trước khi áp dụng điểm!");
++            return "redirect:/pos";
++        }
++        cart.setUsePoints(enabled);
++        return "redirect:/pos";
++    }
++
++    // ---------- Branch ----------
++    @GetMapping("/change-branch")
++    public String changeBranch(@RequestParam Long branchId, @ModelAttribute("posSession") PosSessionData s,
++            HttpSession httpSession) {
++        SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
++        if (user != null && user.hasRole("OWNER"))
++            s.setActiveBranchId(branchId);
++        return "redirect:/pos";
++    }
++
++    // ---------- Product list (iframe modal) ----------
+     @GetMapping("/product-list")
+-    public String getProductList(
+-            @ModelAttribute("posSession") PosSessionData session,
++    public String getProductList(@ModelAttribute("posSession") PosSessionData s,
+             @RequestParam(required = false) Long categoryId,
+-            @RequestParam(required = false) String keyword,
+-            Model model) {
+-
+-        List<ProductUnit> all = productUnitRepo.findAll().stream()
+-                .filter(pu -> pu.getProduct() != null
+-                        && pu.getProduct().getStatus() == ProductStatus.ACTIVE
+-                        && pu.getProduct().getCategory() != null
+-                        && pu.getProduct().getCategory().getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE)
+-                .collect(Collectors.toList());
+-
+-        if (keyword != null && !keyword.isBlank()) {
+-            String kw = keyword.trim().toLowerCase();
+-            all = all.stream()
+-                    .filter(pu -> pu.getProduct().getName().toLowerCase().contains(kw)
+-                            || pu.getSku().toLowerCase().contains(kw))
+-                    .collect(Collectors.toList());
+-        } else if (categoryId != null) {
+-            all = all.stream()
+-                    .filter(pu -> pu.getProduct().getCategory() != null
+-                            && pu.getProduct().getCategory().getId().equals(categoryId))
+-                    .collect(Collectors.toList());
++            @RequestParam(required = false) String keyword, Model model) {
++        String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
++        var products = productUnitRepo.searchActiveProductUnits(categoryId, kw);
++        Long branchId = s.getActiveBranchId();
++        if (branchId == null) {
++            branchId = branchRepo.findAll().stream().findFirst()
++                    .map(com.g4fpt.sms.branch.entity.Branch::getId).orElse(null);
++            s.setActiveBranchId(branchId);
+         }
+-
+-        // Lấy tồn kho thực tế cho từng sản phẩm tại chi nhánh đang chọn
+-        Long branchId = session.getActiveBranchId();
+         Map<Long, Integer> stockMap = new HashMap<>();
+         if (branchId != null) {
+-            for (ProductUnit pu : all) {
+-                int stock = inventoryRepository.findByBranchIdAndProductUnitId(branchId, pu.getId())
+-                        .map(Inventory::getStock)
+-                        .orElse(0);
+-                stockMap.put(pu.getId(), stock);
+-            }
++            final Long bId = branchId;
++            products.forEach(pu -> stockMap.put(pu.getId(),
++                    inventoryRepository.findByBranchIdAndProductUnitId(bId, pu.getId())
++                            .map(inv -> inv.getStock()).orElse(0)));
+         }
+-
+-        model.addAttribute("products", all);
++        model.addAttribute("products", products);
+         model.addAttribute("stockMap", stockMap);
+-
+-        List<Category> categories = categoryRepository.findAll().stream()
+-                .filter(c -> c.getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE)
+-                .collect(Collectors.toList());
+-        model.addAttribute("categories", categories);
++        model.addAttribute("categories", categoryRepository.findAll().stream()
++                .filter(c -> c.getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE).toList());
+         model.addAttribute("keyword", keyword);
+         model.addAttribute("categoryId", categoryId);
+-
+         return "order/pos-product-list";
+     }
+ 
+-    // =============================================
+-    // 15b. API lấy danh sách voucher khả dụng theo khách hàng
+-    // =============================================
++    // ---------- Voucher list (iframe modal) ----------
+     @GetMapping("/voucher-list")
+-    public String getAvailableVouchers(
+-            @ModelAttribute("posSession") PosSessionData session,
+-            Model model) {
+-
+-        Long customerId = session.getActiveCart().getCustomerId();
++    public String getAvailableVouchers(@ModelAttribute("posSession") PosSessionData s, Model model) {
++        Long customerId = s.getActiveCart().getCustomerId();
+         if (customerId == null) {
+-            model.addAttribute("vouchers", new java.util.ArrayList<>());
++            model.addAttribute("vouchers", List.of());
+             return "order/pos-voucher-list";
+         }
+-
+-        LocalDateTime now = LocalDateTime.now();
+-        List<Voucher> activeVouchers = voucherRepository.findAll().stream()
+-                .filter(v -> v.getStatus() == com.g4fpt.sms.voucher.enums.VoucherStatus.ACTIVE)
+-                .filter(v -> v.getStartAt().isBefore(now) && v.getEndAt().isAfter(now))
+-                .collect(Collectors.toList());
+-
+-        Customer customer = customerRepository.findById(customerId).orElse(null);
+-        final Customer finalCust = customer;
+-
+-        List<Voucher> result = activeVouchers.stream()
+-                .filter(v -> {
+-                    if (v.getCustomerRank() == null) return true;
+-                    if (finalCust == null || finalCust.getCustomerRank() == null) {
+-                        return v.getCustomerRank().getConditionTotalRevenue().compareTo(BigDecimal.ZERO) == 0;
+-                    }
+-                    return finalCust.getCustomerRank().getConditionTotalRevenue()
+-                            .compareTo(v.getCustomerRank().getConditionTotalRevenue()) >= 0;
+-                })
+-                .collect(Collectors.toList());
+-
+-        model.addAttribute("vouchers", result);
++        var now = java.time.LocalDateTime.now();
++        var customer = customerRepository.findById(customerId).orElse(null);
++        var vouchers = voucherRepository.findAll().stream()
++                .filter(v -> v.getStatus() == com.g4fpt.sms.voucher.enums.VoucherStatus.ACTIVE
++                        && v.getStartAt().isBefore(now) && v.getEndAt().isAfter(now))
++                .filter(v -> v.getCustomerRank() == null
++                        || (customer != null && customer.getCustomerRank() != null
++                                && customer.getCustomerRank().getConditionTotalRevenue()
++                                        .compareTo(v.getCustomerRank().getConditionTotalRevenue()) >= 0))
++                .toList();
++        model.addAttribute("vouchers", vouchers);
+         return "order/pos-voucher-list";
+     }
+ 
+-    // =============================================
+-    // 16. Thanh toán
+-    // =============================================
++    // ---------- Sales history ----------
++    @GetMapping("/sales-history")
++    public String getSalesHistory(HttpSession httpSession,
++            @RequestParam(required = false) String date, Model model) {
++        SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
++        if (user == null)
++            return "redirect:/login";
++        boolean isOwner = user.hasRole("OWNER");
++        var ld = (date != null && !date.isBlank()) ? java.time.LocalDate.parse(date) : java.time.LocalDate.now();
++        var orders = isOwner
++                ? orderRepo.findByDateRange(ld.atStartOfDay(), ld.atTime(java.time.LocalTime.MAX))
++                : orderRepo.findByCreatedByAndDateRange(
++                        user.getId(), ld.atStartOfDay(), ld.atTime(java.time.LocalTime.MAX));
++        var branchIds = orders.stream().map(com.g4fpt.sms.order.entity.OrderTransaction::getBranchId)
++                .filter(Objects::nonNull).collect(Collectors.toSet());
++        var branchNames = branchRepo.findAllById(branchIds).stream()
++                .collect(Collectors.toMap(com.g4fpt.sms.branch.entity.Branch::getId,
++                        com.g4fpt.sms.branch.entity.Branch::getName));
++        model.addAttribute("isOwner", isOwner);
++        model.addAttribute("orders", orders);
++        model.addAttribute("branchNames", branchNames);
++        model.addAttribute("filterDate", ld.toString());
++        return "order/pos-history";
++    }
++
++    @GetMapping("/sales-history/{id}")
++    public String getOrderDetail(@PathVariable Long id, Model model) {
++        var order = orderRepo.findById(id)
++                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
++        model.addAttribute("order", order);
++        var branch = order.getBranchId() != null
++                ? branchRepo.findById(order.getBranchId()).orElse(null)
++                : null;
++        model.addAttribute("branchName", branch != null ? branch.getName() : "");
++        model.addAttribute("branchAddress", branch != null ? branch.getAddress() : "");
++        model.addAttribute("branchPhone", branch != null ? branch.getPhone() : "");
++        return "order/pos-history-detail";
++    }
++
++    // ---------- Checkout ----------
+     @PostMapping("/checkout")
+-    public String checkoutOrder(
+-            @ModelAttribute("posSession") PosSessionData session,
++    public String checkout(@ModelAttribute("posSession") PosSessionData s,
+             @RequestParam(required = false) String note,
+             @RequestParam Long paymentMethodId,
+             @RequestParam BigDecimal givenAmount,
+-            @AuthenticationPrincipal CustomUserDetails userDetails,
++            HttpSession httpSession,
+             RedirectAttributes ra) {
+-
+-        PosCart cart = session.getActiveCart();
++        SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
++        var cart = s.getActiveCart();
+         if (cart.getItems().isEmpty()) {
+             ra.addFlashAttribute("error", "Giỏ hàng trống!");
+             return "redirect:/pos";
+         }
+-
+         try {
+-            POSCheckoutRequest request = new POSCheckoutRequest();
+-            if (userDetails != null && userDetails.getEmployee() != null) {
+-                request.setEmployeeId(userDetails.getEmployee().getId());
+-                Long branchId = session.getActiveBranchId();
+-                if (branchId == null) {
+-                    branchId = userDetails.getBranchId();
+-                }
+-                request.setBranchId(branchId != null ? branchId : 1L);
+-            } else {
+-                request.setEmployeeId(1L);
+-                request.setBranchId(session.getActiveBranchId() != null ? session.getActiveBranchId() : 1L);
+-            }
+-            request.setCustomerId(cart.getCustomerId());
+-            request.setVoucherCode(cart.getVoucherCode());
+-            request.setPaymentMethodId(paymentMethodId);
+-            request.setPaidAmount(givenAmount);
+-            request.setVatRate(cart.getVatRate());
+-            request.setNote(note);
+-            request.setItems(cart.getItems().stream().map(item -> {
+-                POSCartItemRequest req = new POSCartItemRequest();
+-                req.setProductUnitId(item.getProductUnitId());
+-                req.setQuantity(item.getQuantity());
+-                return req;
+-            }).collect(Collectors.toList()));
+-
+-            OrderTransaction savedOrder = posService.processCheckout(request);
+-
+-            // Đóng đơn hiện tại sau khi thanh toán
+-            session.removeOrder(session.getActiveIndex());
+-
+-            ra.addFlashAttribute("success",
+-                    "Thanh toán thành công! Mã đơn: " + savedOrder.getCode());
+-            return "redirect:/pos?successOrderId=" + savedOrder.getId();
+-
++            var req = buildCheckoutRequest(s, paymentMethodId, givenAmount, note, user);
++            var saved = posService.processCheckout(req);
++            s.removeOrder(s.getActiveIndex());
++            ra.addFlashAttribute("success", "Thanh toán thành công! Mã đơn: " + saved.getCode());
++            return "redirect:/pos?successOrderId=" + saved.getId();
+         } catch (Exception e) {
+             ra.addFlashAttribute("error", e.getMessage());
+             return "redirect:/pos";
+         }
+     }
+ 
+-    // =============================================
+-    // Helper
+-    // =============================================
++    // ============== Private helpers ==============
++    private void initSessionBranch(PosSessionData s, SessionUser user) {
++        if (s.getActiveBranchId() == null) {
++            if (user != null && user.getBranchId() != null)
++                s.setActiveBranchId(user.getBranchId());
++            else
++                branchRepo.findAll().stream().findFirst().ifPresent(b -> s.setActiveBranchId(b.getId()));
++        }
++    }
++
++    private void buildPosModel(PosSessionData s, SessionUser user, Model model) {
++        if (s.getActiveBranchId() != null)
++            branchRepo.findById(s.getActiveBranchId()).ifPresent(b -> model.addAttribute("activeBranch", b));
++        boolean isOwner = user != null && user.hasRole("OWNER");
++        model.addAttribute("isOwner", isOwner);
++        if (isOwner)
++            model.addAttribute("branches", branchRepo.findAll());
++        model.addAttribute("posData", s);
++        model.addAttribute("cart", s.getActiveCart());
++        model.addAttribute("categories", categoryRepository.findAll().stream()
++                .filter(c -> c.getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE).toList());
++        populateDropdownUnits(s, model);
++    }
++
+     private void addProductToCart(PosCart cart, ProductUnit pu) {
+-        PosCartItem existing = cart.getItems().stream()
++        cart.getItems().stream()
+                 .filter(i -> i.getProductUnitId().equals(pu.getId()))
+-                .findFirst().orElse(null);
+-
+-        if (existing != null) {
+-            existing.setQuantity(existing.getQuantity() + 1);
+-        } else {
+-            PosCartItem newItem = new PosCartItem();
+-            newItem.setProductUnitId(pu.getId());
+-            newItem.setSku(pu.getSku());
+-            newItem.setName(pu.getProduct().getName());
+-            newItem.setPrice(pu.getPrice());
+-            newItem.setQuantity(1);
+-            newItem.setUnitName(pu.getUnit() != null ? pu.getUnit().getName() : "");
+-            newItem.setImageUrl(pu.getProduct().getImageUrl());
+-            cart.getItems().add(newItem);
+-        }
++                .findFirst()
++                .ifPresentOrElse(
++                        existing -> existing.setQuantity(existing.getQuantity() + 1),
++                        () -> {
++                            PosCartItem item = new PosCartItem();
++                            item.setProductUnitId(pu.getId());
++                            item.setSku(pu.getSku());
++                            item.setName(pu.getProduct().getName());
++                            item.setPrice(pu.getPrice());
++                            item.setQuantity(1);
++                            item.setUnitName(pu.getUnit() != null ? pu.getUnit().getName() : "");
++                            item.setImageUrl(pu.getProduct().getImageUrl());
++                            cart.getItems().add(item);
++                        });
+     }
+ 
+-    private void populateDropdownUnits(PosSessionData session, Model model) {
+-        Map<Long, List<ProductUnit>> cartItemUnitsMap = new HashMap<>();
+-        for (PosCartItem item : session.getActiveCart().getItems()) {
+-            productUnitRepo.findById(item.getProductUnitId()).ifPresent(pu -> {
+-                if (pu.getProduct() != null) {
+-                    List<ProductUnit> units = productUnitRepo.findByProductIdWithUnit(pu.getProduct().getId());
+-                    cartItemUnitsMap.put(item.getProductUnitId(), units);
+-                }
+-            });
+-        }
+-        model.addAttribute("cartItemUnitsMap", cartItemUnitsMap);
++    private void populateDropdownUnits(PosSessionData s, Model model) {
++        Map<Long, List<ProductUnit>> map = new HashMap<>();
++        s.getActiveCart().getItems().forEach(item -> productUnitRepo.findById(item.getProductUnitId()).ifPresent(pu -> {
++            if (pu.getProduct() != null)
++                map.put(item.getProductUnitId(), productUnitRepo.findByProductIdWithUnit(pu.getProduct().getId()));
++        }));
++        model.addAttribute("cartItemUnitsMap", map);
++    }
++
++    private POSCheckoutRequest buildCheckoutRequest(PosSessionData s, Long paymentMethodId,
++            BigDecimal givenAmount, String note,
++            SessionUser user) {
++        var cart = s.getActiveCart();
++        var req = new POSCheckoutRequest();
++        if (user == null)
++            throw new RuntimeException("Không tìm thấy thông tin nhân viên!");
++        req.setEmployeeId(user.getId());
++        if (s.getActiveBranchId() == null)
++            throw new RuntimeException("Vui lòng chọn chi nhánh trước khi thanh toán!");
++        req.setBranchId(s.getActiveBranchId());
++        req.setCustomerId(cart.getCustomerId());
++        req.setVoucherCode(cart.getVoucherCode());
++        req.setPaymentMethodId(paymentMethodId);
++        req.setPaidAmount(givenAmount);
++        req.setVatRate(cart.getVatRate());
++        req.setNote(note);
++        req.setUsePoints(cart.isUsePoints());
++        req.setItems(cart.getItems().stream().map(item -> {
++            var r = new POSCartItemRequest();
++            r.setProductUnitId(item.getProductUnitId());
++            r.setQuantity(item.getQuantity());
++            return r;
++        }).toList());
++        return req;
+     }
+ }
+\ No newline at end of file
+Index: sales-management-software/src/main/java/com/g4fpt/sms/customer/controller/CustomerController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.g4fpt.sms.customer.controller;\r\n\r\nimport com.g4fpt.sms.customer.dto.CustomerRequestDTO;\r\nimport com.g4fpt.sms.customer.entity.Customer;\r\nimport com.g4fpt.sms.customer.service.CustomerService;\r\nimport com.g4fpt.sms.employee.utils.Gender;\r\nimport com.g4fpt.sms.order.entity.OrderTransaction;\r\nimport com.g4fpt.sms.order.repository.OrderTransactionRepository;\r\nimport lombok.RequiredArgsConstructor;\r\nimport org.springframework.data.domain.Page;\r\nimport org.springframework.data.domain.PageRequest;\r\nimport org.springframework.data.domain.Pageable;\r\nimport org.springframework.stereotype.Controller;\r\nimport org.springframework.ui.Model;\r\nimport org.springframework.web.bind.annotation.*;\r\nimport org.springframework.web.servlet.mvc.support.RedirectAttributes;\r\n\r\n@Controller\r\n@RequestMapping(\"/customers\")\r\n@RequiredArgsConstructor\r\npublic class CustomerController {\r\n\r\n    private final CustomerService customerService;\r\n    private final OrderTransactionRepository orderTransactionRepository;\r\n\r\n    @GetMapping\r\n    public String listCustomers(\r\n            @RequestParam(value = \"keyword\", required = false) String keyword,\r\n            @RequestParam(value = \"page\", defaultValue = \"1\") int page,\r\n            @RequestParam(value = \"size\", defaultValue = \"6\") int size, Model model) {\r\n\r\n        Page<Customer> customerPage = customerService.getCustomers(keyword, page, size);\r\n        model.addAttribute(\"customerPage\", customerPage);\r\n        model.addAttribute(\"keyword\", keyword);\r\n        model.addAttribute(\"currentPage\", page);\r\n        model.addAttribute(\"totalPages\", customerPage.getTotalPages());\r\n\r\n        return \"customer/list\";\r\n    }\r\n\r\n    @GetMapping(\"/detail/{id}\")\r\n    public String showDetail(\r\n            @PathVariable Long id,\r\n            @RequestParam(value = \"page\", defaultValue = \"1\") int page, Model model) {\r\n\r\n        Customer customer = customerService.getCustomerById(id);\r\n        Pageable pageable = PageRequest.of(page - 1, 6);\r\n        Page<OrderTransaction> orderPage = orderTransactionRepository\r\n                .findByCustomerIdOrderByCreatedAtDesc(id, pageable);\r\n\r\n        model.addAttribute(\"customer\", customer);\r\n        model.addAttribute(\"orderPage\", orderPage);\r\n        model.addAttribute(\"currentPage\", page);\r\n        model.addAttribute(\"totalPages\", orderPage.getTotalPages());\r\n\r\n        return \"customer/detail\";\r\n    }\r\n\r\n    @GetMapping(\"/create\")\r\n    public String showCreateForm(Model model) {\r\n        model.addAttribute(\"customerDTO\", new CustomerRequestDTO());\r\n        model.addAttribute(\"currentRankName\", \"Thành viên\");\r\n        model.addAttribute(\"genders\", Gender.values());\r\n        return \"customer/form\";\r\n    }\r\n\r\n    @GetMapping(\"/edit/{id}\")\r\n    public String showEditForm(@PathVariable Long id, Model model) {\r\n        Customer customer = customerService.getCustomerById(id);\r\n        CustomerRequestDTO dto = new CustomerRequestDTO();\r\n        dto.setId(customer.getId());\r\n        dto.setFullName(customer.getFullName());\r\n        dto.setPhone(customer.getPhone());\r\n        dto.setEmail(customer.getEmail());\r\n        dto.setAddress(customer.getAddress());\r\n        dto.setGender(customer.getGender());\r\n        dto.setDob(customer.getDob());\r\n        dto.setNote(customer.getNote());\r\n        dto.setStatus(customer.getStatus());\r\n\r\n        String currentRankName = \"Thành viên\";\r\n        if (customer.getCustomerRank() != null) {\r\n            dto.setCustomerRankId(customer.getCustomerRank().getId());\r\n            currentRankName = customer.getCustomerRank().getName();\r\n        }\r\n\r\n        model.addAttribute(\"customerDTO\", dto);\r\n        model.addAttribute(\"currentRankName\", currentRankName);\r\n        model.addAttribute(\"genders\", Gender.values());\r\n        return \"customer/form\";\r\n    }\r\n\r\n    @PostMapping(\"/save\")\r\n    public String saveCustomer(\r\n            @ModelAttribute(\"customerDTO\") CustomerRequestDTO dto,\r\n            Model model,\r\n            RedirectAttributes redirectAttributes) {\r\n\r\n        Long currentUserId = 1L;\r\n        try {\r\n            if (dto.getId() == null) {\r\n                customerService.createCustomer(dto, currentUserId);\r\n                redirectAttributes.addFlashAttribute(\"successMessage\", \"Thêm mới thành công!\");\r\n            } else {\r\n                customerService.updateCustomer(dto.getId(), dto, currentUserId);\r\n                redirectAttributes.addFlashAttribute(\"successMessage\", \"Cập nhật thành công!\");\r\n            }\r\n        } catch (Exception e) {\r\n\r\n            String currentRankName = \"Thành viên\";\r\n            if (dto.getId() != null) {\r\n                try {\r\n                    Customer customer = customerService.getCustomerById(dto.getId());\r\n                    if (customer.getCustomerRank() != null) {\r\n                        currentRankName = customer.getCustomerRank().getName();\r\n                    }\r\n                } catch (Exception ignored) {\r\n                }\r\n            }\r\n\r\n            model.addAttribute(\"errorMessage\", e.getMessage());\r\n            model.addAttribute(\"customerDTO\", dto);\r\n            model.addAttribute(\"currentRankName\", currentRankName);\r\n            model.addAttribute(\"genders\", Gender.values());\r\n            return \"customer/form\";\r\n        }\r\n\r\n        return \"redirect:/customers\";\r\n    }\r\n\r\n    @GetMapping(\"/popup-form\")\r\n    public String popupForm(Model model) {\r\n        model.addAttribute(\"customerDTO\", new CustomerRequestDTO());\r\n        model.addAttribute(\"genders\", Gender.values());\r\n        return \"customer/popup-form\";\r\n    }\r\n\r\n    @PostMapping(\"/popup-form\")\r\n    public String popupFormSubmit(@ModelAttribute(\"customerDTO\") CustomerRequestDTO dto, Model model) {\r\n        Long currentUserId = 1L; // Fake auth\r\n        try {\r\n            Customer created = customerService.createCustomer(dto, currentUserId);\r\n            model.addAttribute(\"success\", true);\r\n            model.addAttribute(\"newId\", created.getId());\r\n            model.addAttribute(\"newName\", created.getFullName());\r\n            model.addAttribute(\"customerPhone\", created.getPhone());\r\n            model.addAttribute(\"type\", \"CUSTOMER_CREATED\");\r\n        } catch (Exception e) {\r\n            model.addAttribute(\"success\", false);\r\n            model.addAttribute(\"error\", e.getMessage());\r\n            model.addAttribute(\"genders\", Gender.values());\r\n            return \"customer/popup-form\";\r\n        }\r\n        return \"common/popup-success\";\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/sales-management-software/src/main/java/com/g4fpt/sms/customer/controller/CustomerController.java b/sales-management-software/src/main/java/com/g4fpt/sms/customer/controller/CustomerController.java
+--- a/sales-management-software/src/main/java/com/g4fpt/sms/customer/controller/CustomerController.java	(revision abeeab21299c8a2c9307d820c2ecf7bbe45584dc)
++++ b/sales-management-software/src/main/java/com/g4fpt/sms/customer/controller/CustomerController.java	(date 1784112359258)
+@@ -1,11 +1,15 @@
+ package com.g4fpt.sms.customer.controller;
+ 
++import com.g4fpt.sms.auth.dto.SessionUser;
++import com.g4fpt.sms.auth.util.SessionConstants;
+ import com.g4fpt.sms.customer.dto.CustomerRequestDTO;
+ import com.g4fpt.sms.customer.entity.Customer;
+ import com.g4fpt.sms.customer.service.CustomerService;
++import com.g4fpt.sms.customer.repository.CustomerProjection;
+ import com.g4fpt.sms.employee.utils.Gender;
+ import com.g4fpt.sms.order.entity.OrderTransaction;
+ import com.g4fpt.sms.order.repository.OrderTransactionRepository;
++import jakarta.servlet.http.HttpSession;
+ import lombok.RequiredArgsConstructor;
+ import org.springframework.data.domain.Page;
+ import org.springframework.data.domain.PageRequest;
+@@ -29,7 +33,7 @@
+             @RequestParam(value = "page", defaultValue = "1") int page,
+             @RequestParam(value = "size", defaultValue = "6") int size, Model model) {
+ 
+-        Page<Customer> customerPage = customerService.getCustomers(keyword, page, size);
++        Page<CustomerProjection> customerPage = customerService.getCustomers(keyword, page, size);
+         model.addAttribute("customerPage", customerPage);
+         model.addAttribute("keyword", keyword);
+         model.addAttribute("currentPage", page);
+@@ -93,10 +97,12 @@
+     @PostMapping("/save")
+     public String saveCustomer(
+             @ModelAttribute("customerDTO") CustomerRequestDTO dto,
++            HttpSession httpSession,
+             Model model,
+             RedirectAttributes redirectAttributes) {
+ 
+-        Long currentUserId = 1L;
++        SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
++        Long currentUserId = (user != null) ? user.getId() : 1L;
+         try {
+             if (dto.getId() == null) {
+                 customerService.createCustomer(dto, currentUserId);
+@@ -136,8 +142,12 @@
+     }
+ 
+     @PostMapping("/popup-form")
+-    public String popupFormSubmit(@ModelAttribute("customerDTO") CustomerRequestDTO dto, Model model) {
+-        Long currentUserId = 1L; // Fake auth
++    public String popupFormSubmit(
++            @ModelAttribute("customerDTO") CustomerRequestDTO dto,
++            HttpSession httpSession,
++            Model model) {
++        SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
++        Long currentUserId = (user != null) ? user.getId() : 1L;
+         try {
+             Customer created = customerService.createCustomer(dto, currentUserId);
+             model.addAttribute("success", true);

@@ -69,7 +69,7 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
             request.getItems().add(rri);
         }
 
-        // Ảnh (tùy chọn)
+        // Lưu ảnh minh chứng (tùy chọn)
         if (imageUrls != null) {
             for (String url : imageUrls) {
                 ReturnRequestImage img = ReturnRequestImage.builder()
@@ -122,43 +122,50 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         Long branchId = order.getBranchId();
 
         for (ReturnRequestItem item : req.getItems()) {
-            // + tồn kho
+            // Cộng lại tồn kho
             Inventory inv = inventoryRepository.findByBranchIdAndProductUnitId(
                             branchId, item.getProductUnit().getId())
                     .orElse(null);
             if (inv != null) {
                 inv.setStock(inv.getStock() + item.getQuantity());
+                inventoryRepository.save(inv); // THÊM DÒNG NÀY
             }
 
-            // trừ doanh thu & điểm của khách hàng
+            // Trừ doanh thu & điểm của khách hàng
             if (order.getCustomer() != null) {
-                Customer customer = order.getCustomer();
-                BigDecimal refundAmount = item.getSalePrice()
-                        .multiply(BigDecimal.valueOf(item.getQuantity()));
+                Customer customer = customerRepository.findById(order.getCustomer().getId())
+                        .orElse(null);
+                if (customer != null) {
+                    BigDecimal refundAmount = item.getSalePrice()
+                            .multiply(BigDecimal.valueOf(item.getQuantity()));
 
-                BigDecimal currentRevenue = customer.getTotalRevenue() != null ? customer.getTotalRevenue() : BigDecimal.ZERO;
-                customer.setTotalRevenue(currentRevenue.subtract(refundAmount).max(BigDecimal.ZERO));
+                    BigDecimal currentRevenue = customer.getTotalRevenue() != null ? customer.getTotalRevenue() : BigDecimal.ZERO;
+                    customer.setTotalRevenue(currentRevenue.subtract(refundAmount).max(BigDecimal.ZERO));
 
-                int currentPoint = customer.getTotalPoint() != null ? customer.getTotalPoint() : 0;
-                int pointToReverse = refundAmount
-                        .divide(new BigDecimal("10000"), 0, RoundingMode.FLOOR).intValue();
-                int newTotalPoint = Math.max(0, currentPoint - pointToReverse);
-                
-                customer.setTotalPoint(newTotalPoint);
-                if (customer.getUsedPoint() != null && customer.getUsedPoint() > newTotalPoint) {
-                    customer.setUsedPoint(newTotalPoint);
+                    int currentPoint = customer.getTotalPoint() != null ? customer.getTotalPoint() : 0;
+                    int pointToReverse = refundAmount
+                            .divide(new BigDecimal("10000"), 0, RoundingMode.FLOOR).intValue();
+                    int newTotalPoint = Math.max(0, currentPoint - pointToReverse);
+
+                    customer.setTotalPoint(newTotalPoint);
+                    if (customer.getUsedPoint() != null && customer.getUsedPoint() > newTotalPoint) {
+                        customer.setUsedPoint(newTotalPoint);
+                    }
+                    customerRepository.save(customer); // THÊM DÒNG NÀY
                 }
             }
-        }
+        } // DẤU NGOẶC NÀY BỊ THIẾU Ở FILE CŨ
 
         req.setStatus("APPROVED");
         req.setReviewedBy(reviewerId);
         req.setReviewedAt(LocalDateTime.now());
+        returnRequestRepository.save(req); // THÊM DÒNG NÀY ĐỂ LƯU TRẠNG THÁI APPROVED
 
         // Đánh dấu đơn hàng gốc là RETURNED
         order.setStatus("RETURNED");
+        orderTransactionRepository.save(order); // THÊM DÒNG NÀY
 
-        // --- TẠO GIAO DỊCH TRẢ HÀNG VÀO LỊCH SỬ ---
+        // Tạo giao dịch trả hàng ghi vào lịch sử
         BigDecimal totalRefund = BigDecimal.ZERO;
         for (ReturnRequestItem item : req.getItems()) {
             totalRefund = totalRefund.add(item.getSalePrice().multiply(BigDecimal.valueOf(item.getQuantity())));
@@ -212,5 +219,6 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         req.setReviewedBy(reviewerId);
         req.setReviewedAt(LocalDateTime.now());
         req.setRejectReason(reason);
+        returnRequestRepository.save(req); // THÊM DÒNG NÀY
     }
 }

@@ -20,6 +20,6 @@ public class ReturnRequestImage {
     @JoinColumn(name = "return_request_id", nullable = false)
     private ReturnRequest returnRequest;
 
-    @Column(name = "imageName", nullable = false, length = 500)
+    @Column(name = "image_url", nullable = false, length = 500)
     private String imageUrl;
 }

@@ -7,8 +7,6 @@
     <meta name="description" content="Tạo yêu cầu trả/đổi hàng trong hệ thống SMS.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <link rel="stylesheet" th:href="@{/css/return.css}">
 </head>
 <body>
@@ -19,73 +17,97 @@
                     <i class="bi bi-arrow-return-left fs-4"></i>
                     <div>
                         <h5 class="mb-0 fw-bold">Yêu cầu trả / đổi hàng</h5>
-                        <small class="opacity-75" th:text="${autoOrderCode != null ? 'Tự động tìm đơn hàng...' : 'Nhập mã đơn hàng để bắt đầu'}"></small>
+                        <small class="opacity-75" th:text="${autoOrderCode != null ? 'Đã có mã đơn hàng' : 'Nhập mã đơn hàng để bắt đầu'}"></small>
                     </div>
                 </div>
             </div>
             <div class="card-body">
-                <!-- Bước 1: Tìm đơn hàng -->
-                <div class="search-section">
+                <!-- Thông báo lỗi/thành công -->
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-1"></i><span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-1"></i><span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Bước 1: Tìm đơn hàng (Form GET) -->
+                <form method="GET" action="/return" class="search-section">
                     <label class="fw-semibold mb-2"><i class="bi bi-search me-1"></i>Tìm đơn hàng</label>
                     <div class="search-input-group">
-                        <input type="text" id="orderCode" class="form-control" placeholder="Nhập mã đơn hàng (VD: ORD-2025...)">
-                        <button class="btn btn-primary" onclick="searchOrder()">
+                        <input type="text" name="orderCode" class="form-control"
+                               placeholder="Nhập mã đơn hàng (VD: ORD-2025...)"
+                               th:value="${autoOrderCode}">
+                        <button type="submit" class="btn btn-primary">
                             <i class="bi bi-search me-1"></i>Tìm
                         </button>
                     </div>
-                    <div id="searchLoading" class="loading-spinner mt-2">
-                        <span class="spinner-border spinner-border-sm me-1"></span>Đang tìm...
-                    </div>
-                </div>
+                </form>
 
                 <!-- Kết quả tìm kiếm -->
-                <div id="orderResult" style="display:none;"></div>
-
-                <!-- Bước 2: Form gửi yêu cầu -->
-                <form id="returnForm" style="display:none;" enctype="multipart/form-data">
-                    <input type="hidden" name="orderId" id="orderId">
-                    <input type="hidden" name="detailIds" id="detailIds">
-                    <input type="hidden" name="quantities" id="quantities">
-
-                    <div class="mb-3">
-                        <label class="fw-semibold mb-2"><i class="bi bi-box-seam me-1"></i>Chọn sản phẩm muốn trả</label>
-                        <div id="productList"></div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="fw-semibold mb-1"><i class="bi bi-pencil me-1"></i>Lý do trả hàng <span class="text-danger">*</span></label>
-                        <textarea name="reason" id="reason" class="form-control reason-box" placeholder="Mô tả lý do trả hàng..." required></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="fw-semibold mb-2"><i class="bi bi-camera me-1"></i>Hình ảnh sản phẩm lỗi <span class="text-muted">(không bắt buộc)</span></label>
-                        <div class="upload-drop-zone" id="dropZone">
-                            <i class="bi bi-cloud-arrow-up-fill drop-icon"></i>
-                            <p class="mb-1 fw-semibold">Kéo thả ảnh vào đây</p>
-                            <p class="small text-muted mb-2">hoặc nhấn để chọn file</p>
-                            <span class="badge bg-primary" id="imageCount">0 ảnh đã chọn</span>
-                            <input type="file" name="images" id="imageInput" multiple accept="image/*" class="d-none">
+                <div th:if="${order != null}" class="mt-3">
+                    <div class="order-info">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-bold mb-1" th:text="${order.code}"></h6>
+                                <small class="text-muted" th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></small>
+                            </div>
+                            <span class="badge bg-success" th:if="${order.status == 'COMPLETED'}">COMPLETED</span>
+                            <span class="badge bg-warning" th:unless="${order.status == 'COMPLETED'}" th:text="${order.status}"></span>
                         </div>
-                        <div class="image-preview-area" id="imagePreview"></div>
+                        <p class="mb-0 mt-1">
+                            <i class="bi bi-person me-1"></i>
+                            <span th:text="${order.customer != null ? order.customer.fullName : 'Khách lẻ'}"></span>
+                        </p>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-send me-1"></i>Gửi yêu cầu trả hàng
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
+                    <!-- Bước 2: Form gửi yêu cầu trả hàng (Form POST) -->
+                    <form method="POST" th:action="@{/return/create}" enctype="multipart/form-data" class="mt-3">
+                        <input type="hidden" name="orderId" th:value="${order.id}">
 
-    <!-- Success Modal -->
-    <div class="modal fade" id="successModal" tabindex="-1" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content text-center p-3">
-                <div class="modal-body">
-                    <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
-                    <h5 class="mt-3 fw-bold">Thành công!</h5>
-                    <p class="text-muted mb-4">Đã tạo yêu cầu trả hàng mã <strong id="successReqId"></strong>.</p>
-                    <button type="button" class="btn btn-primary w-100 rounded-pill" onclick="location.reload()">Đóng</button>
+                        <div class="mb-3">
+                            <label class="fw-semibold mb-2"><i class="bi bi-box-seam me-1"></i>Chọn sản phẩm muốn trả</label>
+                            <div id="productList">
+                                <div th:each="detail : ${order.details}" class="item-check d-flex align-items-center gap-3 mb-2">
+                                    <input type="checkbox" class="form-check-input item-cb"
+                                           name="detailIds" th:value="${detail.id}" checked>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold small" th:text="${detail.productUnit.product.name}"></div>
+                                        <small class="text-muted">
+                                            SL: <span th:text="${detail.quantity}"></span> |
+                                            Giá: <span th:text="${#numbers.formatDecimal(detail.salePrice, 0, 'COMMA', 0, 'POINT')}"></span>đ
+                                        </small>
+                                    </div>
+                                    <div>
+                                        <label class="small text-muted mb-0">SL trả:</label>
+                                        <input type="number" class="form-control form-control-sm qty-input"
+                                               style="width:70px"
+                                               name="quantities"
+                                               th:value="${detail.quantity}"
+                                               min="1" th:max="${detail.quantity}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="fw-semibold mb-1"><i class="bi bi-pencil me-1"></i>Lý do trả hàng <span class="text-danger">*</span></label>
+                            <textarea name="reason" class="form-control reason-box" placeholder="Mô tả lý do trả hàng..." required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="fw-semibold mb-2"><i class="bi bi-camera me-1"></i>Hình ảnh sản phẩm lỗi <span class="text-muted">(không bắt buộc)</span></label>
+                            <input type="file" name="images" multiple accept="image/*" class="form-control" onchange="previewImages(this)">
+                            
+                            <!-- Preview khu vực ảnh -->
+                            <div id="previewContainer" class="d-flex flex-wrap gap-2 mt-3" style="display:none;"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-send me-1"></i>Gửi yêu cầu trả hàng
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -93,175 +115,50 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-        let selectedOrder = null;
+        let currentUrls = [];
 
-        // ← Auto search if orderCode is provided
-        const autoCode = '[[${autoOrderCode}]]';
-        if (autoCode && autoCode !== 'null' && autoCode !== '') {
-            document.getElementById('orderCode').value = autoCode;
-            searchOrder();
+        function previewImages(input) {
+            const container = document.getElementById('previewContainer');
+            container.innerHTML = '';
+            
+            // Hủy các đường dẫn tạm cũ để giải phóng RAM
+            currentUrls.forEach(url => URL.revokeObjectURL(url));
+            currentUrls = [];
+
+            if (input.files && input.files.length > 0) {
+                container.style.display = 'flex';
+                Array.from(input.files).forEach(file => {
+                    const url = URL.createObjectURL(file);
+                    currentUrls.push(url);
+
+                    const div = document.createElement('div');
+                    div.style.position = 'relative';
+                    div.style.width = '100px';
+                    div.style.height = '100px';
+                    
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.className = 'w-100 h-100 object-fit-cover rounded border';
+                    
+                    div.appendChild(img);
+                    container.appendChild(div);
+                });
+            } else {
+                container.style.display = 'none';
+            }
         }
-
-        function searchOrder() {
-            const code = document.getElementById('orderCode').value.trim();
-            if (!code) { alert('Vui lòng nhập mã đơn hàng'); return; }
-
-            const loading = document.getElementById('searchLoading');
-            loading.style.display = 'block';
-
-            fetch('/return/api/search-order?code=' + encodeURIComponent(code))
-                .then(r => r.json())
-                .then(data => {
-                    loading.style.display = 'none';
-                    if (data.error) {
-                        document.getElementById('orderResult').innerHTML =
-                            '<div class="alert alert-danger mt-2">' + data.error + '</div>';
-                        document.getElementById('orderResult').style.display = 'block';
-                        document.getElementById('returnForm').style.display = 'none';
-                        return;
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('.item-cb');
+            checkboxes.forEach(cb => {
+                const toggleInput = () => {
+                    const qtyInput = cb.closest('.item-check').querySelector('.qty-input');
+                    if (qtyInput) {
+                        qtyInput.disabled = !cb.checked;
                     }
-                    selectedOrder = data;
-                    displayOrder(data);
-                })
-                .catch(() => {
-                    loading.style.display = 'none';
-                    alert('Lỗi kết nối');
-                });
-        }
-
-        function displayOrder(order) {
-            const el = document.getElementById('orderResult');
-            el.innerHTML = `
-                <div class="order-info">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="fw-bold mb-1">` + order.code + `</h6>
-                            <small class="text-muted">` + order.createdAt + `</small>
-                        </div>
-                        <span class="badge bg-` + (order.status === 'COMPLETED' ? 'success' : 'warning') + `">` + order.status + `</span>
-                    </div>
-                    <p class="mb-0 mt-1"><i class="bi bi-person me-1"></i>` + order.customerName + `</p>
-                </div>
-            `;
-            el.style.display = 'block';
-            document.getElementById('returnForm').style.display = 'block';
-            document.getElementById('orderId').value = order.id;
-
-            // Render product list
-            const list = document.getElementById('productList');
-            list.innerHTML = '';
-            order.details.forEach(d => {
-                const div = document.createElement('div');
-                div.className = 'item-check d-flex align-items-center gap-3 mb-2';
-                div.innerHTML = `
-                    <input type="checkbox" class="form-check-input item-cb" data-id="` + d.id + `" data-max="` + d.quantity + `" data-name="` + d.productName + `">
-                    <div class="flex-grow-1">
-                        <div class="fw-semibold small">` + d.productName + `</div>
-                        <small class="text-muted">SL: ` + d.quantity + ` | Giá: ` + d.salePrice.toLocaleString() + `đ</small>
-                    </div>
-                    <div>
-                        <label class="small text-muted mb-0">SL trả:</label>
-                        <input type="number" class="form-control form-control-sm qty-input" style="width:70px" value="` + d.quantity + `" min="1" max="` + d.quantity + `" disabled>
-                    </div>
-                `;
-                const cb = div.querySelector('.item-cb');
-                const qty = div.querySelector('.qty-input');
-                cb.addEventListener('change', () => {
-                    qty.disabled = !cb.checked;
-                    if (!cb.checked) qty.value = qty.getAttribute('max');
-                });
-                // Mặc định tích chọn
-                cb.checked = true;
-                list.appendChild(div);
-            });
-        }
-
-        // ===== Drag-and-drop + click upload =====
-        const dropZone = document.getElementById('dropZone');
-        const imageInput = document.getElementById('imageInput');
-        const imagePreview = document.getElementById('imagePreview');
-        const imageCount = document.getElementById('imageCount');
-        let selectedFiles = [];
-
-        dropZone.addEventListener('click', () => imageInput.click());
-        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-        dropZone.addEventListener('drop', e => {
-            e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            addFiles(e.dataTransfer.files);
-        });
-        imageInput.addEventListener('change', function() { addFiles(this.files); this.value = ''; });
-
-        function addFiles(files) {
-            Array.from(files).forEach(f => {
-                if (f.type.startsWith('image/') && selectedFiles.length < 10)
-                    selectedFiles.push(f);
-            });
-            renderPreviews();
-        }
-
-        function removeFile(index) {
-            selectedFiles.splice(index, 1);
-            renderPreviews();
-        }
-
-        function renderPreviews() {
-            imagePreview.innerHTML = '';
-            imageCount.textContent = selectedFiles.length + ' ảnh đã chọn';
-            selectedFiles.forEach((file, i) => {
-                const wrap = document.createElement('div');
-                wrap.className = 'preview-wrap';
-                const reader = new FileReader();
-                reader.onload = e => {
-                    wrap.innerHTML = '<img src="' + e.target.result + '" class="preview-img">'
-                        + '<button type="button" class="preview-remove" onclick="removeFile(' + i + ')">×</button>';
                 };
-                reader.readAsDataURL(file);
-                imagePreview.appendChild(wrap);
+                cb.addEventListener('change', toggleInput);
+                toggleInput(); // Run on init
             });
-        }
-
-        // ===== Submit =====
-        document.getElementById('returnForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const cbList = document.querySelectorAll('.item-cb:checked');
-            if (cbList.length === 0) { alert('Chọn ít nhất 1 sản phẩm để trả'); return; }
-            const reason = document.getElementById('reason').value.trim();
-            if (!reason) { alert('Nhập lý do trả hàng'); return; }
-
-            const ids = [];
-            const qtys = [];
-            cbList.forEach(cb => {
-                const row = cb.closest('.item-check');
-                const qty = row.querySelector('.qty-input');
-                ids.push(cb.dataset.id);
-                qtys.push(qty.value);
-            });
-            document.getElementById('detailIds').value = ids.join(',');
-            document.getElementById('quantities').value = qtys.join(',');
-
-            const formData = new FormData();
-            formData.append('orderId', document.getElementById('orderId').value);
-            formData.append('reason', reason);
-            formData.append('detailIds', document.getElementById('detailIds').value);
-            formData.append('quantities', document.getElementById('quantities').value);
-            selectedFiles.forEach(f => formData.append('images', f));
-            fetch('/return/api/create', {
-                method: 'POST',
-                headers: { [csrfHeader]: csrfToken },
-                body: formData
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.error) { alert(data.error); return; }
-                document.getElementById('successReqId').textContent = '#' + data.id;
-                new bootstrap.Modal(document.getElementById('successModal')).show();
-            })
-            .catch(() => alert('Lỗi gửi yêu cầu'));
         });
     </script>
 </body>

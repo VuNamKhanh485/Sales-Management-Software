@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +8,13 @@
     <link rel="stylesheet" th:href="@{/css/apple-design.css}">
     <link rel="stylesheet" th:href="@{/css/customer.css}">
 </head>
+
 <body>
 
-    <!-- ── Global Nav ── -->
+    <!-- Thanh điều hướng -->
     <div th:replace="~{component/navbar :: global-nav('customer')}"></div>
 
-    <!-- ── Sub Nav ── -->
+    <!-- Thanh phụ -->
     <div class="sub-nav">
         <a href="/customers" class="sub-nav__back">Khách hàng</a>
         <span class="sub-nav__sep">›</span>
@@ -21,24 +23,28 @@
 
     <main class="page-content">
 
-        <!-- ── Stats ── -->
+        <!-- Thống kê nhanh -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-card__label">Tổng chi tiêu</div>
-                <div class="stat-card__value" th:text="${#numbers.formatDecimal(customer.totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+                <div class="stat-card__value"
+                    th:text="${#numbers.formatDecimal(customer.totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
             </div>
             <div class="stat-card">
                 <div class="stat-card__label">Điểm tích lũy</div>
-                <div class="stat-card__value stat-card__value--success" th:text="${customer.totalPoint - customer.usedPoint} + ' điểm'">0 điểm</div>
+                <div class="stat-card__value stat-card__value--success"
+                    th:text="${customer.totalPoint - customer.usedPoint} + ' điểm'">0 điểm</div>
             </div>
             <div class="stat-card">
                 <div class="stat-card__label">Tổng đơn hàng</div>
-                <div class="stat-card__value stat-card__value--ink" th:text="${orderPage.totalElements} + ' đơn'">0 đơn</div>
+                <div class="stat-card__value stat-card__value--ink" th:text="${orderPage.totalElements} + ' đơn'">0 đơn
+                </div>
             </div>
             <div class="stat-card">
                 <div class="stat-card__label">Lần cuối ghé</div>
                 <div class="stat-card__value stat-card__value--ink"
-                     th:text="${orderPage.totalElements > 0 ? #temporals.format(orderPage.content[0].createdAt, 'dd/MM/yyyy') : '—'}">—</div>
+                    th:text="${orderPage.totalElements > 0 ? #temporals.format(orderPage.content[0].createdAt, 'dd/MM/yyyy') : '—'}">
+                    —</div>
             </div>
         </div>
 
@@ -67,13 +73,15 @@
                 <div class="detail-item">
                     <span class="detail-item__label">Hạng thẻ</span>
                     <span class="detail-item__value">
-                        <span th:if="${customer.customerRank != null}" class="badge badge-active" th:text="${customer.customerRank.name}"></span>
+                        <span th:if="${customer.customerRank != null}" class="badge badge-active"
+                            th:text="${customer.customerRank.name}"></span>
                         <span th:unless="${customer.customerRank != null}">—</span>
                     </span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-item__label">Địa chỉ</span>
-                    <span class="detail-item__value" th:text="${customer.address != null ? customer.address : '—'}"></span>
+                    <span class="detail-item__value"
+                        th:text="${customer.address != null ? customer.address : '—'}"></span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-item__label">Ghi chú</span>
@@ -82,7 +90,7 @@
             </div>
         </div>
 
-        <!-- ── Lịch sử giao dịch ── -->
+        <!-- Lịch sử giao dịch -->
         <div class="card-panel">
             <div class="transaction-header">
                 Lịch sử giao dịch
@@ -115,18 +123,19 @@
                             <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
                             <td><span class="badge" style="background:#e5e7eb;color:#374151" th:text="${branchMap[order.branchId] != null ? branchMap[order.branchId] : 'Không rõ'}"></span></td>
                             <td>
-                                <span th:each="detail, stat : ${order.details}"
-                                      th:if="${stat.index < 2}"
-                                      th:text="${detail.productUnit.product.name + (stat.index < 1 and order.details.size() > 1 ? ', ' : '')}">
+                                <span th:each="detail, stat : ${order.details}" th:if="${stat.index < 2}"
+                                    th:text="${detail.productUnit.product.name + (stat.index < 1 and order.details.size() > 1 ? ', ' : '')}">
                                 </span>
-                                <span th:if="${order.details.size() > 2}" class="code-chip" style="font-size:11px;" th:text="'+' + (${order.details.size() - 2})"></span>
+                                <span th:if="${order.details.size() > 2}" class="code-chip" style="font-size:11px;"
+                                    th:text="'+' + (${order.details.size() - 2})"></span>
                             </td>
-                            <td class="amount-cell" th:text="${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                            <td class="amount-cell"
+                                th:text="${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                            </td>
                             <td>
-                                <span class="badge"
-                                      th:classappend="${order.status == 'COMPLETED'} ? 'badge-active' :
+                                <span class="badge" th:classappend="${order.status == 'COMPLETED'} ? 'badge-active' :
                                                      (${order.status == 'CANCELLED'} ? 'badge-inactive' : '')"
-                                      th:text="${order.status}">
+                                    th:text="${order.status}">
                                 </span>
                             </td>
                             <td>
@@ -140,7 +149,7 @@
                 </table>
             </div>
 
-            <!-- Pagination -->
+            <!-- Phân trang -->
             <div th:if="${orderPage.totalPages > 1}" class="pagination-bar">
                 <small class="pagination-bar__info">
                     Hiển thị <span th:text="${orderPage.numberOfElements}"></span> /
@@ -149,13 +158,16 @@
                 <nav>
                     <ul class="pagination">
                         <li th:classappend="${currentPage == 1} ? 'disabled'">
-                            <a th:href="@{/customers/detail/{id}(id=${customer.id}, page=${currentPage - 1})}">&laquo;</a>
+                            <a
+                                th:href="@{/customers/detail/{id}(id=${customer.id}, page=${currentPage - 1})}">&laquo;</a>
                         </li>
-                        <li th:each="i : ${#numbers.sequence(1, totalPages)}" th:classappend="${i == currentPage} ? 'active'">
+                        <li th:each="i : ${#numbers.sequence(1, totalPages)}"
+                            th:classappend="${i == currentPage} ? 'active'">
                             <a th:href="@{/customers/detail/{id}(id=${customer.id}, page=${i})}" th:text="${i}"></a>
                         </li>
                         <li th:classappend="${currentPage == totalPages} ? 'disabled'">
-                            <a th:href="@{/customers/detail/{id}(id=${customer.id}, page=${currentPage + 1})}">&raquo;</a>
+                            <a
+                                th:href="@{/customers/detail/{id}(id=${customer.id}, page=${currentPage + 1})}">&raquo;</a>
                         </li>
                     </ul>
                 </nav>
@@ -165,4 +177,5 @@
     </main>
 
 </body>
+
 </html>

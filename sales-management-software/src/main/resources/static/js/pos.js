@@ -1,6 +1,4 @@
-// =============================================
-// Cấu hình — đọc từ DOM (#pos-config)
-// =============================================
+// Cấu hình - đọc từ DOM (#pos-config)
 let finalAmount = 0;
 let showSuccessModal = false;
 let successOrderCode = '';
@@ -14,9 +12,7 @@ function loadConfig() {
     }
 }
 
-// =============================================
 // Đóng modal khách hàng (gọi từ iframe popup)
-// =============================================
 function closeCustomerModal() {
     const modalEl = document.getElementById('newCustomerModal');
     if (modalEl) {
@@ -36,9 +32,7 @@ window.addEventListener('message', function(event) {
     }
 });
 
-// =============================================
 // Tính tiền thừa (real-time)
-// =============================================
 function calcChange() {
     const given = parseFloat(document.getElementById('givenAmount')?.value) || 0;
     const change = Math.max(0, given - finalAmount);
@@ -46,9 +40,7 @@ function calcChange() {
     if (el) el.textContent = change.toLocaleString('vi-VN') + 'đ';
 }
 
-// =============================================
 // Gợi ý số tiền khách đưa
-// =============================================
 function generateSuggestions() {
     const container = document.getElementById('amountSuggestions');
     if (!container || finalAmount <= 0) return;
@@ -75,9 +67,7 @@ function generateSuggestions() {
     });
 }
 
-// =============================================
 // Xuất PDF hóa đơn
-// =============================================
 function downloadReceiptPdf() {
     const element = document.getElementById('receiptPrintArea');
     if (!element) return;
@@ -91,9 +81,7 @@ function downloadReceiptPdf() {
     }).from(element).save();
 }
 
-// =============================================
-// Init
-// =============================================
+// Khởi tạo trang
 document.addEventListener('DOMContentLoaded', () => {
     loadConfig();
     generateSuggestions();

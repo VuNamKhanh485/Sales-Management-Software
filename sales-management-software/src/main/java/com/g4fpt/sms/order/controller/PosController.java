@@ -44,7 +44,7 @@ public class PosController {
         return new PosSessionData();
     }
 
-    // ============== Main ==============
+    // Hiển thị màn hình POS chính
     @GetMapping
     public String showPosScreen(@ModelAttribute("posSession") PosSessionData session,
             @RequestParam(required = false) Long successOrderId,
@@ -61,7 +61,7 @@ public class PosController {
         return "order/pos";
     }
 
-    // ---------- Order tabs ----------
+    // Quản lý các tab đơn hàng
     @GetMapping("/new-order")
     public String newOrder(@ModelAttribute("posSession") PosSessionData s, RedirectAttributes ra) {
         if (!s.canAddOrder())
@@ -98,7 +98,7 @@ public class PosController {
         return "redirect:/pos";
     }
 
-    // ---------- Cart (add/update/remove items) ----------
+    // Thêm, sửa, xóa sản phẩm trong giỏ hàng
     @GetMapping("/add")
     public String addToCart(@RequestParam("keyword") String keyword, @ModelAttribute("posSession") PosSessionData s,
             RedirectAttributes ra) {
@@ -160,7 +160,7 @@ public class PosController {
         return "redirect:/pos";
     }
 
-    // ---------- Customer ----------
+    // Tìm kiếm và chọn khách hàng cho đơn hàng
     @GetMapping("/search-customer")
     public String findCustomers(@RequestParam String phone, @ModelAttribute("posSession") PosSessionData session,
             HttpSession httpSession, Model model) {
@@ -193,7 +193,7 @@ public class PosController {
         cart.setCustomerId(customerId);
         cart.setCustomerName(customerName);
         cart.setCustomerPhone(customerPhone);
-        // Tổng điểm khả dụng = totalPoint - usedPoint
+        // Điểm tích lũy khả dụng = tổng điểm - điểm đã dùng
         int availablePoints = c.getTotalPoint() - c.getUsedPoint();
         cart.setCustomerAvailablePoints(Math.max(0, availablePoints));
         cart.setUsePoints(false);
@@ -211,7 +211,7 @@ public class PosController {
         return "redirect:/pos";
     }
 
-    // ---------- Voucher ----------
+    // Áp dụng và gỡ mã giảm giá
     @GetMapping("/apply-voucher")
     public String applyVoucher(@RequestParam String code, @ModelAttribute("posSession") PosSessionData s,
             RedirectAttributes ra) {
@@ -235,7 +235,7 @@ public class PosController {
         return "redirect:/pos";
     }
 
-    // ---------- Points ----------
+    // Bật/tắt sử dụng điểm tích lũy
     @GetMapping("/toggle-points")
     public String togglePoints(@ModelAttribute("posSession") PosSessionData s,
             @RequestParam boolean enabled, RedirectAttributes ra) {
@@ -244,11 +244,15 @@ public class PosController {
             ra.addFlashAttribute("error", "Vui lòng chọn khách hàng trước khi áp dụng điểm!");
             return "redirect:/pos";
         }
+        if (enabled && cart.getCustomerAvailablePoints() <= 0) {
+            ra.addFlashAttribute("error", "Khách hàng không có điểm tích luỹ khả dụng!");
+            return "redirect:/pos";
+        }
         cart.setUsePoints(enabled);
         return "redirect:/pos";
     }
 
-    // ---------- Branch ----------
+    // Đổi chi nhánh làm việc (chỉ Owner)
     @GetMapping("/change-branch")
     public String changeBranch(@RequestParam Long branchId, @ModelAttribute("posSession") PosSessionData s,
             HttpSession httpSession) {
@@ -258,7 +262,7 @@ public class PosController {
         return "redirect:/pos";
     }
 
-    // ---------- Product list (iframe modal) ----------
+    // Danh sách sản phẩm hiển thị trong iframe modal
     @GetMapping("/product-list")
     public String getProductList(@ModelAttribute("posSession") PosSessionData s,
             @RequestParam(required = false) Long categoryId,
@@ -267,7 +271,9 @@ public class PosController {
         var products = productUnitRepo.searchActiveProductUnits(categoryId, kw);
         Long branchId = s.getActiveBranchId();
         if (branchId == null) {
-            branchId = branchRepo.findAll().stream().findFirst()
+            branchId = branchRepo.findAll().stream()
+                    .filter(b -> b.getStatus() == com.g4fpt.sms.branch.entity.BranchStatus.ACTIVE)
+                    .findFirst()
                     .map(com.g4fpt.sms.branch.entity.Branch::getId).orElse(null);
             s.setActiveBranchId(branchId);
         }
@@ -287,7 +293,7 @@ public class PosController {
         return "order/pos-product-list";
     }
 
-    // ---------- Voucher list (iframe modal) ----------
+    // Danh sách voucher khả dụng hiển thị trong iframe modal
     @GetMapping("/voucher-list")
     public String getAvailableVouchers(@ModelAttribute("posSession") PosSessionData s, Model model) {
         Long customerId = s.getActiveCart().getCustomerId();
@@ -309,7 +315,7 @@ public class PosController {
         return "order/pos-voucher-list";
     }
 
-    // ---------- Sales history ----------
+    // Xem lịch sử bán hàng theo ngày
     @GetMapping("/sales-history")
     public String getSalesHistory(HttpSession httpSession,
             @RequestParam(required = false) String date, Model model) {
@@ -348,7 +354,7 @@ public class PosController {
         return "order/pos-history-detail";
     }
 
-    // ---------- Checkout ----------
+    // Xử lý thanh toán: validate, trừ kho, lưu đơn hàng
     @PostMapping("/checkout")
     public String checkout(@ModelAttribute("posSession") PosSessionData s,
             @RequestParam(required = false) String note,
@@ -374,13 +380,15 @@ public class PosController {
         }
     }
 
-    // ============== Private helpers ==============
+    // Các hàm hỗ trợ nội bộ
     private void initSessionBranch(PosSessionData s, SessionUser user) {
         if (s.getActiveBranchId() == null) {
             if (user != null && user.getBranchId() != null)
                 s.setActiveBranchId(user.getBranchId());
             else
-                branchRepo.findAll().stream().findFirst().ifPresent(b -> s.setActiveBranchId(b.getId()));
+                branchRepo.findAll().stream()
+                        .filter(b -> b.getStatus() == com.g4fpt.sms.branch.entity.BranchStatus.ACTIVE)
+                        .findFirst().ifPresent(b -> s.setActiveBranchId(b.getId()));
         }
     }
 
@@ -390,7 +398,8 @@ public class PosController {
         boolean isOwner = user != null && user.hasRole("OWNER");
         model.addAttribute("isOwner", isOwner);
         if (isOwner)
-            model.addAttribute("branches", branchRepo.findAll());
+            model.addAttribute("branches", branchRepo.findAll().stream()
+                    .filter(b -> b.getStatus() == com.g4fpt.sms.branch.entity.BranchStatus.ACTIVE).toList());
         model.addAttribute("posData", s);
         model.addAttribute("cart", s.getActiveCart());
         model.addAttribute("categories", categoryRepository.findAll().stream()

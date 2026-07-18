@@ -1,30 +1,35 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <title>Thêm Khách hàng</title>
     <!-- Nhập thư viện Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body class="p-2 bg-light">
 
     <!-- Thông báo lỗi khi xảy ra exception -->
     <div th:if="${error}" class="alert alert-danger py-2 px-3 small mb-3" th:text="${error}"></div>
-    
+
     <form th:action="@{/customers/popup-form}" th:object="${customerDTO}" method="POST">
-        
+
         <!-- Dòng 1: Họ tên & Số điện thoại -->
         <div class="row g-2 mb-2">
             <div class="col-6">
                 <label class="form-label small fw-semibold mb-1">Họ tên <span class="text-danger">*</span></label>
-                <input type="text" th:field="*{fullName}" class="form-control form-control-sm" required placeholder="Nguyễn Văn A">
+                <input type="text" th:field="*{fullName}" class="form-control form-control-sm" required
+                    placeholder="Nguyễn Văn A">
             </div>
             <div class="col-6">
-                <label class="form-label default small fw-semibold mb-1">Số điện thoại <span class="text-danger">*</span></label>
-                <input type="text" th:field="*{phone}" class="form-control form-control-sm" required placeholder="0901234567">
+                <label class="form-label default small fw-semibold mb-1">Số điện thoại <span
+                        class="text-danger">*</span></label>
+                <input type="text" th:field="*{phone}" class="form-control form-control-sm" required
+                    placeholder="0901234567">
             </div>
         </div>
-        
+
         <!-- Dòng 2: Giới tính & Ngày sinh -->
         <div class="row g-2 mb-2">
             <div class="col-6">
@@ -42,25 +47,30 @@
         <div class="row g-2 mb-2">
             <div class="col-6">
                 <label class="form-label small fw-semibold mb-1">Email</label>
-                <input type="email" th:field="*{email}" class="form-control form-control-sm" placeholder="example@gmail.com">
+                <input type="email" th:field="*{email}" class="form-control form-control-sm"
+                    placeholder="example@gmail.com">
             </div>
             <div class="col-6">
                 <label class="form-label small fw-semibold mb-1">Địa chỉ</label>
-                <input type="text" th:field="*{address}" class="form-control form-control-sm" placeholder="Địa chỉ thường trú">
+                <input type="text" th:field="*{address}" class="form-control form-control-sm"
+                    placeholder="Địa chỉ thường trú">
             </div>
         </div>
-        
+
         <!-- Dòng 4: Ghi chú -->
         <div class="mb-3">
             <label class="form-label small fw-semibold mb-1">Ghi chú</label>
-            <textarea th:field="*{note}" class="form-control form-control-sm" rows="2" placeholder="Ghi chú thêm..."></textarea>
+            <textarea th:field="*{note}" class="form-control form-control-sm" rows="2"
+                placeholder="Ghi chú thêm..."></textarea>
         </div>
-        
+
         <!-- Phần chân trang chứa nút bấm tác vụ -->
         <div class="text-end border-top pt-2 mt-2">
-            <button type="button" class="btn btn-secondary btn-sm me-1" onclick="window.parent.closeCustomerModal()">Hủy</button>
+            <button type="button" class="btn btn-secondary btn-sm me-1"
+                onclick="window.parent.closeCustomerModal()">Hủy</button>
             <button type="submit" class="btn btn-primary btn-sm">Lưu khách hàng</button>
         </div>
     </form>
 </body>
+
 </html>
