@@ -23,14 +23,14 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     boolean existsByEmailAndIdNot(String email, Long id);
 
-    @Query(value = "SELECT c.id AS id, c.fullName AS fullName, c.phone AS phone, c.customerRank AS customerRank, c.email AS email, c.totalRevenue AS totalRevenue, c.status AS status " +
-           "FROM Customer c WHERE c.phone LIKE CONCAT('%', :keyword, '%') OR LOWER(FUNCTION('regexp_replace', c.fullName, '[[:space:]]+', ' ')) LIKE LOWER(CONCAT('%', :keyword, '%'))",
-           countQuery = "SELECT count(c) FROM Customer c WHERE c.phone LIKE CONCAT('%', :keyword, '%') OR LOWER(FUNCTION('regexp_replace', c.fullName, '[[:space:]]+', ' ')) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    @Query(value = "SELECT c.id AS id, c.fullName AS fullName, c.phone AS phone, r AS customerRank, c.email AS email, c.totalRevenue AS totalRevenue, c.status AS status " +
+           "FROM Customer c LEFT JOIN c.customerRank r WHERE c.phone LIKE CONCAT('%', :keyword, '%') OR LOWER(c.fullName) LIKE LOWER(CONCAT('%', :keyword, '%'))",
+           countQuery = "SELECT count(c) FROM Customer c WHERE c.phone LIKE CONCAT('%', :keyword, '%') OR LOWER(c.fullName) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<CustomerProjection> searchByPhoneOrName(@Param("keyword") String keyword, Pageable pageable); 
 
-    @Query("SELECT c.id AS id, c.fullName AS fullName, c.phone AS phone, c.customerRank AS customerRank " +
-           "FROM Customer c WHERE c.status = com.g4fpt.sms.customer.enums.CustomerStatus.ACTIVE " +
-           "AND (c.phone LIKE CONCAT('%', :keyword, '%') OR LOWER(FUNCTION('regexp_replace', c.fullName, '[[:space:]]+', ' ')) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    @Query("SELECT c.id AS id, c.fullName AS fullName, c.phone AS phone, r AS customerRank " +
+           "FROM Customer c LEFT JOIN c.customerRank r WHERE c.status = com.g4fpt.sms.customer.enums.CustomerStatus.ACTIVE " +
+           "AND (c.phone LIKE CONCAT('%', :keyword, '%') OR LOWER(c.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<CustomerProjection> searchActiveByPhoneOrName(@Param("keyword") String keyword, Pageable pageable);
 
     Page<CustomerProjection> findAllProjectedBy(Pageable pageable);
