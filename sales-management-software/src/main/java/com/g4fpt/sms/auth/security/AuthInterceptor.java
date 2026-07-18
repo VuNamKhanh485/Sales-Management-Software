@@ -37,9 +37,16 @@ public class AuthInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // 2. OWNER, BRANCH_MANAGER: /employee, /reports, /vouchers
-        if ((uri.startsWith("/employee") || uri.startsWith("/reports") || uri.startsWith("/vouchers"))
+        // 2. OWNER, BRANCH_MANAGER: /employee, /vouchers, /cashbook
+        if ((uri.startsWith("/employee") || uri.startsWith("/vouchers") || uri.startsWith("/cashbook"))
                 && !loggedInUser.hasAnyRole("OWNER", "BRANCH_MANAGER")) {
+            response.sendRedirect(contextPath + "/error/403");
+            return false;
+        }
+
+        // 2.1 OWNER, BRANCH_MANAGER, SALE_STAFF, CASHIER: /reports
+        if (uri.startsWith("/reports") 
+                && !loggedInUser.hasAnyRole("OWNER", "BRANCH_MANAGER", "SALE_STAFF", "CASHIER")) {
             response.sendRedirect(contextPath + "/error/403");
             return false;
         }
@@ -51,9 +58,9 @@ public class AuthInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // 4. OWNER, BRANCH_MANAGER, SALE_STAFF: /pos, /orders, /return, /customers, /cashbook
+        // 4. OWNER, BRANCH_MANAGER, SALE_STAFF: /pos, /orders, /return, /customers
         if ((uri.startsWith("/pos") || uri.startsWith("/orders") || uri.startsWith("/return") 
-                || uri.startsWith("/customers") || uri.startsWith("/cashbook"))
+                || uri.startsWith("/customers"))
                 && !loggedInUser.hasAnyRole("OWNER", "BRANCH_MANAGER", "SALE_STAFF")) {
             response.sendRedirect(contextPath + "/error/403");
             return false;

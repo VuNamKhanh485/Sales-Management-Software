@@ -162,7 +162,8 @@
             <a href="/category" class="btn-secondary btn-secondary--sm" style="border:1px solid var(--primary); color:var(--primary); background:transparent;">Quản lý Danh mục</a>
             <a href="/brand" class="btn-secondary btn-secondary--sm" style="border:1px solid var(--primary); color:var(--primary); background:transparent;">Quản lý Thương hiệu</a>
             <a href="/unit" class="btn-secondary btn-secondary--sm" style="border:1px solid var(--primary); color:var(--primary); background:transparent;">Quản lý Đơn vị</a>
-            <a href="/product/form" class="btn-primary btn-primary--sm">
+            <a th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}" 
+               href="/product/form" class="btn-primary btn-primary--sm">
                 + Thêm sản phẩm
             </a>
         </div>
@@ -340,7 +341,8 @@
                                     <div class="empty-state__icon">📦</div>
                                     <h3 class="empty-state__title">Chưa có sản phẩm nào</h3>
                                     <p class="empty-state__sub">Hãy tạo sản phẩm đầu tiên của bạn</p>
-                                    <a href="/product/form" class="btn-primary">Thêm sản phẩm</a>
+                                    <a th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}" 
+                                       href="/product/form" class="btn-primary">Thêm sản phẩm</a>
                                 </div>
                             </td>
                         </tr>
@@ -378,7 +380,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="actions" style="justify-content:flex-end;">
+                                    <div class="actions" style="justify-content:flex-end;" th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">
                                         <a th:href="@{/product/form/{id}(id=${p.id})}" class="action-edit">Sửa</a>
                                         <form th:action="@{/product/delete/{id}(id=${p.id})}" method="post" onsubmit="return confirm('Xác nhận xóa sản phẩm này?')" style="margin:0;">
                                             <button type="submit" class="action-delete" style="background:transparent; border:none; cursor:pointer;">Xóa</button>

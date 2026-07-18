@@ -25,10 +25,12 @@
                 
                 <div class="form-group">
                     <label class="form-label">Chi nhánh <span class="required text-danger">*</span></label>
-                    <select class="form-select" th:field="*{branchId}" required>
+                    <select class="form-select" th:field="*{branchId}" required th:disabled="${sessionUser != null and sessionUser.hasRole('BRANCH_MANAGER')}">
                         <option value="">-- Chọn chi nhánh --</option>
                         <option th:each="b : ${branches}" th:value="${b.id}" th:text="${b.name}"></option>
                     </select>
+                    <!-- Trường ẩn để gửi giá trị nếu select bị disable -->
+                    <input type="hidden" th:if="${sessionUser != null and sessionUser.hasRole('BRANCH_MANAGER')}" th:field="*{branchId}" />
                 </div>
 
                 <div class="form-group">

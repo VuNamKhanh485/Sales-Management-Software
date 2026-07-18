@@ -15,7 +15,8 @@
         <div style="max-width: 1200px; margin: 0 auto; width: 100%; display: flex; justify-content: space-between; align-items: center;">
             <span class="sub-nav__title">Đơn vị tính</span>
             <div class="sub-nav__actions">
-                <a th:href="@{/unit/form/0}" class="btn-primary btn-primary--sm">
+                <a th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}" 
+                   th:href="@{/unit/form/0}" class="btn-primary btn-primary--sm">
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M6 1V11M1 6H11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
                     </svg>
@@ -63,7 +64,7 @@
                     <tr th:each="u, stat : ${unitPage.content}">
                         <td th:text="${currentPage * size + stat.index + 1}" style="color:var(--ink-muted-48);font-size:12px;"></td>
                         <td><span style="font-weight: 600;" th:text="${u.name}"></span></td>
-                        <td>
+                        <td th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">
                             <div class="actions">
                                 <a th:href="@{/unit/form/{id}(id=${u.id})}" class="action-edit">
                                     <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
@@ -84,7 +85,8 @@
                                 <div class="empty-state__icon">📏</div>
                                 <div class="empty-state__title">Không tìm thấy đơn vị tính nào</div>
                                 <p class="empty-state__sub">Thử thay đổi bộ lọc hoặc thêm đơn vị mới.</p>
-                                <a th:href="@{/unit/form/0}" class="btn-primary btn-primary--sm">Thêm đơn vị tính</a>
+                                <a th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}" 
+                                   th:href="@{/unit/form/0}" class="btn-primary btn-primary--sm">Thêm đơn vị tính</a>
                             </div>
                         </td>
                     </tr>

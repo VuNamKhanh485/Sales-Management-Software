@@ -15,7 +15,8 @@
         <div style="max-width: 1200px; margin: 0 auto; width: 100%; display: flex; justify-content: space-between; align-items: center;">
             <span class="sub-nav__title">Danh mục</span>
             <div class="sub-nav__actions">
-                <a th:href="@{/category/form/0}" class="btn-primary btn-primary--sm">
+                <a th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}" 
+                   th:href="@{/category/form/0}" class="btn-primary btn-primary--sm">
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M6 1V11M1 6H11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
                     </svg>
@@ -74,12 +75,10 @@
                             <span th:class="${c.categoryStatus.name() == 'ACTIVE'} ? 'badge badge-active' : 'badge badge-inactive'"
                                   th:text="${c.categoryStatus.name() == 'ACTIVE'} ? 'Hoạt động' : 'Ngừng hoạt động'"></span>
                         </td>
-                        <td>
+                        <td th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">
                             <div class="actions">
                                 <a th:href="@{/category/form/{id}(id=${c.id})}" class="action-edit">
-                                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                                        <path d="M9.5 1.5L11.5 3.5L4.5 10.5H2.5V8.5L9.5 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
-                                    </svg>
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                                     Sửa
                                 </a>
                                 <form th:action="@{/category/delete/{id}(id=${c.id})}" method="post" onsubmit="return confirm('Xác nhận xóa danh mục này?')" style="margin:0;">
@@ -95,7 +94,8 @@
                                 <div class="empty-state__icon">📁</div>
                                 <div class="empty-state__title">Không tìm thấy danh mục nào</div>
                                 <p class="empty-state__sub">Thử thay đổi bộ lọc hoặc thêm danh mục mới.</p>
-                                <a th:href="@{/category/form/0}" class="btn-primary btn-primary--sm">Thêm danh mục</a>
+                                <a th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}" 
+                                   th:href="@{/category/form/0}" class="btn-primary btn-primary--sm">Thêm danh mục</a>
                             </div>
                         </td>
                     </tr>

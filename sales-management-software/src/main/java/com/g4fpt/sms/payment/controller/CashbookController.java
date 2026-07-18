@@ -37,7 +37,7 @@ public class CashbookController {
             HttpSession session) {
 
         SessionUser user = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
-        if (user != null && ("MANAGER".equals(user.getRoleName()) || "CASHIER".equals(user.getRoleName()))) {
+        if (user != null && ("BRANCH_MANAGER".equals(user.getRoleName()) || "CASHIER".equals(user.getRoleName()))) {
             if (branchId == null) {
                 branchId = user.getBranchId(); // Default to their branch
             }
@@ -72,7 +72,7 @@ public class CashbookController {
             HttpSession session) {
 
         SessionUser user = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
-        if (user != null && ("MANAGER".equals(user.getRoleName()) || "CASHIER".equals(user.getRoleName()))) {
+        if (user != null && ("BRANCH_MANAGER".equals(user.getRoleName()) || "CASHIER".equals(user.getRoleName()))) {
             if (branchId == null) {
                 branchId = user.getBranchId();
             }
@@ -90,8 +90,14 @@ public class CashbookController {
     }
 
     @GetMapping("/create")
-    public String showCreateForm(Model model) {
-        model.addAttribute("cashbookDTO", new CashbookRequestDTO());
+    public String showCreateForm(Model model, HttpSession session) {
+        CashbookRequestDTO dto = new CashbookRequestDTO();
+        SessionUser user = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
+        if (user != null && "BRANCH_MANAGER".equals(user.getRoleName())) {
+            dto.setBranchId(user.getBranchId());
+        }
+        
+        model.addAttribute("cashbookDTO", dto);
         model.addAttribute("branches", branchService.getAll());
         return "payment/cashbook/form";
     }
@@ -104,6 +110,11 @@ public class CashbookController {
 
         SessionUser user = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
         Long currentUserId = (user != null) ? user.getId() : 1L;
+        
+        // Force branch id for Branch Manager to prevent tampering
+        if (user != null && "BRANCH_MANAGER".equals(user.getRoleName())) {
+            dto.setBranchId(user.getBranchId());
+        }
 
         try {
             cashbookService.createTransaction(dto, currentUserId);
