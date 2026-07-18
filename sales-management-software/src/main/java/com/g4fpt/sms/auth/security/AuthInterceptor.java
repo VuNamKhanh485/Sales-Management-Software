@@ -29,34 +29,52 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
 
         SessionUser loggedInUser = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
+        String method = request.getMethod();
 
-        // /inventory/** và /imports/** — chỉ OWNER, BRANCH_MANAGER, WAREHOUSE_STAFF được phép
-        if ((uri.startsWith("/inventory") || uri.startsWith("/imports"))
-                && !loggedInUser.hasAnyRole("OWNER", "BRANCH_MANAGER", "WAREHOUSE_STAFF")) {
-            response.sendRedirect(contextPath + "/error/403");
-            return false;
-        }
-
-        // /pos/** — chỉ OWNER, BRANCH_MANAGER, SALE_STAFF được phép
-        if (uri.startsWith("/pos")
-                && !loggedInUser.hasAnyRole("OWNER", "BRANCH_MANAGER", "SALE_STAFF")) {
-            response.sendRedirect(contextPath + "/error/403");
-            return false;
-        }
-
-        // /branch/** — chỉ OWNER được phép
+        // 1. Chỉ OWNER: /branch
         if (uri.startsWith("/branch") && !loggedInUser.hasRole("OWNER")) {
             response.sendRedirect(contextPath + "/error/403");
             return false;
         }
 
-        // /employee/** — chỉ OWNER và BRANCH_MANAGER được phép
-        if (uri.startsWith("/employee")
+        // 2. OWNER, BRANCH_MANAGER: /employee, /reports, /vouchers
+        if ((uri.startsWith("/employee") || uri.startsWith("/reports") || uri.startsWith("/vouchers"))
                 && !loggedInUser.hasAnyRole("OWNER", "BRANCH_MANAGER")) {
             response.sendRedirect(contextPath + "/error/403");
             return false;
         }
 
+        // 3. OWNER, BRANCH_MANAGER, WAREHOUSE_STAFF: /inventory, /imports, /supplier
+        if ((uri.startsWith("/inventory") || uri.startsWith("/imports") || uri.startsWith("/supplier"))
+                && !loggedInUser.hasAnyRole("OWNER", "BRANCH_MANAGER", "WAREHOUSE_STAFF")) {
+            response.sendRedirect(contextPath + "/error/403");
+            return false;
+        }
+
+        // 4. OWNER, BRANCH_MANAGER, SALE_STAFF: /pos, /orders, /return, /customers, /cashbook
+        if ((uri.startsWith("/pos") || uri.startsWith("/orders") || uri.startsWith("/return") 
+                || uri.startsWith("/customers") || uri.startsWith("/cashbook"))
+                && !loggedInUser.hasAnyRole("OWNER", "BRANCH_MANAGER", "SALE_STAFF")) {
+            response.sendRedirect(contextPath + "/error/403");
+            return false;
+        }
+
+        // 5. Product Management: /product, /category, /brand, /unit
+        // GET (View): Mọi role đều được tra cứu
+        // Chặn hiển thị form (GET /form, /popup-form) và cấm thao tác ghi (POST) đối với tất cả role trừ OWNER
+        if (uri.startsWith("/product") || uri.startsWith("/category") 
+                || uri.startsWith("/brand") || uri.startsWith("/unit")) {
+            
+            boolean isWriteMethod = "POST".equalsIgnoreCase(method);
+            boolean isFormUrl = uri.contains("/form") || uri.contains("/popup-form") || uri.contains("/delete");
+            
+            if ((isWriteMethod || isFormUrl) && !loggedInUser.hasRole("OWNER")) {
+                response.sendRedirect(contextPath + "/error/403");
+                return false;
+            }
+        }
+
+        // Các URL khác (ví dụ: /, /profile) cho phép tất cả các tài khoản đã đăng nhập
         return true;
     }
 
