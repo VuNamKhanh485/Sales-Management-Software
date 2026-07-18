@@ -21,7 +21,7 @@
         </li>
     </ul>
     <div style="display:flex; align-items:center; gap:12px; margin-left:auto;" th:if="${sessionUser != null}">
-        <span style="font-size:12px; color:rgba(245,245,247,0.8);" th:text="${sessionUser.fullName}">Admin</span>
+        <a th:href="@{/profile}" style="font-size:12px; color:rgba(245,245,247,0.8); text-decoration:none;" th:text="${sessionUser.fullName}">Admin</a>
         <a th:href="@{/auth/logout}" style="background:transparent; border:none; color:rgba(245,245,247,0.8); cursor:pointer; font-size:12px; padding:4px 8px; text-decoration:none;">
             Đăng xuất
         </a>
@@ -75,7 +75,9 @@
     <hr>
     <div class="user-profile" th:if="${sessionUser != null}">
         <div class="mb-2">
-            <div class="fw-bold text-dark" th:text="${sessionUser.fullName}">Admin</div>
+            <a th:href="@{/profile}" class="text-decoration-none">
+                <div class="fw-bold text-dark" th:text="${sessionUser.fullName}">Admin</div>
+            </a>
             <small class="text-muted d-block mb-2" th:text="${sessionUser.roleName}">Quản trị viên</small>
         </div>
         <a th:href="@{/auth/logout}" class="btn btn-sm btn-outline-danger w-100" title="Đăng xuất">
