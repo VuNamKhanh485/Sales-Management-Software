@@ -368,7 +368,7 @@
                                     <div style="font-weight:600; color:var(--ink);" th:text="${p.name}"></div>
                                     <div style="font-size:12px; color:var(--ink-muted-48); max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" th:text="${p.description}"></div>
                                 </td>
-                                <td class="code-chip" style="margin-top:8px;" 
+                                <td style="font-family: monospace; color: var(--ink-muted-80);" 
                                     th:text="${p.baseSku}">
                                 </td>
                                 <td th:text="${p.category != null ? p.category.name : '-'}"></td>
@@ -379,8 +379,8 @@
                                     ? 'badge badge-inactive' : 'badge')" th:text="${p.status}">
                                     </span>
                                 </td>
-                                <td>
-                                    <div class="actions" style="justify-content:flex-end;" th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">
+                                <td th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">
+                                    <div class="actions" style="justify-content:flex-end;">
                                         <a th:href="@{/product/form/{id}(id=${p.id})}" class="action-edit">Sửa</a>
                                         <form th:action="@{/product/delete/{id}(id=${p.id})}" method="post" onsubmit="return confirm('Xác nhận xóa sản phẩm này?')" style="margin:0;">
                                             <button type="submit" class="action-delete" style="background:transparent; border:none; cursor:pointer;">Xóa</button>
@@ -391,7 +391,7 @@
 
                             <!-- Units expand row -->
                             <tr class="unit-expand-row" th:id="'units-' + ${p.id}" style="display:none;">
-                                <td colspan="9">
+                                <td colspan="100%">
                                     <div class="unit-expand-inner">
                                         <div style="font-size:13px; font-weight:600; color:var(--primary); margin-bottom:4px;">Quy đổi đơn vị tính</div>
                                         <table class="unit-table">
