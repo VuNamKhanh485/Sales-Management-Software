@@ -3,6 +3,9 @@ package com.g4fpt.sms.product.util;
 import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
 import com.g4fpt.sms.product.entity.Product;
 import com.g4fpt.sms.product.enums.ProductStatus;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
 public class ProductSpecification {
@@ -11,10 +14,27 @@ public class ProductSpecification {
     }
 
     public static Specification<Product> hasKeyword(String keyword){
-        return (root, query, cb) ->
-                (keyword == null || keyword.isBlank())
-                ? cb.conjunction()
-                        : cb.like(cb.lower(root.get("name")), "%" + keyword.toLowerCase() + "%");
+        return (root, query, cb) -> {
+            if (keyword == null || keyword.isBlank()) {
+                return cb.conjunction();
+            }
+
+            String normalizedKeyword = normalize(keyword);
+            String pattern = "%" + normalizedKeyword + "%";
+
+            query.distinct(true);
+            var unitJoin = root.join("productUnits", JoinType.LEFT);
+
+            Expression<String> normalizedName = normalizeSqlColumn(cb, root.get("name"));
+            Expression<String> normalizedSku = normalizeSqlColumn(cb, unitJoin.get("sku"));
+            Expression<String> normalizedBarcode = normalizeSqlColumn(cb, unitJoin.get("barcodeUnit"));
+
+            return cb.or(
+                    cb.like(normalizedName, pattern),
+                    cb.like(normalizedSku, pattern),
+                    cb.like(normalizedBarcode, pattern)
+            );
+        };
     }
 
     public static Specification<Product> hasBrand(Long brandId){
@@ -44,5 +64,22 @@ public class ProductSpecification {
                 .and(hasBrand(filter.getBrandId()))
                 .and(hasCategory(filter.getCategoryId()))
                 .and(hasStatus(filter.getStatus()));
+    }
+
+    // Chuẩn hóa 1 cột trong SQL: lowercase -> gộp khoảng trắng thừa
+    private static Expression<String> normalizeSqlColumn(CriteriaBuilder cb, Expression<String> column) {
+        return cb.function(
+                "regexp_replace", String.class,
+                cb.lower(column),
+                cb.literal("\\s+"),
+                cb.literal(" ")
+        );
+    }
+
+    // Chuẩn hóa keyword phía Java: lowercase -> gộp khoảng trắng thừa
+    private static String normalize(String input) {
+        return input.toLowerCase()
+                .trim()
+                .replaceAll("\\s+", " ");
     }
 }
