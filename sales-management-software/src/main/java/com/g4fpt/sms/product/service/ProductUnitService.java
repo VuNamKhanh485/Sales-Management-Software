@@ -12,7 +12,6 @@ public interface ProductUnitService {
     void deleteById(Long unitId, Long productId);
     List<ProductUnitResponse> findAll();
     ProductUnitResponse findById(Long id);
-    List<ProductUnitResponse> findByProductId(Long id);
     void validate(ProductUnitRequest productUnitRequest, Long excludeId);
     List<ProductUnit> productUnitSync(List<ProductUnitRequest> productUnitRequests, Product product);
 }

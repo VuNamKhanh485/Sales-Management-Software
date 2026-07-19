@@ -35,7 +35,7 @@ public class BrandServiceImpl implements BrandService {
         if(brandRepository.existsByNameIgnoreCase(brandRequest.getBrandName())){
             throw new DuplicateException("This name is already in use");
         }
-        Brand brand = brandMapper.toEntity(brandRequest);
+        Brand brand = brandMapper.toEntity(new Brand(),brandRequest);
         Brand savedBrand = brandRepository.save(brand);
         return brandMapper.toResponse(savedBrand);
     }
@@ -97,8 +97,7 @@ public class BrandServiceImpl implements BrandService {
         if(brandRepository.existsByNameIgnoreCaseAndIdNot(brandRequest.getBrandName(), id)){
             throw new DuplicateException("This name is already in use");
         }
-        brand.setName(brandRequest.getBrandName());
-        brand.setStatus(brandRequest.getBrandStatus());
+        brandMapper.toEntity(brand,brandRequest);
         brandRepository.save(brand);
     }
 
