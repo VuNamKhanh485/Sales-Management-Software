@@ -10,6 +10,7 @@ import com.g4fpt.sms.product.enums.BrandStatus;
 import com.g4fpt.sms.product.mapper.BrandMapper;
 import com.g4fpt.sms.product.repository.BrandRepository;
 import com.g4fpt.sms.product.service.BrandService;
+import com.g4fpt.sms.product.util.NormalizeWord;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -51,11 +52,12 @@ public class BrandServiceImpl implements BrandService {
         if(keyword == null||keyword.isBlank()){
             brandPage = brandRepository.findAll(pageable);
         }else{
-            brandPage = brandRepository.findByNameContainingIgnoreCase(keyword, pageable);
+            brandPage = brandRepository.findByNameContainingIgnoreCase(NormalizeWord.normalize(keyword), pageable);
         }
 
         return brandPage.map(brandMapper::toResponse);
     }
+
 
     @Override
     public List<BrandResponse> findAll() {

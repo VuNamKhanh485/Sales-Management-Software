@@ -12,10 +12,12 @@
     <form th:action="@{/unit/popup-form}" th:object="${unitRequest}" method="post">
         <div class="form-grid">
             <div class="form-group form-group--full">
-                <label class="form-label">Tên đơn vị tính <span style="color:red">*</span></label>
-                <input type="text" class="form-input" th:field="*{name}" placeholder="VD: Hộp, Lốc, Thùng..." />
+                <label class="form-label">Tên đơn vị tính <span style="color:red">*</span>
+                    <input type="text" class="form-input" th:field="*{name}" placeholder="VD: Hộp, Lốc, Thùng..." />
+                </label>
                 <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" style="color:var(--danger); font-size:13px; margin-top:4px;"></div>
             </div>
+            <input type="hidden" th:field="*{status}" value="ACTIVE">
         </div>
         <div class="form-actions" style="margin-top: 20px;">
             <button type="button" class="btn-cancel" onclick="window.parent.closeModal('modalUnit')">Hủy</button>

@@ -12,18 +12,12 @@
     <form th:action="@{/brand/popup-form}" th:object="${brandRequest}" method="post">
         <div class="form-grid">
             <div class="form-group form-group--full">
-                <label class="form-label">Tên thương hiệu <span style="color:red">*</span></label>
-                <input type="text" class="form-input" th:field="*{brandName}" placeholder="VD: Vinamilk, TH True Milk..." />
+                <label class="form-label">Tên thương hiệu <span style="color:red">*</span>
+                    <input type="text" class="form-input" th:field="*{brandName}" placeholder="VD: Vinamilk, TH True Milk..." />
+                </label>
                 <div th:if="${#fields.hasErrors('brandName')}" th:errors="*{brandName}" style="color:var(--danger); font-size:13px; margin-top:4px;"></div>
             </div>
-            <div class="form-group form-group--full">
-                <label class="form-label">Trạng thái <span style="color:red">*</span></label>
-                <select class="form-select" th:field="*{brandStatus}">
-                    <option value="ACTIVE">Hoạt động</option>
-                    <option value="INACTIVE">Ngừng hoạt động</option>
-                </select>
-                <div th:if="${#fields.hasErrors('brandStatus')}" th:errors="*{brandStatus}" style="color:var(--danger); font-size:13px; margin-top:4px;"></div>
-            </div>
+            <input type="hidden" th:field="*{brandStatus}" value="ACTIVE">
         </div>
         <div class="form-actions" style="margin-top: 20px;">
             <button type="button" class="btn-cancel" onclick="window.parent.closeModal('modalBrand')">Hủy</button>

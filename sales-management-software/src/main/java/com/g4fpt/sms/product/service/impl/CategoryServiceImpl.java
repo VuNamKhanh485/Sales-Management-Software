@@ -10,6 +10,7 @@ import com.g4fpt.sms.product.enums.CategoryStatus;
 import com.g4fpt.sms.product.mapper.CategoryMapper;
 import com.g4fpt.sms.product.repository.CategoryRepository;
 import com.g4fpt.sms.product.service.CategoryService;
+import com.g4fpt.sms.product.util.NormalizeWord;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -50,7 +51,7 @@ public class CategoryServiceImpl implements CategoryService {
         if(keyword == null || keyword.isBlank()){
             categoryPage = categoryRepository.findAll(pageable);
         }else{
-            categoryPage = categoryRepository.findByNameContainingIgnoreCase(keyword, pageable);
+            categoryPage = categoryRepository.findByNameContainingIgnoreCase(NormalizeWord.normalize(keyword), pageable);
         }
 
         return categoryPage.map(categoryMapper::toResponse);

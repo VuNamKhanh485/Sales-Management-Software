@@ -9,6 +9,7 @@ import com.g4fpt.sms.common.exception.NotFoundException;
 import com.g4fpt.sms.product.mapper.UnitMapper;
 import com.g4fpt.sms.product.repository.UnitRepository;
 import com.g4fpt.sms.product.service.UnitService;
+import com.g4fpt.sms.product.util.NormalizeWord;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,7 +41,7 @@ public class UnitServiceImpl implements UnitService {
         if(keyword == null||keyword.isBlank()){
             unitPage = unitRepository.findAll(pageable);
         }else{
-            unitPage = unitRepository.findByNameContainingIgnoreCase(keyword, pageable);
+            unitPage = unitRepository.findByNameContainingIgnoreCase(NormalizeWord.normalize(keyword), pageable);
         }
         return unitPage.map(unitMapper::toResponse);
     }

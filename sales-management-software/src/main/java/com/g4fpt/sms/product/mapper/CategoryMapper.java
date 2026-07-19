@@ -33,6 +33,7 @@ public class CategoryMapper {
 
         response.setId(category.getId());
         response.setName(category.getName());
+        response.setDescription(category.getDescription());
         response.setCategoryStatus(category.getStatus());
 
         return response;

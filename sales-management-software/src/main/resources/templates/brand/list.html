@@ -49,17 +49,38 @@
                     <tr>
                         <th style="width:44px">#</th>
                         <th>
-                            <a class="sort-link" th:href="@{/brand(keyword=${keyword},page=${currentPage},size=${size},sortField='name',sortDir=${reverseSortDir})}">
+                            <a class="sort-link"
+                               th:href="@{/brand(keyword=${keyword},
+                               page=${currentPage},
+                               size=${size},
+                               sortField='name',
+                               sortDir=${reverseSortDir})}">
                                 Tên thương hiệu
                                 <svg width="11" height="11" viewBox="0 0 11 11" fill="none" th:if="${sortField == 'name'}">
-                                    <path th:if="${sortDir == 'asc'}" d="M5.5 8V3m0 0L3 5.5m2.5-2.5L8 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path th:if="${sortDir == 'desc'}" d="M5.5 3v5m0 0L3 5.5m2.5 2.5L8 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path th:if="${sortDir == 'asc'}"
+                                          d="M5.5 8V3m0 0L3 5.5m2.5-2.5L8 5.5"
+                                          stroke="currentColor" stroke-width="1.2"
+                                          stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path th:if="${sortDir == 'desc'}"
+                                          d="M5.5 3v5m0 0L3 5.5m2.5 2.5L8 5.5"
+                                          stroke="currentColor" stroke-width="1.2"
+                                          stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </a>
                         </th>
                         <th>
                             <a class="sort-link" th:href="@{/brand(keyword=${keyword},page=${currentPage},size=${size},sortField='status',sortDir=${reverseSortDir})}">
                                 Trạng thái
+                                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" th:if="${sortField == 'name'}">
+                                    <path th:if="${sortDir == 'asc'}"
+                                          d="M5.5 8V3m0 0L3 5.5m2.5-2.5L8 5.5"
+                                          stroke="currentColor" stroke-width="1.2"
+                                          stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path th:if="${sortDir == 'desc'}"
+                                          d="M5.5 3v5m0 0L3 5.5m2.5 2.5L8 5.5"
+                                          stroke="currentColor" stroke-width="1.2"
+                                          stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
                             </a>
                         </th>
                         <th style="width:120px" th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">Thao tác</th>
@@ -68,7 +89,7 @@
                 <tbody>
                     <tr th:each="b, stat : ${brandPage.content}">
                         <td th:text="${currentPage * size + stat.index + 1}" style="color:var(--ink-muted-48);font-size:12px;"></td>
-                        <td><span style="font-weight: 600;" th:text="${b.name}"></span></td>
+                        <td><span style="   font-weight: 600;" th:text="${b.name}"></span></td>
                         <td>
                             <span th:class="${b.status.name() == 'ACTIVE'} ? 'badge badge-active' : 'badge badge-inactive'"
                                   th:text="${b.status.name() == 'ACTIVE'} ? 'Hoạt động' : 'Ngừng hoạt động'"></span>
@@ -77,11 +98,15 @@
                             <div class="actions">
                                 <a th:href="@{/brand/form/{id}(id=${b.id})}" class="action-edit">
                                     <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                                        <path d="M9.5 1.5L11.5 3.5L4.5 10.5H2.5V8.5L9.5 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+                                        <path d="M9.5 1.5L11.5 3.5L4.5 10.5H2.5V8.5L9.5 1.5Z"
+                                              stroke="currentColor"
+                                              stroke-width="1.4"
+                                              stroke-linejoin="round" />
                                     </svg>
                                     Sửa
                                 </a>
-                                <form th:action="@{/brand/delete/{id}(id=${b.id})}" method="post" onsubmit="return confirm('Xác nhận xóa nhãn hàng này?')" style="margin:0;">
+                                <form th:action="@{/brand/delete/{id}(id=${b.id})}"
+                                      method="post" onsubmit="return confirm('Xác nhận xóa nhãn hàng này?')" style="margin:0;">
                                     <button type="submit" class="action-delete" style="background:transparent; border:none; cursor:pointer;">Xóa</button>
                                 </form>
                             </div>
