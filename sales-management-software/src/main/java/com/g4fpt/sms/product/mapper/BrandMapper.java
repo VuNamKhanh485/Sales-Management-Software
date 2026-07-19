@@ -8,12 +8,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class BrandMapper {
 
-    public Brand toEntity(BrandRequest request) {
+    public Brand toEntity(Brand brand, BrandRequest request) {
         if (request == null) {
             return null;
         }
-
-        Brand brand = new Brand();
 
         brand.setName(request.getBrandName().trim());
         brand.setStatus(request.getBrandStatus());

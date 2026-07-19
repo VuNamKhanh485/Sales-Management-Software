@@ -81,7 +81,6 @@ public class ProductUnitServiceImpl implements ProductUnitService {
         }
 
         for(int i = 0; i < productUnitRequests.size(); i++){
-            ProductUnitRequest r = productUnitRequests.get(i);
             ProductUnitRequest productUnitRequest = productUnitRequests.get(i);
             try{
             if(productUnitRequest.getId() == null){
@@ -105,14 +104,6 @@ public class ProductUnitServiceImpl implements ProductUnitService {
     @Override
     public ProductUnitResponse findById(Long id) {
         return  productUnitMapper.toResponse(getProductUnitById(id));
-    }
-
-    @Override
-    public List<ProductUnitResponse> findByProductId(Long id) {
-        return productUnitRepository.findByProduct_Id(id)
-                .stream()
-                .map(productUnitMapper::toResponse)
-                .toList();
     }
 
     @Override

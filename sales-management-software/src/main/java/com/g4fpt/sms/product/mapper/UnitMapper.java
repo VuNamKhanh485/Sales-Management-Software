@@ -10,14 +10,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class UnitMapper {
 
-    public Unit toEntity(UnitRequest request) {
+    public Unit toEntity(Unit unit, UnitRequest request) {
         if (request == null) {
             return null;
         }
 
-        Unit unit = new Unit();
-
         unit.setName(request.getName().trim());
+        unit.setStatus(request.getStatus());
 
         return unit;
     }
@@ -31,6 +30,7 @@ public class UnitMapper {
 
         response.setId(unit.getId());
         response.setName(unit.getName());
+        response.setStatus(unit.getStatus());
 
         return response;
     }

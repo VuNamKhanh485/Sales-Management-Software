@@ -3,15 +3,38 @@ package com.g4fpt.sms.product.util;
 import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
 import com.g4fpt.sms.product.entity.Product;
 import com.g4fpt.sms.product.enums.ProductStatus;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
+
 public class ProductSpecification {
+    private ProductSpecification() {
+        /* This utility class should not be instantiated */
+    }
 
     public static Specification<Product> hasKeyword(String keyword){
-        return (root, query, cb) ->
-                (keyword == null || keyword.isBlank())
-                ? cb.conjunction()
-                        : cb.like(cb.lower(root.get("name")), "%" + keyword.toLowerCase() + "%");
+        return (root, query, cb) -> {
+            if (keyword == null || keyword.isBlank()) {
+                return cb.conjunction();
+            }
+
+            String normalizedKeyword = NormalizeWord.normalize(keyword);
+            String pattern = "%" + normalizedKeyword + "%";
+
+            query.distinct(true);
+            var unitJoin = root.join("productUnits", JoinType.LEFT);
+
+            Expression<String> normalizedName = NormalizeWord.normalizeSqlColumn(cb, root.get("name"));
+            Expression<String> normalizedSku = NormalizeWord.normalizeSqlColumn(cb, unitJoin.get("sku"));
+            Expression<String> normalizedBarcode = NormalizeWord.normalizeSqlColumn(cb, unitJoin.get("barcodeUnit"));
+
+            return cb.or(
+                    cb.like(normalizedName, pattern),
+                    cb.like(normalizedSku, pattern),
+                    cb.like(normalizedBarcode, pattern)
+            );
+        };
     }
 
     public static Specification<Product> hasBrand(Long brandId){
@@ -42,4 +65,6 @@ public class ProductSpecification {
                 .and(hasCategory(filter.getCategoryId()))
                 .and(hasStatus(filter.getStatus()));
     }
+
+
 }

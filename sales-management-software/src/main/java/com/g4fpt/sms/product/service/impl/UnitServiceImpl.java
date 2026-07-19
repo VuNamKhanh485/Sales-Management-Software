@@ -9,6 +9,7 @@ import com.g4fpt.sms.common.exception.NotFoundException;
 import com.g4fpt.sms.product.mapper.UnitMapper;
 import com.g4fpt.sms.product.repository.UnitRepository;
 import com.g4fpt.sms.product.service.UnitService;
+import com.g4fpt.sms.product.util.NormalizeWord;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,7 +41,7 @@ public class UnitServiceImpl implements UnitService {
         if(keyword == null||keyword.isBlank()){
             unitPage = unitRepository.findAll(pageable);
         }else{
-            unitPage = unitRepository.findByNameContainingIgnoreCase(keyword, pageable);
+            unitPage = unitRepository.findByNameContainingIgnoreCase(NormalizeWord.normalize(keyword), pageable);
         }
         return unitPage.map(unitMapper::toResponse);
     }
@@ -56,9 +57,9 @@ public class UnitServiceImpl implements UnitService {
     @Override
     public UnitResponse create(UnitRequest unitRequest) {
         if(unitRepository.existsByNameIgnoreCase(unitRequest.getName())){
-            throw new DuplicateException("This name is already in use");
+            throw new DuplicateException("Tên đã tồn tại");
         }
-        Unit unit = unitMapper.toEntity(unitRequest);
+        Unit unit = unitMapper.toEntity(new Unit(), unitRequest);
         Unit savedUnit = unitRepository.save(unit);
         return unitMapper.toResponse(savedUnit);
     }
@@ -66,11 +67,9 @@ public class UnitServiceImpl implements UnitService {
     @Override
     public void update(Long id, UnitRequest unitRequest) {
         if(unitRepository.existsByNameIgnoreCaseAndIdNot(unitRequest.getName(),id)){
-            throw new DuplicateException("This name is already in use");
+            throw new DuplicateException("Tên đã tồn tại");
         }
-        Unit unit = getUnitById(id);
-        unit.setName(unitRequest.getName());
-        unitRepository.save(unit);
+        unitRepository.save(unitMapper.toEntity(getUnitById(id), unitRequest));
     }
 
     @Override
@@ -90,6 +89,6 @@ public class UnitServiceImpl implements UnitService {
     }
 
     private Unit getUnitById(Long id){
-        return unitRepository.findById(id).orElseThrow(() -> new NotFoundException("unit not found"));
+        return unitRepository.findById(id).orElseThrow(() -> new NotFoundException("Không tìm thấy đơn vị"));
     }
 }

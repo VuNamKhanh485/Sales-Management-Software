@@ -255,6 +255,7 @@
                             <th style="width:40px; text-align:center;"></th>
                             <th style="width:40px;">#</th>
                             <th style="width:52px;"></th>
+                            <!--name-->
                             <th>
                                 <a class="sort-link"
                                    th:href="@{/product(
@@ -270,6 +271,7 @@
                                     <span th:if="${sortField=='name'}" th:text="${sortDir=='asc'?'↑':'↓'}"></span>
                                 </a>
                             </th>
+                            <!--SKU-->
                             <th>
                                 <a class="sort-link"
                                    th:href="@{/product(
@@ -285,6 +287,7 @@
                                     <span th:if="${sortField=='baseSku'}" th:text="${sortDir=='asc'?'↑':'↓'}"></span>
                                 </a>
                             </th>
+                            <!--Category-->
                             <th>
                                 <a class="sort-link"
                                    th:href="@{/product(
@@ -300,6 +303,7 @@
                                     <span th:if="${sortField=='category'}" th:text="${sortDir=='asc'?'↑':'↓'}"></span>
                                 </a>
                             </th>
+                            <!--Brand-->
                             <th>
                                 <a class="sort-link"
                                    th:href="@{/product(
@@ -315,6 +319,7 @@
                                     <span th:if="${sortField=='brand'}" th:text="${sortDir=='asc'?'↑':'↓'}"></span>
                                 </a>
                             </th>
+                            <!--status-->
                             <th>
                                 <a class="sort-link"
                                    th:href="@{/product(

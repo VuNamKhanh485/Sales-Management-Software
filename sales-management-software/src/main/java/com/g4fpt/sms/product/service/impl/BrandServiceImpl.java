@@ -10,6 +10,7 @@ import com.g4fpt.sms.product.enums.BrandStatus;
 import com.g4fpt.sms.product.mapper.BrandMapper;
 import com.g4fpt.sms.product.repository.BrandRepository;
 import com.g4fpt.sms.product.service.BrandService;
+import com.g4fpt.sms.product.util.NormalizeWord;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,7 +35,7 @@ public class BrandServiceImpl implements BrandService {
         if(brandRepository.existsByNameIgnoreCase(brandRequest.getBrandName())){
             throw new DuplicateException("This name is already in use");
         }
-        Brand brand = brandMapper.toEntity(brandRequest);
+        Brand brand = brandMapper.toEntity(new Brand(),brandRequest);
         Brand savedBrand = brandRepository.save(brand);
         return brandMapper.toResponse(savedBrand);
     }
@@ -51,11 +52,12 @@ public class BrandServiceImpl implements BrandService {
         if(keyword == null||keyword.isBlank()){
             brandPage = brandRepository.findAll(pageable);
         }else{
-            brandPage = brandRepository.findByNameContainingIgnoreCase(keyword, pageable);
+            brandPage = brandRepository.findByNameContainingIgnoreCase(NormalizeWord.normalize(keyword), pageable);
         }
 
         return brandPage.map(brandMapper::toResponse);
     }
+
 
     @Override
     public List<BrandResponse> findAll() {
@@ -95,8 +97,7 @@ public class BrandServiceImpl implements BrandService {
         if(brandRepository.existsByNameIgnoreCaseAndIdNot(brandRequest.getBrandName(), id)){
             throw new DuplicateException("This name is already in use");
         }
-        brand.setName(brandRequest.getBrandName());
-        brand.setStatus(brandRequest.getBrandStatus());
+        brandMapper.toEntity(brand,brandRequest);
         brandRepository.save(brand);
     }
 

@@ -90,30 +90,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductResponse> findByName(String name) {
-        return productRepository.findByNameContainingIgnoreCase(name)
-                .stream()
-                .map(productMapper::toResponse)
-                .toList();
-    }
-
-    @Override
-    public List<ProductResponse> findByBrand(Long brandId) {
-        return productRepository.findByBrand_Id(brandId)
-                .stream()
-                .map(productMapper::toResponse)
-                .toList();
-    }
-
-    @Override
-    public List<ProductResponse> findByCategory(Long categoryId) {
-        return productRepository.findByCategory_Id(categoryId)
-                .stream()
-                .map(productMapper::toResponse)
-                .toList();
-    }
-
-    @Override
     public void deleteById(long id) {
         Product product = getProductById(id); // kiểm tra tồn tại
 
@@ -135,15 +111,27 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<ProductResponse> findAll(ProductFilterRequest filter, int page, int size,
                                          String sortField, String sortDir) {
-        Sort sort = sortDir.equalsIgnoreCase("asc")
-                ? Sort.by(sortField).ascending()
-                : Sort.by(sortField).descending();
+        if ("baseSku".equals(sortField)) {
+            Pageable pageable = PageRequest.of(page, size);
+            if(sortDir.equals("asc")) {
+                return productRepository.findAllOrderByBaseSkuAsc(filter, pageable)
+                        .map(productMapper::toResponse);
+            }
+            else{
+                return productRepository.findAllOrderByBaseSkuDesc(filter, pageable)
+                        .map(productMapper::toResponse);
+            }
+        } else {
+            Sort sort = sortDir.equalsIgnoreCase("asc")
+                    ? Sort.by(sortField).ascending()
+                    : Sort.by(sortField).descending();
 
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Specification<Product> spec = ProductSpecification.fromFilter(filter);
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Specification<Product> spec = ProductSpecification.fromFilter(filter);
 
-        return productRepository.findAll(spec, pageable)
-                .map(productMapper::toResponse);
+            return productRepository.findAll(spec, pageable)
+                    .map(productMapper::toResponse);
+        }
     }
 
     private Product getProductById(long id) {

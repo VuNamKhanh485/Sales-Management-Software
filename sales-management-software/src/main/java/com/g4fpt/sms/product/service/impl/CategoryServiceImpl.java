@@ -10,6 +10,7 @@ import com.g4fpt.sms.product.enums.CategoryStatus;
 import com.g4fpt.sms.product.mapper.CategoryMapper;
 import com.g4fpt.sms.product.repository.CategoryRepository;
 import com.g4fpt.sms.product.service.CategoryService;
+import com.g4fpt.sms.product.util.NormalizeWord;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,7 +34,7 @@ public class CategoryServiceImpl implements CategoryService {
         if(categoryRepository.existsByNameIgnoreCase(categoryRequest.getCategoryName())){
             throw new DuplicateException("This name is already in use");
         }
-        Category category = categoryMapper.toEntity(categoryRequest);
+        Category category = categoryMapper.toEntity(new Category(), categoryRequest);
         Category savedCategory = categoryRepository.save(category);
         return categoryMapper.toResponse(savedCategory);
     }
@@ -50,7 +51,7 @@ public class CategoryServiceImpl implements CategoryService {
         if(keyword == null || keyword.isBlank()){
             categoryPage = categoryRepository.findAll(pageable);
         }else{
-            categoryPage = categoryRepository.findByNameContainingIgnoreCase(keyword, pageable);
+            categoryPage = categoryRepository.findByNameContainingIgnoreCase(NormalizeWord.normalize(keyword), pageable);
         }
 
         return categoryPage.map(categoryMapper::toResponse);
@@ -89,13 +90,12 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void update(long id, CategoryRequest categoryRequest) {
-        Category category = getCategoryById(id);
+
         if(categoryRepository.existsByNameIgnoreCaseAndIdNot(categoryRequest.getCategoryName(), id)){
             throw new DuplicateException("This name is already in use");
         }
-        category.setName(categoryRequest.getCategoryName());
-        category.setDescription(categoryRequest.getDescription());
-        category.setStatus(categoryRequest.getCategoryStatus());
+        Category category = getCategoryById(id);
+        categoryMapper.toEntity(category, categoryRequest);
 
         categoryRepository.save(category);
     }

@@ -10,12 +10,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CategoryMapper {
-    public Category toEntity(CategoryRequest request) {
+    public Category toEntity(Category category, CategoryRequest request) {
         if (request == null) {
             return null;
         }
-
-        Category category = new Category();
 
         category.setName(request.getCategoryName().trim());
         category.setStatus(request.getCategoryStatus());
@@ -33,6 +31,7 @@ public class CategoryMapper {
 
         response.setId(category.getId());
         response.setName(category.getName());
+        response.setDescription(category.getDescription());
         response.setCategoryStatus(category.getStatus());
 
         return response;
