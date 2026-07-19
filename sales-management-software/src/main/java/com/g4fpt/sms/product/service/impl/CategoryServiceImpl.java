@@ -34,7 +34,7 @@ public class CategoryServiceImpl implements CategoryService {
         if(categoryRepository.existsByNameIgnoreCase(categoryRequest.getCategoryName())){
             throw new DuplicateException("This name is already in use");
         }
-        Category category = categoryMapper.toEntity(categoryRequest);
+        Category category = categoryMapper.toEntity(new Category(), categoryRequest);
         Category savedCategory = categoryRepository.save(category);
         return categoryMapper.toResponse(savedCategory);
     }
@@ -90,13 +90,12 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void update(long id, CategoryRequest categoryRequest) {
-        Category category = getCategoryById(id);
+
         if(categoryRepository.existsByNameIgnoreCaseAndIdNot(categoryRequest.getCategoryName(), id)){
             throw new DuplicateException("This name is already in use");
         }
-        category.setName(categoryRequest.getCategoryName());
-        category.setDescription(categoryRequest.getDescription());
-        category.setStatus(categoryRequest.getCategoryStatus());
+        Category category = getCategoryById(id);
+        categoryMapper.toEntity(category, categoryRequest);
 
         categoryRepository.save(category);
     }

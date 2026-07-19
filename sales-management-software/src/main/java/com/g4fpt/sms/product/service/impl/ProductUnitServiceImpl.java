@@ -107,14 +107,6 @@ public class ProductUnitServiceImpl implements ProductUnitService {
     }
 
     @Override
-    public List<ProductUnitResponse> findByProductId(Long id) {
-        return productUnitRepository.findByProduct_Id(id)
-                .stream()
-                .map(productUnitMapper::toResponse)
-                .toList();
-    }
-
-    @Override
     public void validate(ProductUnitRequest productUnitRequest, Long excludeId) {
         List<ValidationError> errors = new ArrayList<>();
         if(excludeId != null) {

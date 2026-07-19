@@ -57,9 +57,9 @@ public class UnitServiceImpl implements UnitService {
     @Override
     public UnitResponse create(UnitRequest unitRequest) {
         if(unitRepository.existsByNameIgnoreCase(unitRequest.getName())){
-            throw new DuplicateException("This name is already in use");
+            throw new DuplicateException("Tên đã tồn tại");
         }
-        Unit unit = unitMapper.toEntity(unitRequest);
+        Unit unit = unitMapper.toEntity(new Unit(), unitRequest);
         Unit savedUnit = unitRepository.save(unit);
         return unitMapper.toResponse(savedUnit);
     }
@@ -67,11 +67,9 @@ public class UnitServiceImpl implements UnitService {
     @Override
     public void update(Long id, UnitRequest unitRequest) {
         if(unitRepository.existsByNameIgnoreCaseAndIdNot(unitRequest.getName(),id)){
-            throw new DuplicateException("This name is already in use");
+            throw new DuplicateException("Tên đã tồn tại");
         }
-        Unit unit = getUnitById(id);
-        unit.setName(unitRequest.getName());
-        unitRepository.save(unit);
+        unitRepository.save(unitMapper.toEntity(getUnitById(id), unitRequest));
     }
 
     @Override
@@ -91,6 +89,6 @@ public class UnitServiceImpl implements UnitService {
     }
 
     private Unit getUnitById(Long id){
-        return unitRepository.findById(id).orElseThrow(() -> new NotFoundException("unit not found"));
+        return unitRepository.findById(id).orElseThrow(() -> new NotFoundException("Không tìm thấy đơn vị"));
     }
 }

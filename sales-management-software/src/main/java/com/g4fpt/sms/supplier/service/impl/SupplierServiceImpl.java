@@ -10,7 +10,6 @@ import com.g4fpt.sms.supplier.mapper.SupplierMapper;
 import com.g4fpt.sms.supplier.repository.SupplierRepository;
 import com.g4fpt.sms.supplier.service.SupplierService;
 import lombok.AllArgsConstructor;
-import org.hibernate.query.SortDirection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,18 +26,19 @@ public class SupplierServiceImpl implements SupplierService {
     @Override
     public void create(SupplierRequest supplierRequest) {
         if(supplierRepository.existsByCodeIgnoreCase(supplierRequest.getCode())){
-            throw new DuplicateException("This code is already in use");
+            throw new DuplicateException("Mã này đã được sử dụng");
         }
-        Supplier supplier = supplierMapper.toEntity(supplierRequest);
+        Supplier supplier = supplierMapper.toEntity(new Supplier(),supplierRequest);
         supplierRepository.save(supplier);
     }
 
     @Override
     public void update(SupplierRequest supplierRequest, Long id) {
         if(supplierRepository.existsByCodeIgnoreCaseAndIdNot(supplierRequest.getCode(), id)){
-            throw new DuplicateException("This code is already in use");
+            throw new DuplicateException("Mã này đã được sử dụng");
         }
-        Supplier supplier = supplierMapper.toEntity(supplierRequest);
+        Supplier supplier = getSupplierById(id);
+        supplierMapper.toEntity(supplier, supplierRequest);
         supplierRepository.save(supplier);
     }
 
@@ -84,6 +84,6 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     private Supplier getSupplierById(Long id){
-        return supplierRepository.findById(id).orElseThrow(() -> new NotFoundException("Supplier not found"));
+        return supplierRepository.findById(id).orElseThrow(() -> new NotFoundException("Không tìm thấy nhà cung cấp"));
     }
 }

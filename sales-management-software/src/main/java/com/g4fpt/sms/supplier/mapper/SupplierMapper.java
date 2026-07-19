@@ -8,11 +8,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class SupplierMapper {
 
-    public Supplier toEntity(SupplierRequest supplierRequest) {
+    public Supplier toEntity(Supplier supplier, SupplierRequest supplierRequest) {
         if (supplierRequest == null) {
             return null;
         }
-        Supplier supplier = new Supplier();
         supplier.setCode(supplierRequest.getCode());
         supplier.setName(supplierRequest.getName());
         supplier.setPhone(supplierRequest.getPhone());

@@ -90,30 +90,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductResponse> findByName(String name) {
-        return productRepository.findByNameContainingIgnoreCase(name)
-                .stream()
-                .map(productMapper::toResponse)
-                .toList();
-    }
-
-    @Override
-    public List<ProductResponse> findByBrand(Long brandId) {
-        return productRepository.findByBrand_Id(brandId)
-                .stream()
-                .map(productMapper::toResponse)
-                .toList();
-    }
-
-    @Override
-    public List<ProductResponse> findByCategory(Long categoryId) {
-        return productRepository.findByCategory_Id(categoryId)
-                .stream()
-                .map(productMapper::toResponse)
-                .toList();
-    }
-
-    @Override
     public void deleteById(long id) {
         Product product = getProductById(id); // kiểm tra tồn tại
 
