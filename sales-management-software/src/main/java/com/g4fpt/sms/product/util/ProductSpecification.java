@@ -3,10 +3,10 @@ package com.g4fpt.sms.product.util;
 import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
 import com.g4fpt.sms.product.entity.Product;
 import com.g4fpt.sms.product.enums.ProductStatus;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
+
 
 public class ProductSpecification {
     private ProductSpecification() {
@@ -19,15 +19,15 @@ public class ProductSpecification {
                 return cb.conjunction();
             }
 
-            String normalizedKeyword = normalize(keyword);
+            String normalizedKeyword = NormalizeWord.normalize(keyword);
             String pattern = "%" + normalizedKeyword + "%";
 
             query.distinct(true);
             var unitJoin = root.join("productUnits", JoinType.LEFT);
 
-            Expression<String> normalizedName = normalizeSqlColumn(cb, root.get("name"));
-            Expression<String> normalizedSku = normalizeSqlColumn(cb, unitJoin.get("sku"));
-            Expression<String> normalizedBarcode = normalizeSqlColumn(cb, unitJoin.get("barcodeUnit"));
+            Expression<String> normalizedName = NormalizeWord.normalizeSqlColumn(cb, root.get("name"));
+            Expression<String> normalizedSku = NormalizeWord.normalizeSqlColumn(cb, unitJoin.get("sku"));
+            Expression<String> normalizedBarcode = NormalizeWord.normalizeSqlColumn(cb, unitJoin.get("barcodeUnit"));
 
             return cb.or(
                     cb.like(normalizedName, pattern),
@@ -66,20 +66,5 @@ public class ProductSpecification {
                 .and(hasStatus(filter.getStatus()));
     }
 
-    // Chuẩn hóa 1 cột trong SQL: lowercase -> gộp khoảng trắng thừa
-    private static Expression<String> normalizeSqlColumn(CriteriaBuilder cb, Expression<String> column) {
-        return cb.function(
-                "regexp_replace", String.class,
-                cb.lower(column),
-                cb.literal("\\s+"),
-                cb.literal(" ")
-        );
-    }
 
-    // Chuẩn hóa keyword phía Java: lowercase -> gộp khoảng trắng thừa
-    private static String normalize(String input) {
-        return input.toLowerCase()
-                .trim()
-                .replaceAll("\\s+", " ");
-    }
 }
