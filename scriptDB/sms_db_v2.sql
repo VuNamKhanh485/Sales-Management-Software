@@ -521,7 +521,6 @@ CREATE TABLE OrderTransactionDetail (
         )
 );
 
--- Bảng return_request
 CREATE TABLE return_request (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     order_id BIGINT NOT NULL,
@@ -529,23 +528,14 @@ CREATE TABLE return_request (
     requested_by BIGINT NOT NULL,
     reason TEXT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-    reviewed_by BIGINT NULL,
-    reviewedAt DATETIME NULL,
-    reject_reason TEXT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_return_request_order
-        FOREIGN KEY (order_id) REFERENCES OrderTransaction(id),
-    CONSTRAINT fk_return_request_branch
-        FOREIGN KEY (branch_id) REFERENCES Branch(id),
-    CONSTRAINT fk_return_request_requested_by
-        FOREIGN KEY (requested_by) REFERENCES Employee(id),
-    CONSTRAINT fk_return_request_reviewed_by
-        FOREIGN KEY (reviewed_by) REFERENCES Employee(id)
+    reviewed_by BIGINT,
+    reviewed_at DATETIME,
+    reject_reason TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (order_id) REFERENCES ordertransaction(id)
 );
 
--- Bảng return_request_item
 CREATE TABLE return_request_item (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     return_request_id BIGINT NOT NULL,
@@ -553,23 +543,16 @@ CREATE TABLE return_request_item (
     product_unit_id BIGINT NOT NULL,
     quantity INT NOT NULL,
     sale_price DECIMAL(19,2) NOT NULL,
-
-    CONSTRAINT fk_return_item_request
-        FOREIGN KEY (return_request_id) REFERENCES return_request(id) ON DELETE CASCADE,
-    CONSTRAINT fk_return_item_order_detail
-        FOREIGN KEY (order_detail_id) REFERENCES OrderTransactionDetail(id),
-    CONSTRAINT fk_return_item_product_unit
-        FOREIGN KEY (product_unit_id) REFERENCES ProductUnit(id)
+    FOREIGN KEY (return_request_id) REFERENCES return_request(id),
+    FOREIGN KEY (order_detail_id) REFERENCES ordertransactiondetail(id),
+    FOREIGN KEY (product_unit_id) REFERENCES ProductUnit(id)
 );
 
--- Bảng return_request_image
 CREATE TABLE return_request_image (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     return_request_id BIGINT NOT NULL,
-    imageName VARCHAR(500) NOT NULL,
-
-    CONSTRAINT fk_return_image_request
-        FOREIGN KEY (return_request_id) REFERENCES return_request(id) ON DELETE CASCADE
+    image_url VARCHAR(500) NOT NULL,
+    FOREIGN KEY (return_request_id) REFERENCES return_request(id)
 );
 
 CREATE TABLE cashbook_transaction (
