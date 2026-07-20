@@ -97,26 +97,28 @@ public class ReturnController {
 
     // Hiển thị trang quản lý yêu cầu trả hàng
     @GetMapping("/manage")
-    public String managePage(@RequestParam(required = false) Long viewId, Model model) {
+    public String managePage(Model model) {
         List<ReturnRequest> requests = returnRequestService.getAllRequests();
         model.addAttribute("requests", requests);
         model.addAttribute("pendingCount", returnRequestService.countPendingRequests());
-
-        // Trực tiếp load data lên Modal nếu viewId được truyền vào URL
-        if (viewId != null) {
-            try {
-                ReturnRequest detailRequest = returnRequestService.getById(viewId);
-                model.addAttribute("detailRequest", detailRequest);
-            } catch (Exception e) {
-                model.addAttribute("error", e.getMessage());
-            }
-        }
-
         return "order/return-manage";
     }
 
+    // Hiển thị trang chi tiết yêu cầu trả hàng
+    @GetMapping("/{id}")
+    public String detailPage(@PathVariable Long id, Model model) {
+        try {
+            ReturnRequest detailRequest = returnRequestService.getById(id);
+            model.addAttribute("detailRequest", detailRequest);
+            return "order/return-detail";
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+            return "redirect:/return/manage";
+        }
+    }
+
     // Xử lý Form duyệt yêu cầu trả hàng
-    @PostMapping("/manage/{id}/approve")
+    @PostMapping("/{id}/approve")
     public String approveRequest(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
         try {
             SessionUser user = getCurrentUser(session);
@@ -126,11 +128,11 @@ public class ReturnController {
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/return/manage";
+        return "redirect:/return/" + id;
     }
 
     // Xử lý Form từ chối yêu cầu trả hàng
-    @PostMapping("/manage/{id}/reject")
+    @PostMapping("/{id}/reject")
     public String rejectRequest(@PathVariable Long id,
             @RequestParam("reason") String reason,
             HttpSession session, RedirectAttributes redirectAttributes) {
@@ -142,6 +144,6 @@ public class ReturnController {
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/return/manage";
+        return "redirect:/return/" + id;
     }
 }

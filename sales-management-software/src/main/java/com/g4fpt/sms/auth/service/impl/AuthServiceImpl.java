@@ -42,6 +42,10 @@ public class AuthServiceImpl implements AuthService {
         if (!passwordUtil.matches(rawPassword, employee.getPasswordHash())) {
             return Optional.empty();
         }
+        
+        if (employee.getBranch() != null && employee.getBranch().getStatus() == com.g4fpt.sms.branch.entity.BranchStatus.INACTIVE) {
+            throw new IllegalStateException("Chi nhánh của bạn đã ngừng hoạt động.");
+        }
 
         return Optional.of(toSessionUser(employee));
     }

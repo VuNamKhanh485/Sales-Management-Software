@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết yêu cầu trả hàng — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <style>
+        .page-layout {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 var(--sp-lg);
+        }
+        
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .header-title {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--ink);
+            margin: 0 0 4px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--ink-muted-48);
+            text-decoration: none;
+            font-size: 15px;
+            margin-bottom: 16px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        .detail-card {
+            background: var(--canvas);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-xl);
+            padding: 32px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+            margin-bottom: 24px;
+        }
+
+        .detail-label {
+            font-size: 13px;
+            color: var(--ink-muted-48);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+        
+        .detail-value {
+            font-size: 15px;
+            color: var(--ink);
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+        
+        .item-table th {
+            font-size: 12px;
+            color: var(--ink-muted-48);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--hairline);
+            padding-bottom: 8px;
+        }
+        
+        .item-table td {
+            font-size: 14px;
+            color: var(--ink);
+            padding: 12px 0;
+            border-bottom: 1px solid var(--hairline);
+        }
+        
+        .action-bar {
+            display: flex;
+            gap: 16px;
+            justify-content: flex-end;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--hairline);
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{component/navbar :: global-nav('returns')}"></div>
+    
+    <main class="page-layout">
+        <a th:href="@{/return/manage}" class="back-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+            </svg>
+            Quay lại quản lý trả hàng
+        </a>
+
+        <!-- Thông báo -->
+        <div th:if="${error}" class="alert alert-danger" style="border-radius: var(--r-md); background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 16px; margin-bottom: 24px;">
+            <span th:text="${error}"></span>
+        </div>
+        <div th:if="${success}" class="alert alert-success" style="border-radius: var(--r-md); background: #dcfce7; border: 1px solid #bbf7d0; color: #166534; padding: 16px; margin-bottom: 24px;">
+            <span th:text="${success}"></span>
+        </div>
+
+        <div class="header-section">
+            <h1 class="header-title">Chi tiết yêu cầu trả hàng #<span th:text="${detailRequest.id}"></span></h1>
+            <span th:if="${detailRequest.status == 'PENDING'}" class="badge badge-inactive" style="background: rgba(255,159,10,0.1); color: var(--warning); padding: 8px 16px; font-size: 14px;">Chờ duyệt</span>
+            <span th:if="${detailRequest.status == 'APPROVED'}" class="badge badge-active" style="padding: 8px 16px; font-size: 14px;">Đã duyệt</span>
+            <span th:if="${detailRequest.status == 'REJECTED'}" class="badge" style="background: #fee2e2; color: #991b1b; padding: 8px 16px; font-size: 14px;">Đã từ chối</span>
+        </div>
+
+        <div class="detail-card">
+            <!-- Grid 2 cột thông tin -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                <div>
+                    <div class="detail-label">Đơn hàng</div>
+                    <div class="detail-value" style="color: var(--primary); font-weight: 600;" th:text="${detailRequest.order.code}"></div>
+                </div>
+                <div>
+                    <div class="detail-label">Khách hàng</div>
+                    <div class="detail-value" th:text="${detailRequest.order.customer != null ? detailRequest.order.customer.fullName : 'Khách lẻ'}"></div>
+                </div>
+                <div>
+                    <div class="detail-label">Ngày tạo</div>
+                    <div class="detail-value" th:text="${#temporals.format(detailRequest.createdAt, 'dd-MM-yyyy HH:mm')}"></div>
+                </div>
+                <div>
+                    <div class="detail-label">Lý do trả hàng</div>
+                    <div class="detail-value" th:text="${detailRequest.reason}"></div>
+                </div>
+            </div>
+            
+            <div style="height: 1px; background: var(--hairline); margin: 24px 0;"></div>
+            
+            <h6 style="font-family: var(--font-display); font-size: 18px; font-weight: 600; margin-bottom: 16px;">Sản phẩm trả lại</h6>
+            <table class="item-table" style="width: 100%; text-align: left; margin-bottom: 24px;">
+                <thead>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th style="text-align: center;">Số lượng</th>
+                        <th style="text-align: right;">Đơn giá</th>
+                        <th style="text-align: right;">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${detailRequest.items}">
+                        <td style="font-weight: 500;" th:text="${item.productUnit.product.name}"></td>
+                        <td style="text-align: center;" th:text="${item.quantity}"></td>
+                        <td style="text-align: right; color: var(--ink-muted-80);" th:text="${#numbers.formatDecimal(item.salePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                        <td style="text-align: right; font-weight: 600;" th:text="${#numbers.formatDecimal(item.salePrice * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div th:if="${#lists.size(detailRequest.images) > 0}">
+                <h6 style="font-family: var(--font-display); font-size: 18px; font-weight: 600; margin-bottom: 12px; margin-top: 32px;">Hình ảnh đính kèm</h6>
+                <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+                    <a th:each="img : ${detailRequest.images}"
+                       th:href="@{'/images/return-image/' + ${img.imageUrl}}" target="_blank">
+                        <img th:src="@{'/images/return-image/' + ${img.imageUrl}}" style="height: 120px; width: 120px; object-fit: cover; border-radius: var(--r-md); border: 1px solid var(--hairline); transition: transform 0.2s;">
+                    </a>
+                </div>
+            </div>
+
+            <div th:if="${detailRequest.status != 'PENDING'}">
+                <div style="height: 1px; background: var(--hairline); margin: 32px 0;"></div>
+                <h6 style="font-family: var(--font-display); font-size: 18px; font-weight: 600; margin-bottom: 16px;">Thông tin xét duyệt</h6>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                        <div class="detail-label">Người xử lý</div>
+                        <div class="detail-value" th:text="${detailRequest.reviewedBy}"></div>
+                    </div>
+                    <div>
+                        <div class="detail-label">Thời gian duyệt</div>
+                        <div class="detail-value" th:text="${detailRequest.reviewedAt != null ? #temporals.format(detailRequest.reviewedAt, 'dd-MM-yyyy HH:mm') : ''}"></div>
+                    </div>
+                    <div th:if="${detailRequest.rejectReason}" style="grid-column: 1 / -1;">
+                        <div class="detail-label">Lý do từ chối</div>
+                        <div class="detail-value" style="color: #e53e3e; font-weight: 600;" th:text="${detailRequest.rejectReason}"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons (Only for pending requests) -->
+            <div class="action-bar" th:if="${detailRequest.status == 'PENDING'}">
+                <form method="POST" th:action="@{/return/{id}/reject(id=${detailRequest.id})}"
+                      style="display: flex; gap: 8px; flex: 1;" onsubmit="return confirm('Bạn có chắc chắn muốn TỪ CHỐI yêu cầu trả hàng này không?')">
+                    <input type="text" name="reason" class="form-input" style="flex: 1;" placeholder="Nhập lý do từ chối (bắt buộc)..." required>
+                    <button type="submit" class="btn" style="background: transparent; border: 1px solid #e53e3e; color: #e53e3e;">
+                        Từ chối
+                    </button>
+                </form>
+                
+                <form method="POST" th:action="@{/return/{id}/approve(id=${detailRequest.id})}"
+                      onsubmit="return confirm('Bạn có chắc chắn muốn DUYỆT yêu cầu trả hàng này và HOÀN TIỀN/NHẬP KHO không?')">
+                    <button type="submit" class="btn btn-primary" style="background: #0066cc;">
+                        Duyệt yêu cầu
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </main>
+
+</body>
+</html>

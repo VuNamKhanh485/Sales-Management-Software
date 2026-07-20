@@ -49,14 +49,14 @@ public class ImportController {
         return "imports/list";
     }
 
-    // Hiển thị giao diện tạo yêu cầu nhập hàng cho Quản lý chi nhánh hoặc Nhân viên kho
+    // Hiển thị giao diện tạo yêu cầu nhập hàng cho System Owner hoặc Quản lý chi nhánh
     @GetMapping("/create")
     public String showCreateForm(HttpSession session,
                                  Model model,
                                  @ModelAttribute("importRequest") ImportRequest importRequest) {
         SessionUser sessionUser = getSessionUser(session);
 
-        if (!sessionUser.hasAnyRole("OWNER", "WAREHOUSE_STAFF")) {
+        if (!sessionUser.hasAnyRole("OWNER", "BRANCH_MANAGER")) {
             return "redirect:/error/403";
         }
 
@@ -87,8 +87,8 @@ public class ImportController {
         SessionUser sessionUser = getSessionUser(session);
 
         try {
-            if (!sessionUser.hasAnyRole("OWNER", "WAREHOUSE_STAFF")) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Chỉ OWNER hoặc Nhân viên kho mới được phép tạo phiếu nhập hàng!");
+            if (!sessionUser.hasAnyRole("OWNER", "BRANCH_MANAGER")) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Chỉ SYSTEM OWNER hoặc QUẢN LÝ CHI NHÁNH mới được phép tạo phiếu nhập hàng!");
                 return "redirect:/imports";
             }
 
@@ -122,9 +122,9 @@ public class ImportController {
         SessionUser sessionUser = getSessionUser(session);
 
         try {
-            // Chỉ Owner hoặc Nhân viên kho mới được phép duyệt phiếu
-            if (!sessionUser.hasAnyRole("OWNER", "WAREHOUSE_STAFF")) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Chỉ OWNER hoặc Nhân viên kho mới có quyền duyệt phiếu nhập!");
+            // Chỉ Owner mới được phép duyệt phiếu
+            if (!sessionUser.hasRole("OWNER")) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Chỉ SYSTEM OWNER mới có quyền duyệt phiếu nhập!");
                 return "redirect:/imports/" + id;
             }
             importService.approveImportRequest(id);
@@ -144,9 +144,9 @@ public class ImportController {
         SessionUser sessionUser = getSessionUser(session);
 
         try {
-            // Chỉ Owner hoặc Nhân viên kho mới được phép từ chối phiếu
-            if (!sessionUser.hasAnyRole("OWNER", "WAREHOUSE_STAFF")) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Chỉ OWNER hoặc Nhân viên kho mới có quyền từ chối phiếu nhập!");
+            // Chỉ Owner mới được phép từ chối phiếu
+            if (!sessionUser.hasRole("OWNER")) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Chỉ SYSTEM OWNER mới có quyền từ chối phiếu nhập!");
                 return "redirect:/imports/" + id;
             }
             importService.rejectImportRequest(id, reason);
