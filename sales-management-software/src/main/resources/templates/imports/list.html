@@ -14,7 +14,7 @@
     <div class="sub-nav">
         <h1 class="sub-nav__title">Quản lý nhập hàng</h1>
         <div class="sub-nav__actions">
-            <a th:if="${sessionUser != null and sessionUser.hasAnyRole('BRANCH_MANAGER', 'WAREHOUSE_STAFF')}"
+            <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'WAREHOUSE_STAFF')}"
                th:href="@{/imports/create}" class="btn btn-primary btn-primary--sm">
                 Tạo yêu cầu nhập hàng
             </a>
