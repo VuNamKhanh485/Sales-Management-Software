@@ -5,9 +5,9 @@ target/
 !**/src/test/**/target/
 
 ### folder ###
-product-image/*
-!product-image/.gitkeep
+upload-image/product-image/*
+!upload-image/product-image/.gitkeep
 
-return-image/*
-!return-image/.gitkeep
+upload-image/return-image/*
+!upload-image/return-image/.gitkeep
 
