@@ -1,5 +1,6 @@
 package com.g4fpt.sms.product.service.impl;
 
+import com.g4fpt.sms.common.enums.UploadFolder;
 import com.g4fpt.sms.common.exception.ResourceInUseException;
 import com.g4fpt.sms.inventory.repository.InventoryRepository;
 import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
@@ -51,7 +52,7 @@ public class ProductServiceImpl implements ProductService {
 
         MultipartFile imageFile = productRequest.getImageFile();
         if (!imageFile.isEmpty()) {
-            String fileName = fileStorageService.saveFile(imageFile);
+            String fileName = fileStorageService.saveFile(imageFile, UploadFolder.PRODUCT);
             product.setImageName(fileName);
         }
 
@@ -71,9 +72,9 @@ public class ProductServiceImpl implements ProductService {
         MultipartFile imageFile = productRequest.getImageFile();
         if (!imageFile.isEmpty()) {
 
-            fileStorageService.deleteFile(product.getImageName());
+            fileStorageService.deleteFile(product.getImageName(), UploadFolder.PRODUCT);
 
-            String fileName = fileStorageService.saveFile(imageFile);
+            String fileName = fileStorageService.saveFile(imageFile, UploadFolder.PRODUCT);
 
             product.setImageName(fileName);
         }
@@ -90,7 +91,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void deleteById(long id) {
+    public void deleteById(long id){
         Product product = getProductById(id); // kiểm tra tồn tại
 
         if(productRepository.existInOrderTransaction(id)){
@@ -104,7 +105,10 @@ public class ProductServiceImpl implements ProductService {
                 );
             }
         }
-
+        String image = product.getImageName();
+        if(image!=null && !image.isBlank()){
+            fileStorageService.deleteFile(image, UploadFolder.PRODUCT);
+        }
         productRepository.delete(product);
     }
 

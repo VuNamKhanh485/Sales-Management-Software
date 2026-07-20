@@ -1,5 +1,6 @@
 package com.g4fpt.sms.product.controller;
 
+import com.g4fpt.sms.common.exception.FileStorageException;
 import com.g4fpt.sms.common.exception.NotFoundException;
 import com.g4fpt.sms.common.exception.ResourceInUseException;
 import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
@@ -122,7 +123,7 @@ public class ProductController {
             );
             return "product/form";
 
-        }catch (NotFoundException | ResourceInUseException e){
+        }catch (NotFoundException | ResourceInUseException | FileStorageException e){
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/product";
         }
@@ -157,7 +158,7 @@ public class ProductController {
                          RedirectAttributes redirectAttributes) {
         try {
             productService.deleteById(id);
-        }catch(NotFoundException | ResourceInUseException e){
+        }catch(NotFoundException | ResourceInUseException | FileStorageException e){
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/product";
         }
