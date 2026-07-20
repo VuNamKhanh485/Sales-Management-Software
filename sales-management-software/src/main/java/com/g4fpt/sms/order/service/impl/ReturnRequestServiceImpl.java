@@ -8,9 +8,27 @@ import com.g4fpt.sms.order.entity.*;
 import com.g4fpt.sms.order.repository.OrderTransactionRepository;
 import com.g4fpt.sms.order.repository.ReturnRequestRepository;
 import com.g4fpt.sms.order.service.ReturnRequestService;
+import com.g4fpt.sms.product.service.FileStorageService;
+import com.g4fpt.sms.common.enums.UploadFolder;
+import com.g4fpt.sms.product.service.FileStorageService;
+import com.g4fpt.sms.common.enums.UploadFolder;
+import com.g4fpt.sms.product.service.FileStorageService;
+import com.g4fpt.sms.common.enums.UploadFolder;
+import com.g4fpt.sms.product.service.FileStorageService;
+import com.g4fpt.sms.common.enums.UploadFolder;
+import com.g4fpt.sms.product.service.FileStorageService;
+import com.g4fpt.sms.common.enums.UploadFolder;
+import com.g4fpt.sms.product.service.FileStorageService;
+import com.g4fpt.sms.common.enums.UploadFolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -25,6 +43,7 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
     private final OrderTransactionRepository orderTransactionRepository;
     private final InventoryRepository inventoryRepository;
     private final CustomerRepository customerRepository;
+    private final FileStorageService fileStorageService;
 
     @Override
     public OrderTransaction searchOrderByCode(String code) {
@@ -36,7 +55,7 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
     @Transactional
     public ReturnRequest createReturnRequest(Long orderId, Long branchId, Long requestedBy,
                                               String reason, List<ReturnItemInput> items,
-                                              List<String> imageUrls) {
+                                              List<MultipartFile> images) {
         OrderTransaction order = orderTransactionRepository.findByIdWithDetails(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
 
@@ -70,13 +89,20 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         }
 
         // Lưu ảnh minh chứng (tùy chọn)
-        if (imageUrls != null) {
-            for (String url : imageUrls) {
-                ReturnRequestImage img = ReturnRequestImage.builder()
-                        .returnRequest(request)
-                        .imageUrl(url)
-                        .build();
-                request.getImages().add(img);
+        if (images != null) {
+            for (MultipartFile file : images) {
+                if (!file.isEmpty()) {
+                    try {
+                        String fileName = fileStorageService.saveFile(file, UploadFolder.RETURN);
+                        ReturnRequestImage img = ReturnRequestImage.builder()
+                                .returnRequest(request)
+                                .imageUrl(fileName)
+                                .build();
+                        request.getImages().add(img);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Lỗi lưu file ảnh trả hàng: " + e.getMessage(), e);
+                    }
+                }
             }
         }
 
@@ -161,8 +187,8 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         req.setReviewedAt(LocalDateTime.now());
         returnRequestRepository.save(req); // THÊM DÒNG NÀY ĐỂ LƯU TRẠNG THÁI APPROVED
 
-        // Đánh dấu đơn hàng gốc là RETURNED
-        order.setStatus("RETURNED");
+        // Đánh dấu đơn hàng gốc là REFUNDED
+        order.setStatus("REFUNDED");
         orderTransactionRepository.save(order); // THÊM DÒNG NÀY
 
         // Tạo giao dịch trả hàng ghi vào lịch sử

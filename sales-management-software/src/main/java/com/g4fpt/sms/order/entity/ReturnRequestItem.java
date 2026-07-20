@@ -7,7 +7,7 @@ import lombok.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "return_request_item")
+@Table(name = "ReturnRequestItem")
 @Getter
 @Setter
 @NoArgsConstructor

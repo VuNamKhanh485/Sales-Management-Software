@@ -39,7 +39,7 @@ public class ReturnController {
     @GetMapping
     public String returnPage(@RequestParam(required = false) String orderCode, Model model) {
         model.addAttribute("autoOrderCode", orderCode != null && !orderCode.isBlank() ? orderCode : "");
-        
+
         if (orderCode != null && !orderCode.trim().isEmpty()) {
             try {
                 OrderTransaction order = returnRequestService.searchOrderByCode(orderCode.trim());
@@ -48,7 +48,7 @@ public class ReturnController {
                 model.addAttribute("error", e.getMessage());
             }
         }
-        
+
         return "order/return-request";
     }
 
@@ -83,29 +83,12 @@ public class ReturnController {
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
             Long branchId = order.getBranchId();
 
-            List<String> imageUrls = new ArrayList<>();
-            if (images != null) {
-                Path uploadPath = Paths.get(uploadDir);
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
-                }
-
-                for (MultipartFile file : images) {
-                    if (!file.isEmpty()) {
-                        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-                        Path filePath = uploadPath.resolve(fileName);
-                        Files.copy(file.getInputStream(), filePath);
-                        imageUrls.add(fileName);
-                    }
-                }
-            }
-
             ReturnRequest request = returnRequestService.createReturnRequest(
-                    orderId, branchId, employeeId, reason, items, imageUrls);
+                    orderId, branchId, employeeId, reason, items, images);
 
             redirectAttributes.addFlashAttribute("success", "Đã tạo yêu cầu trả hàng mã #" + request.getId());
             return "redirect:/return";
-            
+
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/return";
@@ -118,7 +101,7 @@ public class ReturnController {
         List<ReturnRequest> requests = returnRequestService.getAllRequests();
         model.addAttribute("requests", requests);
         model.addAttribute("pendingCount", returnRequestService.countPendingRequests());
-        
+
         // Trực tiếp load data lên Modal nếu viewId được truyền vào URL
         if (viewId != null) {
             try {
@@ -128,7 +111,7 @@ public class ReturnController {
                 model.addAttribute("error", e.getMessage());
             }
         }
-        
+
         return "order/return-manage";
     }
 

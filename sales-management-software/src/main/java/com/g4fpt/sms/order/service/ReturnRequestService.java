@@ -2,6 +2,7 @@ package com.g4fpt.sms.order.service;
 
 import com.g4fpt.sms.order.entity.OrderTransaction;
 import com.g4fpt.sms.order.entity.ReturnRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ public interface ReturnRequestService {
     /** Tạo yêu cầu trả hàng mới */
     ReturnRequest createReturnRequest(Long orderId, Long branchId, Long requestedBy,
                                       String reason, List<ReturnItemInput> items,
-                                      List<String> imageUrls);
+                                      List<MultipartFile> images);
 
     /** Lấy tất cả yêu cầu */
     List<ReturnRequest> getAllRequests();

@@ -123,8 +123,8 @@
                         <h6 class="fw-bold mb-2">Hình ảnh</h6>
                         <div class="d-flex flex-wrap gap-2 mb-2">
                             <a th:each="img : ${detailRequest.images}"
-                               th:href="@{'/return-image/' + ${img.imageUrl}}" target="_blank">
-                                <img th:src="@{'/return-image/' + ${img.imageUrl}}" class="return-image" style="height:80px;object-fit:cover;border-radius:8px;border:1px solid #dee2e6;">
+                               th:href="@{'/images/return-image/' + ${img.imageUrl}}" target="_blank">
+                                <img th:src="@{'/images/return-image/' + ${img.imageUrl}}" class="return-image" style="height:80px;object-fit:cover;border-radius:8px;border:1px solid #dee2e6;">
                             </a>
                         </div>
                     </div>

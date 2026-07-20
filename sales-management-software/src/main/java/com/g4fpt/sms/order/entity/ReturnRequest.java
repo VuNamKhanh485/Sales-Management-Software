@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "return_request")
+@Table(name = "ReturnRequest")
 @Getter
 @Setter
 @NoArgsConstructor
