@@ -1,0 +1,167 @@
+/* Minimal borderless CSS to keep layout positions while using native HTML style */
+body {
+    margin: 0;
+    font-family: var(--font-text, "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
+    background-color: var(--canvas-parchment, #f5f5f7);
+    color: var(--ink, #1d1d1f);
+}
+
+a {
+    color: var(--primary, #0066cc);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--primary-focus, #0071e3);
+    text-decoration: underline;
+}
+
+.admin-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 260px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.logo {
+    padding-bottom: 15px;
+}
+
+.logo-text h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.logo-text p {
+    margin: 5px 0 0 0;
+    font-size: 12px;
+    color: #555555;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+    flex-grow: 1;
+}
+
+.menu-item {
+    display: block;
+    padding: 5px;
+    text-decoration: underline;
+}
+
+.menu-item.active {
+    font-weight: bold;
+    color: var(--primary, #0066cc);
+    text-decoration: none;
+}
+
+.user-profile {
+    margin-top: auto;
+    padding-top: 15px;
+}
+
+.user-details h4 {
+    margin: 0;
+    font-size: 14px;
+}
+
+.user-details span {
+    font-size: 12px;
+    color: #555555;
+}
+
+.logout-form {
+    margin-top: 10px;
+}
+
+.logout-btn {
+    padding: 4px 8px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    text-decoration: underline;
+    color: var(--primary, #0066cc);
+}
+
+.logout-btn:hover {
+    color: var(--primary-focus, #0071e3);
+}
+
+.admin-main {
+    flex: 1;
+    padding: 20px;
+}
+
+.admin-topbar {
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.admin-topbar h1 {
+    margin: 0;
+}
+
+.table-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.table-toolbar h2 {
+    margin: 0;
+}
+
+.primary-action {
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: #f0f0f0;
+    border: none;
+    color: #000000;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.primary-action:hover {
+    background-color: #e0e0e0;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-table th, .admin-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.admin-table th {
+    font-weight: bold;
+}
+
+.status-pill {
+    font-size: 12px;
+}
+
+.action-cell {
+    display: flex;
+    gap: 10px;
+}
+
+.danger-link {
+    color: red;
+}
+
+.danger-link:hover {
+    color: darkred;
+}

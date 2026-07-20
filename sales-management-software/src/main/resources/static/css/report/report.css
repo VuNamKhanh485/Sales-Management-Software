@@ -1,0 +1,53 @@
+/* Custom styles for Report */
+.value-revenue {
+    color: var(--success);
+}
+
+.value-expense {
+    color: var(--danger);
+}
+
+.value-profit {
+    color: var(--primary);
+}
+
+.filter-date {
+    padding: 8px 12px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-md);
+    font-size: 14px;
+    outline: none;
+    font-family: var(--font-text);
+}
+
+.chart-container {
+    background: var(--canvas);
+    border-radius: var(--r-lg);
+    padding: var(--sp-xl);
+    border: 1px solid var(--hairline);
+    height: 400px;
+    margin-top: var(--sp-lg);
+}
+
+.search-bar-center {
+    align-items: center;
+}
+
+.date-separator {
+    font-size: 14px;
+    color: var(--ink-muted-48);
+}
+
+.report-table-container {
+    margin-top: 2rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    padding: 1.5rem;
+    overflow-x: auto;
+}
+
+.data-table th {
+    background: #f8f9fa;
+}
+

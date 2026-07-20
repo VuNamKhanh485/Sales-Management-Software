@@ -1,0 +1,223 @@
+        .form-page {
+            max-width: 900px;
+            margin: var(--sp-xxl) auto;
+            padding: 0 var(--sp-xl);
+        }
+        .form-card {
+            background: var(--canvas);
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-lg);
+            padding: var(--sp-xl);
+        }
+        .form-card__header {
+            margin-bottom: var(--sp-xl);
+            padding-bottom: var(--sp-md);
+            border-bottom: 1px solid var(--divider-soft);
+        }
+        .form-card__title {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.374px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--sp-md) var(--sp-lg);
+        }
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group--full { grid-column: 1 / -1; }
+
+        .form-label {
+            font-size: 13px; font-weight: 600; color: var(--ink);
+        }
+        .form-input, .form-select, .form-textarea {
+            min-width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            font-family: var(--font-text);
+            font-size: 15px;
+            background: var(--canvas);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: var(--primary-focus);
+            box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.12);
+        }
+
+        .form-select {
+            padding-right: 36px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7' fill='none'%3E%3Cpath d='M1 1L5.5 6L10 1' stroke='%237a7a7a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            appearance: none;
+        }
+
+        .section-title {
+            grid-column: 1 / -1;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-top: var(--sp-lg);
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--hairline);
+        }
+
+        .unit-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: var(--sp-sm);
+        }
+        .unit-table th {
+            font-size: 12px;
+            color: var(--ink-muted-48);
+            font-weight: 600;
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid var(--hairline);
+        }
+        .unit-table td {
+            padding: 8px;
+            border-bottom: 1px dashed var(--divider-soft);
+        }
+        
+        .action-bar {
+            margin-top: var(--sp-xxl);
+            padding-top: var(--sp-lg);
+            border-top: 1px solid var(--divider-soft);
+            display: flex; justify-content: flex-end; gap: var(--sp-sm);
+        }
+
+        /* Select2 Customization for Apple Design */
+        .select2-container--default .select2-selection--single {
+            height: 42px;
+            border: 1px solid var(--hairline);
+            border-radius: var(--r-md);
+            background: var(--canvas);
+            display: flex; align-items: center;
+        }
+        .select2-container--default .select2-selection--single:focus {
+            border-color: var(--primary-focus);
+            box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.12);
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: normal;
+            color: var(--ink);
+            padding-left: 14px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 40px; right: 8px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            background: var(--canvas);
+            border-radius: var(--r-lg);
+            width: 100%; max-width: 400px;
+            padding: var(--sp-xl);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .modal-header {
+            font-size: 18px; font-weight: 600; margin-bottom: var(--sp-md);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-close {
+            background: none; border: none; font-size: 20px; cursor: pointer; color: var(--ink-muted-48);
+        }
+        .barcode-input {
+            width: 140px;        /* cố định, không đổi theo nội dung gõ */
+            min-width: 140px;
+            max-width: 140px;
+            padding: 4px 8px;
+            font-size: 13px;
+            box-sizing: border-box;
+            text-overflow: ellipsis;   /* nếu text dài hơn ô, hiện dấu ... thay vì phình to */
+        }
+
+        .barcode-cell {
+            min-width: 180px;   /* đủ chỗ cho ảnh barcode preview nếu nó rộng hơn input */
+        }
+
+        .barcode-preview-box {
+            margin-top: 6px;
+            max-width: 100%;
+            overflow-x: auto;   /* nếu barcode ảnh quá rộng, cho cuộn ngang thay vì phá layout bảng */
+        }
+
+        .barcode-svg {
+            display: block;
+            height: auto;
+            max-width: none;    /* để ảnh giữ đúng tỷ lệ thật, không bị ép nhỏ lại gây khó đọc mã vạch */
+        }
+        .barcode-text{
+            margin-top:5px;
+            font-size:12px;
+            color:#666;
+        }
+        .add-link {
+            display: block;
+            width: fit-content;
+            margin-top: 4px;
+            padding: 0;
+            font-size: 12px;
+            color: var(--primary);
+            background: transparent;
+            border: none;
+            text-decoration: none;
+            cursor: pointer;
+            line-height: 1.4;
+        }
+
+        .add-link:hover {
+            text-decoration: underline;
+        }
+
+        .add-link:focus {
+            outline: none;
+            text-decoration: underline;
+        }
+        .unit-select-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
+
+        .btn-link {
+            display: block;
+            width: fit-content;
+            padding: 0;
+            margin: 0;
+            font-size: 11px;
+            color: var(--primary);
+            background: transparent;
+            border: none;
+            text-decoration: none;
+            cursor: pointer;
+            line-height: 1.3;
+        }
+
+        .btn-link:hover {
+            text-decoration: underline;
+        }
+
+
+        .field-error {
+            display: block;
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 4px;
+        }
