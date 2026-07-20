@@ -521,7 +521,7 @@ CREATE TABLE OrderTransactionDetail (
         )
 );
 
-CREATE TABLE return_request (
+CREATE TABLE ReturnRequest (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     order_id BIGINT NOT NULL,
     branch_id BIGINT NOT NULL,
@@ -533,29 +533,29 @@ CREATE TABLE return_request (
     reject_reason TEXT,
     created_at DATETIME,
     updated_at DATETIME,
-    FOREIGN KEY (order_id) REFERENCES ordertransaction(id)
+    FOREIGN KEY (order_id) REFERENCES OrderTransaction(id)
 );
 
-CREATE TABLE return_request_item (
+CREATE TABLE ReturnRequestItem (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     return_request_id BIGINT NOT NULL,
     order_detail_id BIGINT NOT NULL,
     product_unit_id BIGINT NOT NULL,
     quantity INT NOT NULL,
     sale_price DECIMAL(19,2) NOT NULL,
-    FOREIGN KEY (return_request_id) REFERENCES return_request(id),
-    FOREIGN KEY (order_detail_id) REFERENCES ordertransactiondetail(id),
+    FOREIGN KEY (return_request_id) REFERENCES ReturnRequest(id),
+    FOREIGN KEY (order_detail_id) REFERENCES OrderTransactionDetail(id),
     FOREIGN KEY (product_unit_id) REFERENCES ProductUnit(id)
 );
 
-CREATE TABLE return_request_image (
+CREATE TABLE ReturnRequestImage (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     return_request_id BIGINT NOT NULL,
     image_url VARCHAR(500) NOT NULL,
-    FOREIGN KEY (return_request_id) REFERENCES return_request(id)
+    FOREIGN KEY (return_request_id) REFERENCES ReturnRequest(id)
 );
 
-CREATE TABLE cashbook_transaction (
+CREATE TABLE CashbookTransaction (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     branch_id BIGINT NOT NULL,
     transaction_type VARCHAR(50) NOT NULL, -- 'IN' (Thu) hoặc 'OUT' (Chi)
@@ -567,6 +567,6 @@ CREATE TABLE cashbook_transaction (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
     -- Khóa ngoại (Tuỳ chọn: Nếu bạn có bảng branch và employee)
-    CONSTRAINT fk_cashbook_branch FOREIGN KEY (branch_id) REFERENCES branch(id),
-    CONSTRAINT fk_cashbook_employee FOREIGN KEY (created_by) REFERENCES employee(id)
+    CONSTRAINT fk_cashbook_branch FOREIGN KEY (branch_id) REFERENCES Branch(id),
+    CONSTRAINT fk_cashbook_employee FOREIGN KEY (created_by) REFERENCES Employee(id)
 );
