@@ -4,26 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9539af91-f48b-4278-8bda-5509e743e1bd" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sales-management-software/UsersdohayOneDriveDesktopSWPSales-Management-Softwareproduct-image/1784363717949_Screenshot 2026-06-04 234119.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/sales-management-software/UsersdohayOneDriveDesktopSWPSales-Management-Softwareproduct-image/1784364511162_Screenshot 2026-06-04 234119.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/sales-management-software/UsersdohayOneDriveDesktopSWPSales-Management-Softwareproduct-image/1784365352285_Screenshot 2026-06-04 234119.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/sales-management-software/UsersdohayOneDriveDesktopSWPSales-Management-Softwareproduct-image/3b9476cb-27ef-421f-980b-6b4b8eb57e62.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/sales-management-software/return-image/.gitkeep" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/auth/config/AuthWebConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/auth/config/AuthWebConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/order/controller/ReturnController.java" beforeDir="false" afterPath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/order/controller/ReturnController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/order/entity/OrderTransaction.java" beforeDir="false" afterPath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/order/entity/OrderTransaction.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/order/entity/OrderTransactionDetail.java" beforeDir="false" afterPath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/order/entity/OrderTransactionDetail.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/order/entity/ReturnRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/order/entity/ReturnRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/order/entity/ReturnRequestImage.java" beforeDir="false" afterPath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/order/entity/ReturnRequestImage.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/order/entity/ReturnRequestItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/order/entity/ReturnRequestItem.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/order/service/ReturnRequestService.java" beforeDir="false" afterPath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/order/service/ReturnRequestService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/order/service/impl/ReturnRequestServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/order/service/impl/ReturnRequestServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/payment/entity/CashbookTransaction.java" beforeDir="false" afterPath="$PROJECT_DIR$/sales-management-software/src/main/java/com/g4fpt/sms/payment/entity/CashbookTransaction.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sales-management-software/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/sales-management-software/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sales-management-software/src/main/resources/templates/order/return-manage.html" beforeDir="false" afterPath="$PROJECT_DIR$/sales-management-software/src/main/resources/templates/order/return-manage.html" afterDir="false" />
-    </list>
+    <list default="true" id="9539af91-f48b-4278-8bda-5509e743e1bd" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
