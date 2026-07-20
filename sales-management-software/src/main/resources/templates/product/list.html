@@ -363,7 +363,7 @@
                                 <td th:text="${currentPage * size + stat.index + 1}"></td>
                                 <td>
                                     <img th:if="${p.imageName != null and !#strings.isEmpty(p.imageName)}"
-                                         th:src="@{'/images/' + ${p.imageName}}"
+                                         th:src="@{'/images/product-image/' + ${p.imageName}}"
                                          class="product-img" alt=""/>
                                     <div th:unless="${p.imageName != null and !#strings.isEmpty(p.imageName)}" class="product-img-placeholder">
                                         IMG

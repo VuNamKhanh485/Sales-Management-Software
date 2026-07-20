@@ -326,7 +326,7 @@
                             <!-- Ảnh cũ: chỉ hiện khi đang update -->
                             <div th:if="${id != null}">
                                 <p>Ảnh hiện tại</p>
-                                <img th:src="@{'/images/' + *{imageName}}"
+                                <img th:src="@{'/images/product-image/' + *{imageName}}"
                                      alt="Ảnh cũ" style="max-width:200px;"/>
                             </div>
 
@@ -504,7 +504,9 @@
                 <span>Thêm danh mục mới</span>
                 <button class="modal-close" onclick="closeModal('modalCategory')">×</button>
             </div>
-            <iframe src="/category/popup-form" style="width:100%; border:none; height:320px;"></iframe>
+            <iframe src="/category/popup-form"
+                    title="Biểu mẫu tạo danh mục"
+                    style="width:100%; border:none; height:320px;"></iframe>
         </div>
     </div>
 
@@ -515,7 +517,9 @@
                 <span>Thêm Thương hiệu mới</span>
                 <button class="modal-close" onclick="closeModal('modalBrand')">×</button>
             </div>
-            <iframe src="/brand/popup-form" style="width:100%; border:none; height:250px;"></iframe>
+            <iframe src="/brand/popup-form"
+                    title="Biểu mẫu tạo nhãn hàng"
+                    style="width:100%; border:none; height:250px;"></iframe>
         </div>
     </div>
 
@@ -526,7 +530,9 @@
                 <span>Thêm Đơn vị tính mới</span>
                 <button class="modal-close" onclick="closeModal('modalUnit')">×</button>
             </div>
-            <iframe src="/unit/popup-form" style="width:100%; border:none; height:180px;"></iframe>
+            <iframe src="/unit/popup-form"
+                    title="Biểu mẫu tạo đơn vị"
+                    style="width:100%; border:none; height:180px;"></iframe>
         </div>
     </div>
 

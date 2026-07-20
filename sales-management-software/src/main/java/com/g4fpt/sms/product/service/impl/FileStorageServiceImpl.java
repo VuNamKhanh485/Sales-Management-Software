@@ -1,5 +1,7 @@
 package com.g4fpt.sms.product.service.impl;
 
+import com.g4fpt.sms.common.enums.UploadFolder;
+import com.g4fpt.sms.common.exception.FileStorageException;
 import com.g4fpt.sms.common.exception.ValidationException;
 import com.g4fpt.sms.product.service.FileStorageService;
 import com.g4fpt.sms.product.util.ValidationError;
@@ -12,7 +14,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,45 +23,48 @@ public class FileStorageServiceImpl implements FileStorageService {
     private String uploadPath;
 
     @Override
-    public String saveFile(MultipartFile file) throws IOException {
+    public String saveFile(MultipartFile file, UploadFolder folder){
+        try {
+            validate(file);
 
-        validate(file);
+            // tạo folder nếu chưa có
+            Path uploadDir = Paths.get(uploadPath, folder.getFolderName());
 
-        // tạo folder nếu chưa có
-        Path uploadDir = Paths.get(uploadPath);
+            if (!Files.exists(uploadDir)) {
+                Files.createDirectories(uploadDir);
+            }
 
-        if (!Files.exists(uploadDir)) {
-            Files.createDirectories(uploadDir);
+            String originalName = file.getOriginalFilename();
+
+            String extension = "";
+
+            if (originalName != null && originalName.contains(".")) {
+                extension = originalName.substring(originalName.lastIndexOf("."));
+            }
+
+            // đổi tên file
+            String fileName = UUID.randomUUID() + extension;
+
+            Path destination = uploadDir.resolve(fileName);
+
+            Files.copy(file.getInputStream(), destination);
+
+            return fileName;
+        }catch(IOException e){
+            throw new FileStorageException("Không thế lưu file " + e);
         }
-
-        String originalName = file.getOriginalFilename();
-
-        String extension = "";
-
-        if (originalName != null && originalName.contains(".")) {
-            extension = originalName.substring(originalName.lastIndexOf("."));
-        }
-
-        // đổi tên file
-        String fileName = UUID.randomUUID() + extension;
-
-        Path destination = uploadDir.resolve(fileName);
-
-        Files.copy(file.getInputStream(), destination);
-
-        return fileName;
     }
 
-    public void deleteFile(String fileName) {
+    public void deleteFile(String fileName, UploadFolder folder) {
 
         if (fileName == null || fileName.isBlank()) {
             return;
         }
 
         try {
-            Files.deleteIfExists(Paths.get(uploadPath, fileName));
+            Files.deleteIfExists(Paths.get(uploadPath, folder.getFolderName(), fileName));
         } catch (IOException e) {
-            throw new RuntimeException("Không thế xóa file " + fileName, e);
+            throw new FileStorageException("Không thế xóa file " + fileName, e);
         }
     }
 
