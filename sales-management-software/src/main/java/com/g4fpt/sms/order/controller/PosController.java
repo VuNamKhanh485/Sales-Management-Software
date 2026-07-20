@@ -379,8 +379,7 @@ public class PosController {
             return "redirect:/pos";
         }
     }
-
-    // Các hàm hỗ trợ nội bộ
+    
     private void initSessionBranch(PosSessionData s, SessionUser user) {
         if (s.getActiveBranchId() == null) {
             if (user != null && user.getBranchId() != null)
