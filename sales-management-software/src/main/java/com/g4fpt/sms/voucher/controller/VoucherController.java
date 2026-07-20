@@ -1,15 +1,12 @@
 package com.g4fpt.sms.voucher.controller;
 
 import com.g4fpt.sms.common.exception.AppException;
-import com.g4fpt.sms.voucher.dto.request.VoucherRequest;
-import com.g4fpt.sms.voucher.dto.response.VoucherResponse;
+import com.g4fpt.sms.voucher.dto.VoucherDTO;
 import com.g4fpt.sms.voucher.enums.VoucherStatus;
 import com.g4fpt.sms.voucher.service.VoucherService;
 import com.g4fpt.sms.customer.service.CustomerRankService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -54,33 +51,20 @@ public class VoucherController {
     public String form(@PathVariable(required = false) Long id, Model model) {
         model.addAttribute("ranks", customerRankService.getAllRanks());
         if (id != null) {
-            VoucherResponse response = voucherService.getById(id);
-            VoucherRequest request = VoucherRequest.builder()
-                    .code(response.getCode())
-                    .name(response.getName())
-                    .discountType(response.getDiscountType())
-                    .discountValue(response.getDiscountValue())
-                    .minOrderAmount(response.getMinOrderAmount())
-                    .maxDiscountAmount(response.getMaxDiscountAmount())
-                    .startAt(response.getStartAt())
-                    .endAt(response.getEndAt())
-                    .status(response.getStatus())
-                    .customerRankId(response.getCustomerRankId())
-                    .build();
-            model.addAttribute("request", request);
+            VoucherDTO dto = voucherService.getById(id);
+            model.addAttribute("request", dto);
             model.addAttribute("voucherId", id);
         } else {
-            model.addAttribute("request", new VoucherRequest());
+            model.addAttribute("request", new VoucherDTO());
         }
 
         return "voucher/form";
     }
 
-
     @PostMapping({"/vouchers/create", "/vouchers/edit/{id}"})
     public String save(
             @PathVariable(required = false) Long id,
-            @Valid @ModelAttribute("request") VoucherRequest request,
+            @Valid @ModelAttribute("request") VoucherDTO request,
             BindingResult bindingResult,
             Model model,
             RedirectAttributes redirectAttributes) {
@@ -101,7 +85,7 @@ public class VoucherController {
                 voucherService.create(request);
                 redirectAttributes.addFlashAttribute("successMessage", "Tạo voucher thành công!");
             }
-        } catch (com.g4fpt.sms.common.exception.AppException e) {
+        } catch (AppException e) {
             model.addAttribute("errorMessage", e.getMessage());
             if (id != null) {
                 model.addAttribute("voucherId", id);
@@ -129,6 +113,4 @@ public class VoucherController {
         }
         return "redirect:/vouchers";
     }
-
-
 }

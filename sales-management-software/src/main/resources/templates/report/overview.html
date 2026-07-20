@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Báo cáo Tổng hợp — SMS</title>
-    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
-    <link rel="stylesheet" th:href="@{/css/report.css}">
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/report/report.css}">
     <link rel="stylesheet" th:href="@{/css/data-table.css}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -66,6 +66,7 @@
                         <th style="width: 50px;">STT</th>
                         <th>Mã NV</th>
                         <th>Tên nhân viên</th>
+                        <th>Chi nhánh</th>
                         <th style="text-align: center;">Số lượng đơn hàng</th>
                         <th style="text-align: right;">Tổng doanh thu</th>
                         <th style="text-align: center; width: 100px;">Hành động</th>
@@ -73,12 +74,13 @@
                 </thead>
                 <tbody>
                     <tr th:if="${#lists.isEmpty(employeeSalesData)}">
-                        <td colspan="6" style="text-align: center; color: #666; padding: 2rem;">Không có dữ liệu trong khoảng thời gian này.</td>
+                        <td colspan="7" style="text-align: center; color: #666; padding: 2rem;">Không có dữ liệu trong khoảng thời gian này.</td>
                     </tr>
                     <tr th:each="row, iterStat : ${employeeSalesData}">
                         <td th:text="${iterStat.count}">1</td>
                         <td th:text="${row.employeeCode}">EMP01</td>
                         <td th:text="${row.employeeName}">Nguyễn Văn A</td>
+                        <td th:text="${row.branchName}">Chi nhánh 1</td>
                         <td style="text-align: center;" th:text="${row.totalOrders}">10</td>
                         <td style="text-align: right; font-weight: bold; color: #34c759;" th:text="${#numbers.formatDecimal(row.totalSales, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</td>
                         <td style="text-align: center;">
@@ -101,6 +103,6 @@
         };
         /*]]>*/
     </script>
-    <script th:src="@{/js/report-profit.js}"></script>
+    <script th:src="@{/js/report/report-profit.js}"></script>
 </body>
 </html>

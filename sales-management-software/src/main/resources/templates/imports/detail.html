@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chi tiết yêu cầu nhập hàng — SMS</title>
-    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
-    <link rel="stylesheet" th:href="@{/css/cashbook.css}">
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/payment/cashbook.css}">
 </head>
 <body>
 
@@ -45,9 +45,9 @@
                         <div>
                             <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: 4px;">Trạng thái:</div>
                             <div>
-                                <span th:if="${importTx.status == 'PENDING'}" class="badge badge-inactive">PENDING (Chờ duyệt)</span>
-                                <span th:if="${importTx.status == 'COMPLETED'}" class="badge badge-active">COMPLETED (Đã nhập kho)</span>
-                                <span th:if="${importTx.status == 'CANCELLED'}" class="badge" style="background: var(--danger-light); color: var(--danger);">CANCELLED (Từ chối)</span>
+                                <span th:if="${importTx.status == 'PENDING'}" class="badge badge-inactive">Chờ duyệt</span>
+                                <span th:if="${importTx.status == 'COMPLETED'}" class="badge badge-active">Hoàn thành (Đã nhập kho)</span>
+                                <span th:if="${importTx.status == 'CANCELLED'}" class="badge" style="background: var(--danger-light); color: var(--danger);">Đã hủy (Từ chối)</span>
                             </div>
                         </div>
                         <div>

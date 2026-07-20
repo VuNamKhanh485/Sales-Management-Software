@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý kho theo chi nhánh — SMS</title>
-    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
-    <link rel="stylesheet" th:href="@{/css/cashbook.css}">
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/inventory/inventory-list.css}">
 </head>
 <body>
 
     <div th:replace="~{component/navbar :: global-nav('inventory')}"></div>
 
     <div class="sub-nav">
-        <h1 class="sub-nav__title">Quản lý kho</h1>
+        <h1 class="sub-nav__title">Quản lý kho chi nhánh</h1>
         <div class="sub-nav__actions">
-            <a th:href="@{/inventory}" class="btn btn-primary btn-primary--sm">
+            <a th:href="@{/inventory}" class="btn-secondary btn-secondary--sm">
                 Làm mới
             </a>
         </div>
@@ -27,12 +27,12 @@
                 <table>
                     <thead>
                     <tr>
-                        <th style="width: 50px;">STT</th>
+                        <th style="width: 50px; text-align: center;">STT</th>
                         <th>Mã kho</th>
                         <th>Tên kho</th>
                         <th>Trạng thái</th>
                         <th>Số mặt hàng</th>
-                        <th style="width: 130px;">Hành động</th>
+                        <th style="width: 130px; text-align: right;">Hành động</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -44,18 +44,18 @@
                         </td>
                     </tr>
                     <tr th:each="branch, stat : ${branches}" th:if="${branches != null and !branches.empty}">
-                        <td th:text="${(branchesPage.number * branchesPage.size) + stat.count}">1</td>
+                        <td style="text-align: center;" th:text="${(branchesPage.number * branchesPage.size) + stat.count}">1</td>
                         <td><span class="code-chip" th:text="${branch.branchCode}">BR001</span></td>
-                        <td th:text="${branch.branchName}">Chi nhánh trung tâm</td>
+                        <td><div class="branch-name" th:text="${branch.branchName}">Chi nhánh trung tâm</div></td>
                         <td>
-                            <span th:if="${branch.status != null and branch.status.name() == 'ACTIVE'}" class="badge badge-active">ACTIVE</span>
-                            <span th:if="${branch.status != null and branch.status.name() == 'INACTIVE'}" class="badge badge-inactive">INACTIVE</span>
+                            <span th:if="${branch.status != null and branch.status.name() == 'ACTIVE'}" class="badge badge-active">Hoạt động</span>
+                            <span th:if="${branch.status != null and branch.status.name() == 'INACTIVE'}" class="badge badge-inactive">Ngừng hoạt động</span>
                             <span th:if="${branch.status == null}" class="badge badge-inactive">N/A</span>
                         </td>
-                        <td style="font-weight: 600;" th:text="${branch.totalProductCount}">150</td>
-                        <td>
-                            <div class="actions">
-                                <a th:href="@{/inventory/{id}(id=${branch.branchId})}" class="btn btn-secondary btn-secondary--sm">Xem chi tiết</a>
+                        <td class="product-count" th:text="${branch.totalProductCount}">150</td>
+                        <td style="text-align: right;">
+                            <div class="actions" style="justify-content: flex-end;">
+                                <a th:href="@{/inventory/{id}(id=${branch.branchId})}" class="btn-primary btn-primary--sm" style="padding: 6px 12px; font-size: 13px;">Xem kho</a>
                             </div>
                         </td>
                     </tr>

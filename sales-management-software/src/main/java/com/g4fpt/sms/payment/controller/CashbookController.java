@@ -4,7 +4,7 @@ import com.g4fpt.sms.auth.dto.SessionUser;
 import com.g4fpt.sms.auth.util.SessionConstants;
 import com.g4fpt.sms.branch.entity.Branch;
 import com.g4fpt.sms.branch.service.BranchService;
-import com.g4fpt.sms.payment.dto.request.CashbookRequestDTO;
+import com.g4fpt.sms.payment.dto.CashbookDTO;
 import com.g4fpt.sms.payment.entity.CashbookTransaction;
 import com.g4fpt.sms.payment.service.CashbookService;
 import jakarta.servlet.http.HttpSession;
@@ -90,29 +90,42 @@ public class CashbookController {
     }
 
     @GetMapping("/create")
-    public String showCreateForm(Model model, HttpSession session) {
-        CashbookRequestDTO dto = new CashbookRequestDTO();
+    public String showCreateForm(Model model, HttpSession session, RedirectAttributes redirectAttributes) {
         SessionUser user = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
-        if (user != null && "BRANCH_MANAGER".equals(user.getRoleName())) {
+        
+        if (user == null || (!"SYSTEM_OWNER".equals(user.getRoleName()) && !"BRANCH_MANAGER".equals(user.getRoleName()))) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Bạn không có quyền tạo phiếu thu/chi.");
+            return "redirect:/cashbook";
+        }
+        
+        CashbookDTO dto = new CashbookDTO();
+        if ("BRANCH_MANAGER".equals(user.getRoleName())) {
             dto.setBranchId(user.getBranchId());
         }
         
         model.addAttribute("cashbookDTO", dto);
         model.addAttribute("branches", branchService.getAll());
+        model.addAttribute("sessionUser", user);
         return "payment/cashbook/form";
     }
 
     @PostMapping("/save")
     public String saveCashbook(
-            @ModelAttribute("cashbookDTO") CashbookRequestDTO dto,
+            @ModelAttribute("cashbookDTO") CashbookDTO dto,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
 
         SessionUser user = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
-        Long currentUserId = (user != null) ? user.getId() : 1L;
+        
+        if (user == null || (!"SYSTEM_OWNER".equals(user.getRoleName()) && !"BRANCH_MANAGER".equals(user.getRoleName()))) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Bạn không có quyền tạo phiếu thu/chi.");
+            return "redirect:/cashbook";
+        }
+        
+        Long currentUserId = user.getId();
         
         // Force branch id for Branch Manager to prevent tampering
-        if (user != null && "BRANCH_MANAGER".equals(user.getRoleName())) {
+        if ("BRANCH_MANAGER".equals(user.getRoleName())) {
             dto.setBranchId(user.getBranchId());
         }
 

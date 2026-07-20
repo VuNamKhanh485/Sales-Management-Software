@@ -2,13 +2,12 @@ package com.g4fpt.sms.voucher.service.impl;
 
 import com.g4fpt.sms.common.exception.AppException;
 import com.g4fpt.sms.common.exception.ErrorCode;
-import com.g4fpt.sms.voucher.dto.request.VoucherRequest;
-import com.g4fpt.sms.voucher.dto.response.VoucherResponse;
+import com.g4fpt.sms.voucher.dto.VoucherDTO;
 import com.g4fpt.sms.voucher.entity.Voucher;
 import com.g4fpt.sms.voucher.enums.DiscountType;
 import com.g4fpt.sms.voucher.enums.VoucherStatus;
 import com.g4fpt.sms.order.repository.OrderTransactionRepository;
-import com.g4fpt.sms.voucher.mapper.VoucherMapper;
+import com.g4fpt.sms.customer.entity.CustomerRank;
 import com.g4fpt.sms.customer.repository.CustomerRankRepository;
 import com.g4fpt.sms.voucher.repository.VoucherRepository;
 import com.g4fpt.sms.voucher.service.VoucherService;
@@ -30,11 +29,10 @@ public class VoucherServiceImpl implements VoucherService {
     private final VoucherRepository voucherRepository;
     private final OrderTransactionRepository orderTransactionRepository;
     private final CustomerRankRepository customerRankRepository;
-    private final VoucherMapper voucherMapper;
 
     @Override
     @Transactional
-    public VoucherResponse create(VoucherRequest request) {
+    public VoucherDTO create(VoucherDTO request) {
         java.util.Optional<Voucher> existing = voucherRepository.findByCode(request.getCode().trim().toUpperCase());
         if (existing.isPresent()) {
             return update(existing.get().getId(), request);
@@ -47,18 +45,18 @@ public class VoucherServiceImpl implements VoucherService {
             throw new AppException(ErrorCode.VOUCHER_START_DATE_PAST);
         }
 
-        Voucher voucher = voucherMapper.toEntity(request);
+        CustomerRank rank = null;
         if (request.getCustomerRankId() != null) {
-            voucher.setCustomerRank(customerRankRepository.findById(request.getCustomerRankId()).orElse(null));
-        } else {
-            voucher.setCustomerRank(null);
+            rank = customerRankRepository.findById(request.getCustomerRankId()).orElse(null);
         }
-        return voucherMapper.toResponse(voucherRepository.save(voucher));
+        Voucher voucher = VoucherDTO.toEntity(request, rank);
+        
+        return VoucherDTO.fromEntity(voucherRepository.save(voucher));
     }
 
     @Override
     @Transactional
-    public VoucherResponse update(Long id, VoucherRequest request) {
+    public VoucherDTO update(Long id, VoucherDTO request) {
         Voucher voucher = findById(id);
 
         validateTimeRange(request.getStartAt(), request.getEndAt());
@@ -80,26 +78,26 @@ public class VoucherServiceImpl implements VoucherService {
             voucher.setCustomerRank(null);
         }
 
-        return voucherMapper.toResponse(voucherRepository.save(voucher));
+        return VoucherDTO.fromEntity(voucherRepository.save(voucher));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public VoucherResponse getById(Long id) {
-        return voucherMapper.toResponse(findById(id));
+    public VoucherDTO getById(Long id) {
+        return VoucherDTO.fromEntity(findById(id));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public VoucherResponse getByCode(String code) {
+    public VoucherDTO getByCode(String code) {
         Voucher voucher = voucherRepository.findByCode(code.trim().toUpperCase())
                 .orElseThrow(() -> new AppException(ErrorCode.VOUCHER_NOT_FOUND));
-        return voucherMapper.toResponse(voucher);
+        return VoucherDTO.fromEntity(voucher);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<VoucherResponse> search(String keyword, VoucherStatus status, int page, int size) {
+    public Page<VoucherDTO> search(String keyword, VoucherStatus status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Voucher> result;
 
@@ -118,17 +116,17 @@ public class VoucherServiceImpl implements VoucherService {
             result = voucherRepository.findAll(pageable);
         }
 
-        return result.map(voucherMapper::toResponse);
+        return result.map(VoucherDTO::fromEntity);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<VoucherResponse> getActiveVouchers(int page, int size) {
+    public Page<VoucherDTO> getActiveVouchers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("endAt").ascending());
         LocalDateTime now = LocalDateTime.now();
         Page<Voucher> result = voucherRepository.findByStatusAndStartAtLessThanEqualAndEndAtGreaterThanEqual(
                 VoucherStatus.ACTIVE, now, now, pageable);
-        return result.map(voucherMapper::toResponse);
+        return result.map(VoucherDTO::fromEntity);
     }
 
     @Override
@@ -143,12 +141,12 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     @Transactional
-    public VoucherResponse toggleStatus(Long id) {
+    public VoucherDTO toggleStatus(Long id) {
         Voucher voucher = findById(id);
         voucher.setStatus(voucher.getStatus() == VoucherStatus.ACTIVE
                 ? VoucherStatus.INACTIVE
                 : VoucherStatus.ACTIVE);
-        return voucherMapper.toResponse(voucherRepository.save(voucher));
+        return VoucherDTO.fromEntity(voucherRepository.save(voucher));
     }
 
     private Voucher findById(Long id) {

@@ -40,10 +40,8 @@ public class ReportController {
             HttpSession session) {
 
         SessionUser user = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
-        if (user != null && ("MANAGER".equals(user.getRoleName()) || "CASHIER".equals(user.getRoleName()))) {
-            if (branchId == null) {
-                branchId = user.getBranchId();
-            }
+        if (user != null && !user.hasRole("OWNER")) {
+            branchId = user.getBranchId();
         }
 
         if (startDate == null) {
@@ -78,10 +76,8 @@ public class ReportController {
             HttpSession session) {
 
         SessionUser user = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
-        if (user != null && ("MANAGER".equals(user.getRoleName()) || "CASHIER".equals(user.getRoleName()))) {
-            if (branchId == null) {
-                branchId = user.getBranchId();
-            }
+        if (user != null && !user.hasRole("OWNER")) {
+            branchId = user.getBranchId();
         }
 
         if (startDate == null) {
@@ -116,10 +112,8 @@ public class ReportController {
             HttpSession session) {
 
         SessionUser user = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
-        if (user != null && ("MANAGER".equals(user.getRoleName()) || "CASHIER".equals(user.getRoleName()))) {
-            if (branchId == null) {
-                branchId = user.getBranchId();
-            }
+        if (user != null && !user.hasRole("OWNER")) {
+            branchId = user.getBranchId();
         }
 
         if (startDate == null) {
@@ -136,7 +130,7 @@ public class ReportController {
         List<EmployeeSalesDTO> employeeSalesData = reportService.getEmployeeSalesReport(branchId, startDateTime, endDateTime);
         List<Branch> branches = branchService.getAll();
 
-        boolean isManager = user != null && ("OWNER".equals(user.getRoleName()) || "MANAGER".equals(user.getRoleName()) || "BRANCH_MANAGER".equals(user.getRoleName()));
+        boolean isManager = user != null && user.hasAnyRole("OWNER", "BRANCH_MANAGER");
         if (!isManager && user != null) {
             employeeSalesData = employeeSalesData.stream()
                     .filter(dto -> dto.getEmployeeId().equals(user.getId()))
@@ -164,10 +158,8 @@ public class ReportController {
             HttpSession session) {
 
         SessionUser user = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
-        if (user != null && ("MANAGER".equals(user.getRoleName()) || "CASHIER".equals(user.getRoleName()))) {
-            if (branchId == null) {
-                branchId = user.getBranchId();
-            }
+        if (user != null && !user.hasRole("OWNER")) {
+            branchId = user.getBranchId();
         }
 
         if (startDate == null) {

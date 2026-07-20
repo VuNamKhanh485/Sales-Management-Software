@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý nhân viên — SMS</title>
-    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
-    <link rel="stylesheet" th:href="@{/css/employee.css}">
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/employee/employee.css}">
 </head>
 
 <body>
@@ -59,7 +59,7 @@
                 <option value="">-- Trạng thái --</option>
                 <option th:each="s : ${statuses}"
                         th:value="${s}"
-                        th:text="${s}"
+                        th:text="${s.name() == 'ACTIVE' ? 'Hoạt động' : (s.name() == 'INACTIVE' ? 'Ngừng hoạt động' : s)}"
                         th:selected="${status != null and status == s}">
                 </option>
             </select>
@@ -103,7 +103,7 @@
                         <td th:text="${e.role != null ? e.role.code : ''}"></td>
 
                         <td>
-                            <span class="badge" th:classappend="${e.workStatus.name() == 'ACTIVE'} ? 'badge-active' : 'badge-inactive'" th:text="${e.workStatus.name()}"></span>
+                            <span class="badge" th:classappend="${e.workStatus.name() == 'ACTIVE'} ? 'badge-active' : 'badge-inactive'" th:text="${e.workStatus.name() == 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động'}"></span>
                         </td>
 
                         <td>

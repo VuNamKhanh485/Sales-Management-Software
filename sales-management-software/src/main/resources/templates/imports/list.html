@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Danh sách yêu cầu nhập hàng — SMS</title>
-    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
-    <link rel="stylesheet" th:href="@{/css/cashbook.css}">
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/payment/cashbook.css}">
 </head>
 <body>
 
@@ -82,9 +82,9 @@
                         <td th:text="${imp.creatorName}">Nguyễn Văn A</td>
                         <td class="value-cash" th:text="${#numbers.formatDecimal(imp.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">10,000,000 đ</td>
                         <td>
-                            <span th:if="${imp.status == 'PENDING'}" class="badge badge-inactive">PENDING</span>
-                            <span th:if="${imp.status == 'COMPLETED'}" class="badge badge-active">COMPLETED</span>
-                            <span th:if="${imp.status == 'CANCELLED'}" class="badge" style="background: var(--danger-light); color: var(--danger);">CANCELLED</span>
+                            <span th:if="${imp.status == 'PENDING'}" class="badge badge-inactive">Chờ duyệt</span>
+                            <span th:if="${imp.status == 'COMPLETED'}" class="badge badge-active">Hoàn thành</span>
+                            <span th:if="${imp.status == 'CANCELLED'}" class="badge" style="background: var(--danger-light); color: var(--danger);">Đã hủy</span>
                         </td>
                         <td th:text="${#temporals.format(imp.createdAt, 'dd-MM-yyyy HH:mm')}">28-06-2026 10:00</td>
                         <td>

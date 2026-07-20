@@ -4,151 +4,8 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Sản phẩm — SMS</title>
-    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
-    <style>
-        .product-img {
-            width: 40px; height: 40px;
-            object-fit: cover;
-            border-radius: var(--r-sm);
-            border: 1px solid var(--hairline);
-        }
-        .product-img-placeholder {
-            width: 40px; height: 40px;
-            border-radius: var(--r-sm);
-            background: var(--divider-soft);
-            display: flex; align-items: center; justify-content: center;
-            color: var(--ink-muted-48);
-            font-size: 14px;
-        }
-
-        .unit-expand-row td {
-            background: #f8f9ff;
-            padding: 0;
-            border-bottom: 1px solid var(--divider-soft);
-        }
-        .unit-expand-inner {
-            padding: var(--sp-sm) var(--sp-lg) var(--sp-sm) 60px;
-        }
-        .unit-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-            max-width: 800px;
-            margin-top: var(--sp-xs);
-        }
-        .unit-table th {
-            background: transparent;
-            color: var(--primary);
-            text-transform: none;
-            font-weight: 600;
-            letter-spacing: 0;
-            padding: 6px 12px;
-            border-bottom: 1px solid rgba(0,102,204,0.2);
-        }
-        .unit-table td {
-            background: transparent;
-            padding: 8px 12px;
-            border-bottom: 1px dashed var(--divider-soft);
-        }
-
-        .btn-expand {
-            background: none;
-            border: none;
-            color: var(--ink-muted-48);
-            cursor: pointer;
-            padding: 4px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s;
-        }
-        .btn-expand.expanded {
-            transform: rotate(180deg);
-            color: var(--primary);
-        }
-
-        .sort-link {
-            color: inherit;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .sort-link:hover {
-            color: var(--primary);
-        }
-
-        /* Pagination custom simple */
-        .pagination {
-            display: flex;
-            gap: 4px;
-            list-style: none;
-        }
-        .pagination a {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 32px;
-            height: 32px;
-            border-radius: var(--r-sm);
-            font-size: 14px;
-            color: var(--ink-muted-80);
-            text-decoration: none;
-            transition: background 0.15s;
-        }
-        .pagination a:hover {
-            background: var(--divider-soft);
-        }
-        .pagination .active a {
-            background: var(--primary);
-            color: var(--on-primary);
-        }
-        .pagination .disabled a {
-            opacity: 0.4;
-            pointer-events: none;
-        }
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: none; align-items: center; justify-content: center;
-            z-index: 1000;
-        }
-        .modal-box {
-            background: var(--canvas);
-            border-radius: var(--r-lg);
-            width: auto;
-            min-width: 320px;
-            max-width: 90vw;
-            display: inline-block;
-            padding: var(--sp-xl);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-        .modal-header {
-            font-size: 18px; font-weight: 600; margin-bottom: var(--sp-md);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .modal-close {
-            background: none; border: none; font-size: 20px; cursor: pointer; color: var(--ink-muted-48);
-        }
-        .icon-eye-btn {
-            background: none;
-            border: none;
-            padding: 0;
-            margin: 0;
-            cursor: pointer;
-            color: var(--ink-muted-48);
-            display: inline-flex;
-            line-height: 0; /* tránh khoảng trắng thừa quanh icon */
-        }
-        .icon-eye {
-            width: 15px;
-            height: 15px;
-            color: var(--ink-muted-48);
-            transition: color 0.15s;
-        }
-        .icon-eye-btn:hover svg { color: var(--primary); }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/inventory/product-list.css}">
 </head>
 <body>
 
@@ -221,7 +78,7 @@
                 <option value="">Trạng thái</option>
                 <option th:each="s : ${statuses}"
                         th:value="${s}"
-                        th:text="${s}"
+                        th:text="${s.name() == 'ACTIVE' ? 'Hoạt động' : (s.name() == 'INACTIVE' ? 'Ngừng hoạt động' : s)}"
                         th:selected="${s == filter.status}"></option>
             </select>
             
@@ -381,7 +238,7 @@
                                 <td>
                                     <span th:class="${p.status.name() == 'ACTIVE'} ?
                                     'badge badge-active' : (${p.status.name() == 'INACTIVE'}
-                                    ? 'badge badge-inactive' : 'badge')" th:text="${p.status}">
+                                    ? 'badge badge-inactive' : 'badge')" th:text="${p.status.name() == 'ACTIVE' ? 'Hoạt động' : (p.status.name() == 'INACTIVE' ? 'Ngừng hoạt động' : p.status)}">
                                     </span>
                                 </td>
                                 <td th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">
@@ -488,79 +345,7 @@
         </div>
     </div>
 
-<script th:src="@{/js/JsBarcode.all.min.js}"></script>
-<script th:inline="javascript">
-    function toggleUnits(productId) {
-        const row = document.getElementById('units-' + productId);
-        const btn = document.getElementById('btn-' + productId);
-        if (row.style.display === 'none') {
-            row.style.display = '';
-            btn.classList.add('expanded');
-        } else {
-            row.style.display = 'none';
-            btn.classList.remove('expanded');
-        }
-    }
-
-    function closeModal(id) {
-        const modal = document.getElementById(id);
-        modal.style.display = "none";
-
-        const iframe = modal.querySelector("iframe");
-        if (iframe) {
-            iframe.contentWindow.location.reload();
-        }
-        if(id==="modalUnit"){
-            currentUnitSelect=null;
-        }
-    }
-
-    const barcodeModal = document.getElementById("barcodeModal");
-
-    barcodeModal.addEventListener("click", function (e) {
-        if (e.target === this) {
-            closeModal("barcodeModal");
-        }
-    });
-
-    function showBarcode(button){
-        const row = button.closest("tr");
-        const barcode = row
-            .querySelector(".barcode-value")
-            .innerText
-            .trim();
-
-        JsBarcode(
-            "#barcodeSvg",
-            barcode,
-            {
-                format:"CODE128",
-                width:1,
-                height:45,
-                displayValue:false
-            }
-        );
-        document
-            .getElementById("barcodeText")
-            .innerText = barcode;
-        document
-            .getElementById("barcodeModal")
-            .style.display="flex";
-
-    }
-
-    function changeSize(newSize) {
-        const form = document.getElementById('filterForm');
-        form.querySelector('[name=size]').value = newSize;
-        form.querySelector('[name=page]').value = 0;
-        form.submit();
-    }
-
-        setTimeout(() => {
-        document.querySelectorAll('.page-content > div[style*="border-left"]')
-            .forEach(el => el.remove());
-    }, 4000);
-
-</script>
+<script th:src="@{/js/vendor/JsBarcode.all.min.js}"></script>
+<script th:src="@{/js/inventory/product-list.js}"></script>
 </body>
 </html>

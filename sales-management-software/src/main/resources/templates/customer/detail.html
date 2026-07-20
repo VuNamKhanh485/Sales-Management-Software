@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chi tiết khách hàng — SMS</title>
-    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
-    <link rel="stylesheet" th:href="@{/css/customer.css}">
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/customer/customer.css}">
 </head>
 
 <body>
@@ -135,7 +135,7 @@
                             <td>
                                 <span class="badge" th:classappend="${order.status == 'COMPLETED'} ? 'badge-active' :
                                                      (${order.status == 'CANCELLED'} ? 'badge-inactive' : '')"
-                                    th:text="${order.status}">
+                                    th:text="${order.status == 'COMPLETED' ? 'Hoàn thành' : (order.status == 'PENDING' ? 'Chờ xử lý' : (order.status == 'CANCELLED' ? 'Đã hủy' : (order.status == 'RETURNED' ? 'Đã trả hàng' : order.status)))}">
                                 </span>
                             </td>
                             <td>

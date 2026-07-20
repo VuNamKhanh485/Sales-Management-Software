@@ -15,4 +15,5 @@ public class EmployeeSalesDTO {
     private String employeeName;
     private Long totalOrders;
     private BigDecimal totalSales;
+    private String branchName;
 }

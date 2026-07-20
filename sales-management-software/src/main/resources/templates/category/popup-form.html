@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Popup Thêm Danh mục</title>
-    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
-    <style>
-        body { background: transparent; padding: 20px; margin: 0; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/core/popup.css}">
 </head>
-<body>
+<body class="popup-body">
     <form th:action="@{/category/popup-form}" th:object="${categoryRequest}" method="post">
         <div class="form-grid">
             <div class="form-group form-group--full">

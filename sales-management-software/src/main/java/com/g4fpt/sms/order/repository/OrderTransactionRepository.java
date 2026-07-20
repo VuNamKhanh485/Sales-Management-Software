@@ -57,12 +57,13 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
 
-    @Query("SELECT new com.g4fpt.sms.report.dto.EmployeeSalesDTO(e.id, e.employeeCode, e.fullName, COUNT(o), SUM(o.finalAmount)) " +
+    @Query("SELECT new com.g4fpt.sms.report.dto.EmployeeSalesDTO(e.id, e.employeeCode, e.fullName, COUNT(o), SUM(o.finalAmount), b.name) " +
            "FROM OrderTransaction o JOIN Employee e ON o.createdBy = e.id " +
+           "LEFT JOIN e.branch b " +
            "WHERE (:branchId IS NULL OR o.branchId = :branchId) AND " +
            "o.transactionType = 'SALE' AND o.status = 'COMPLETED' AND " +
            "o.createdAt >= :startDate AND o.createdAt <= :endDate " +
-           "GROUP BY e.id, e.employeeCode, e.fullName " +
+           "GROUP BY e.id, e.employeeCode, e.fullName, b.name " +
            "ORDER BY SUM(o.finalAmount) DESC")
     List<com.g4fpt.sms.report.dto.EmployeeSalesDTO> getEmployeeSalesReport(
             @Param("branchId") Long branchId,

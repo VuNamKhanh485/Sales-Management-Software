@@ -1,6 +1,6 @@
 package com.g4fpt.sms.payment.service;
 
-import com.g4fpt.sms.payment.dto.request.CashbookRequestDTO;
+import com.g4fpt.sms.payment.dto.CashbookDTO;
 import com.g4fpt.sms.payment.entity.CashbookTransaction;
 import org.springframework.data.domain.Page;
 
@@ -13,7 +13,7 @@ public interface CashbookService {
                                               LocalDateTime startDate, LocalDateTime endDate, 
                                               int page, int size);
 
-    CashbookTransaction createTransaction(CashbookRequestDTO dto, Long createdBy);
+    CashbookTransaction createTransaction(CashbookDTO dto, Long createdBy);
 
     BigDecimal getBalance(Long branchId, String method);
 

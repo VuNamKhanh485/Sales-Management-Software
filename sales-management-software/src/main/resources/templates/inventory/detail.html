@@ -4,19 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chi tiết kho chi nhánh — SMS</title>
-    <link rel="stylesheet" th:href="@{/css/apple-design.css}">
-    <link rel="stylesheet" th:href="@{/css/cashbook.css}">
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/inventory/inventory-detail.css}">
 </head>
 <body>
 
     <div th:replace="~{component/navbar :: global-nav('inventory')}"></div>
 
     <div class="sub-nav">
-        <a href="/inventory" class="sub-nav__back">Quản lý kho</a>
-        <span class="sub-nav__sep">›</span>
-        <h1 class="sub-nav__title">Chi tiết kho: <span style="color: var(--primary);" th:text="${branch.name}">Chi nhánh</span></h1>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <a href="/inventory" class="sub-nav__back" style="color: var(--primary); text-decoration: none; font-size: 14px;">Quản lý kho</a>
+            <span class="sub-nav__sep" style="color: var(--ink-muted-48); font-size: 12px;">›</span>
+            <h1 class="sub-nav__title">Chi tiết kho: <span style="color: var(--primary);" th:text="${branch.name}">Chi nhánh</span></h1>
+        </div>
         <div class="sub-nav__actions">
-            <a th:href="@{/inventory/create(branchId=${branch.id})}" class="btn btn-primary btn-primary--sm">
+            <a th:href="@{/inventory/create(branchId=${branch.id})}" class="btn-primary btn-primary--sm">
                 Nhập kho
             </a>
         </div>
@@ -27,28 +29,28 @@
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
         <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-        <div class="card-panel" style="margin-bottom: 24px;">
-            <div style="padding: 24px; display: flex; gap: 48px; border-bottom: 1px solid var(--hairline);">
-                <div>
-                    <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: 4px;">Mã kho</div>
-                    <div style="font-weight: 500;" th:text="${branch.branchCode}">BR001</div>
+        <div class="card-panel">
+            <div class="overview-panel">
+                <div class="info-item">
+                    <span class="info-label">Mã kho</span>
+                    <span class="info-value" style="font-family: monospace;" th:text="${branch.branchCode}">BR001</span>
                 </div>
-                <div>
-                    <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: 4px;">Tên kho</div>
-                    <div style="font-weight: 500;" th:text="${branch.name}">Chi nhánh A</div>
+                <div class="info-item">
+                    <span class="info-label">Tên kho</span>
+                    <span class="info-value" th:text="${branch.name}">Chi nhánh A</span>
                 </div>
-                <div>
-                    <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: 4px;">Trạng thái</div>
-                    <span th:if="${branch.status != null and branch.status.name() == 'ACTIVE'}" class="badge badge-active">ACTIVE</span>
-                    <span th:if="${branch.status != null and branch.status.name() == 'INACTIVE'}" class="badge badge-inactive">INACTIVE</span>
-                    <span th:if="${branch.status == null}" class="badge badge-inactive">N/A</span>
+                <div class="info-item">
+                    <span class="info-label">Trạng thái</span>
+                    <div>
+                        <span th:if="${branch.status != null and branch.status.name() == 'ACTIVE'}" class="badge badge-active">Hoạt động</span>
+                        <span th:if="${branch.status != null and branch.status.name() == 'INACTIVE'}" class="badge badge-inactive">Ngừng hoạt động</span>
+                        <span th:if="${branch.status == null}" class="badge badge-inactive">N/A</span>
+                    </div>
                 </div>
             </div>
 
-
-
-            <div style="padding: 16px 24px;">
-                <form th:action="@{/inventory/{id}(id=${branch.id})}" method="get" class="search-bar" style="align-items: center; margin: 0; box-shadow: none; border: 1px solid var(--hairline);">
+            <div class="search-area">
+                <form th:action="@{/inventory/{id}(id=${branch.id})}" method="get" class="search-bar">
                     <div class="search-input-wrap" style="flex: 2;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
@@ -66,16 +68,15 @@
                         <option value="low_stock" th:selected="${filter == 'low_stock'}">Hàng sắp hết</option>
                     </select>
 
-                    <button type="submit" class="btn btn-primary btn-primary--sm">Tìm kiếm</button>
-                    <a th:href="@{/inventory/{id}(id=${branch.id})}" class="btn btn-secondary btn-secondary--sm">Làm mới</a>
+                    <button type="submit" class="btn-primary btn-primary--sm" style="padding: 8px 16px;">Tìm kiếm</button>
+                    <a th:href="@{/inventory/{id}(id=${branch.id})}" class="btn-secondary btn-secondary--sm" style="padding: 8px 16px;">Làm mới</a>
                 </form>
             </div>
         </div>
-            <!-- ============================================================ -->
 
         <div class="card-panel">
             <div style="padding: 16px 24px; border-bottom: 1px solid var(--hairline); display: flex; justify-content: space-between; align-items: center;">
-                <h2 class="form-card__title" style="margin: 0;">Danh sách sản phẩm trong kho</h2>
+                <h2 class="form-card__title" style="margin: 0; font-size: 16px;">Danh sách sản phẩm trong kho</h2>
 
                 <div style="display: flex; gap: 8px;">
                     <span th:if="${keyword != null and keyword != ''}" class="badge badge-inactive" style="color: var(--primary);">
@@ -91,7 +92,7 @@
                 <table>
                     <thead>
                     <tr>
-                        <th style="width: 50px;">STT</th>
+                        <th style="width: 50px; text-align: center;">STT</th>
                         <th>Tên sản phẩm</th>
                         <th>SKU</th>
                         <th>Đơn vị</th>
@@ -110,13 +111,13 @@
                         </td>
                     </tr>
                     <tr th:each="item, stat : ${inventoryDetails}" th:if="${inventoryDetails != null and !inventoryDetails.empty}">
-                        <td th:text="${(inventoryPage.number * inventoryPage.size) + stat.count}">1</td>
+                        <td style="text-align: center;" th:text="${(inventoryPage.number * inventoryPage.size) + stat.count}">1</td>
                         <td style="font-weight: 500;" th:text="${item.productName}">Tên sản phẩm</td>
                         <td>
-                            <span class="badge badge-inactive" th:text="${item.sku}">SKU-001</span>
+                            <span class="code-chip" th:text="${item.sku}">SKU-001</span>
                         </td>
                         <td th:text="${item.unitName}">Cái</td>
-                        <td style="font-weight: 600;" th:text="${item.stock}">10</td>
+                        <td class="product-count" th:text="${item.stock}">10</td>
                         <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">10,000 đ</td>
                         <td class="value-cash" th:text="${#numbers.formatDecimal(item.totalValue, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</td>
                         <td>

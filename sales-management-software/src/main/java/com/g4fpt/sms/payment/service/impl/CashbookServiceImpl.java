@@ -2,13 +2,12 @@ package com.g4fpt.sms.payment.service.impl;
 
 import com.g4fpt.sms.branch.entity.Branch;
 import com.g4fpt.sms.branch.repository.BranchRepository;
-import com.g4fpt.sms.payment.dto.request.CashbookRequestDTO;
+import com.g4fpt.sms.payment.dto.CashbookDTO;
 import com.g4fpt.sms.payment.entity.CashbookTransaction;
 import com.g4fpt.sms.payment.repository.CashbookTransactionRepository;
 import com.g4fpt.sms.payment.service.CashbookService;
 import com.g4fpt.sms.employee.entity.Employee;
 import com.g4fpt.sms.employee.repository.EmployeeRepository;
-import com.g4fpt.sms.payment.service.CashbookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -52,7 +51,7 @@ public class CashbookServiceImpl implements CashbookService {
 
     @Override
     @Transactional
-    public CashbookTransaction createTransaction(CashbookRequestDTO dto, Long createdBy) {
+    public CashbookTransaction createTransaction(CashbookDTO dto, Long createdBy) {
         Branch branch = branchRepository.findById(dto.getBranchId())
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy chi nhánh"));
 

@@ -7,22 +7,24 @@
     <meta name="description" content="Tạo yêu cầu trả/đổi hàng trong hệ thống SMS.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/return.css}">
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/order/return.css}">
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <div class="card-header">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-arrow-return-left fs-4"></i>
-                    <div>
-                        <h5 class="mb-0 fw-bold">Yêu cầu trả / đổi hàng</h5>
-                        <small class="opacity-75" th:text="${autoOrderCode != null ? 'Đã có mã đơn hàng' : 'Nhập mã đơn hàng để bắt đầu'}"></small>
-                    </div>
+    <!-- ── Global Nav ── -->
+    <div th:replace="~{component/navbar :: global-nav('return')}"></div>
+
+    <main class="return-container">
+        <div class="card-panel">
+            <div style="margin-bottom: var(--sp-xl);">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <a href="javascript:history.back()" style="color: var(--primary); text-decoration: none; font-size: 14px; font-weight: 400;">Quay lại</a>
                 </div>
+                <h1 class="t-display-md mb-2">Yêu cầu trả / đổi hàng</h1>
+                <p class="t-body" style="color: var(--ink-muted-48);" th:text="${autoOrderCode != null ? 'Đã có mã đơn hàng' : 'Nhập mã đơn hàng để bắt đầu'}"></p>
             </div>
-            <div class="card-body">
-                <!-- Thông báo lỗi/thành công -->
+
+            <!-- Thông báo lỗi/thành công -->
                 <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
                     <i class="bi bi-exclamation-triangle me-1"></i><span th:text="${error}"></span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -33,13 +35,13 @@
                 </div>
 
                 <!-- Bước 1: Tìm đơn hàng (Form GET) -->
-                <form method="GET" action="/return" class="search-section">
-                    <label class="fw-semibold mb-2"><i class="bi bi-search me-1"></i>Tìm đơn hàng</label>
-                    <div class="search-input-group">
-                        <input type="text" name="orderCode" class="form-control"
+                <form method="GET" action="/return" class="search-section" style="margin-bottom: var(--sp-lg);">
+                    <label class="t-body-strong mb-2" style="display: block;"><i class="bi bi-search me-1"></i>Tìm đơn hàng</label>
+                    <div style="display: flex; gap: var(--sp-sm); align-items: center;">
+                        <input type="text" name="orderCode" class="search-input"
                                placeholder="Nhập mã đơn hàng (VD: ORD-2025...)"
-                               th:value="${autoOrderCode}">
-                        <button type="submit" class="btn btn-primary">
+                               th:value="${autoOrderCode}" style="flex: 1;">
+                        <button type="submit" class="btn-primary">
                             <i class="bi bi-search me-1"></i>Tìm
                         </button>
                     </div>
@@ -53,8 +55,8 @@
                                 <h6 class="fw-bold mb-1" th:text="${order.code}"></h6>
                                 <small class="text-muted" th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></small>
                             </div>
-                            <span class="badge bg-success" th:if="${order.status == 'COMPLETED'}">COMPLETED</span>
-                            <span class="badge bg-warning" th:unless="${order.status == 'COMPLETED'}" th:text="${order.status}"></span>
+                            <span class="badge bg-success" th:if="${order.status == 'COMPLETED'}">Hoàn thành</span>
+                            <span class="badge bg-warning" th:unless="${order.status == 'COMPLETED'}" th:text="${order.status == 'PENDING' ? 'Chờ xử lý' : (order.status == 'CANCELLED' ? 'Đã hủy' : (order.status == 'RETURNED' ? 'Đã trả hàng' : order.status))}"></span>
                         </div>
                         <p class="mb-0 mt-1">
                             <i class="bi bi-person me-1"></i>
@@ -111,55 +113,9 @@
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        let currentUrls = [];
-
-        function previewImages(input) {
-            const container = document.getElementById('previewContainer');
-            container.innerHTML = '';
-            
-            // Hủy các đường dẫn tạm cũ để giải phóng RAM
-            currentUrls.forEach(url => URL.revokeObjectURL(url));
-            currentUrls = [];
-
-            if (input.files && input.files.length > 0) {
-                container.style.display = 'flex';
-                Array.from(input.files).forEach(file => {
-                    const url = URL.createObjectURL(file);
-                    currentUrls.push(url);
-
-                    const div = document.createElement('div');
-                    div.style.position = 'relative';
-                    div.style.width = '100px';
-                    div.style.height = '100px';
-                    
-                    const img = document.createElement('img');
-                    img.src = url;
-                    img.className = 'w-100 h-100 object-fit-cover rounded border';
-                    
-                    div.appendChild(img);
-                    container.appendChild(div);
-                });
-            } else {
-                container.style.display = 'none';
-            }
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-            const checkboxes = document.querySelectorAll('.item-cb');
-            checkboxes.forEach(cb => {
-                const toggleInput = () => {
-                    const qtyInput = cb.closest('.item-check').querySelector('.qty-input');
-                    if (qtyInput) {
-                        qtyInput.disabled = !cb.checked;
-                    }
-                };
-                cb.addEventListener('change', toggleInput);
-                toggleInput(); // Run on init
-            });
-        });
-    </script>
+    <script th:src="@{/js/order/return-request.js}"></script>
 </body>
 </html>
