@@ -5,7 +5,6 @@ USE sms_db;
 -- role
 CREATE TABLE Role (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-
     code VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(100) NOT NULL,
     description TEXT NULL
