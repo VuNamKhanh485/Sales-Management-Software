@@ -83,7 +83,7 @@ public class ProductServiceImpl implements ProductService {
             product.setImageName(fileName);
         }else{
             throw new ValidationException(
-                    List.of(new ValidationError("imageFile", "Chỉ chấp nhận JPG, JPEG, PNG hoặc WEBP"))
+                    List.of(new ValidationError("imageFile", "Chỉ chấp nhận Ảnh"))
             );
         }
 
