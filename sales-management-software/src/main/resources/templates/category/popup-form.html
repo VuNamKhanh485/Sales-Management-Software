@@ -20,7 +20,7 @@
                     <textarea class="form-textarea" rows="2" th:field="*{description}" placeholder="Mô tả danh mục..."></textarea>
                 </label>
             </div>
-            <input type="hidden" th:field="*{categoryStatus}" value="ACTIVE">
+            <input type="hidden" name="categoryStatus" value="ACTIVE">
         </div>
         <div class="form-actions" style="margin-top: 20px;">
             <button type="button" class="btn-cancel" onclick="window.parent.closeModal('modalCategory')">Hủy</button>

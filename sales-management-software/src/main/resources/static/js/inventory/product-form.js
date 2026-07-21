@@ -254,6 +254,8 @@
     });
 
     document.addEventListener("DOMContentLoaded", function () {
+        $('.select2-init').select2();
+        
         document.querySelectorAll("#unitTable tr:not(#no-unit-row)")
             .forEach(function (row) {
                 initBarcode(row);
