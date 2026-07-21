@@ -56,7 +56,7 @@ public class ImportController {
                                  @ModelAttribute("importRequest") ImportRequest importRequest) {
         SessionUser sessionUser = getSessionUser(session);
 
-        if (!sessionUser.hasAnyRole("OWNER", "WAREHOUSE_STAFF")) {
+        if (!sessionUser.hasAnyRole("OWNER", "BRANCH_MANAGER", "WAREHOUSE_STAFF")) {
             return "redirect:/error/403";
         }
 
@@ -87,7 +87,7 @@ public class ImportController {
         SessionUser sessionUser = getSessionUser(session);
 
         try {
-            if (!sessionUser.hasAnyRole("OWNER", "WAREHOUSE_STAFF")) {
+            if (!sessionUser.hasAnyRole("OWNER", "BRANCH_MANAGER")) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Chỉ OWNER hoặc Nhân viên kho mới được phép tạo phiếu nhập hàng!");
                 return "redirect:/imports";
             }
