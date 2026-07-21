@@ -54,6 +54,10 @@ public class ProductServiceImpl implements ProductService {
         if (!imageFile.isEmpty()) {
             String fileName = fileStorageService.saveFile(imageFile, UploadFolder.PRODUCT);
             product.setImageName(fileName);
+        }else {
+            throw new ValidationException(
+                    List.of(new ValidationError("imageFile", "Chỉ chấp nhận JPG, JPEG, PNG hoặc WEBP"))
+            );
         }
 
         product.setProductUnits(
@@ -77,6 +81,10 @@ public class ProductServiceImpl implements ProductService {
             String fileName = fileStorageService.saveFile(imageFile, UploadFolder.PRODUCT);
 
             product.setImageName(fileName);
+        }else{
+            throw new ValidationException(
+                    List.of(new ValidationError("imageFile", "Chỉ chấp nhận JPG, JPEG, PNG hoặc WEBP"))
+            );
         }
 
         product.setProductUnits(
