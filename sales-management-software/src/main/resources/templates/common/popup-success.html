@@ -10,7 +10,7 @@
         const newId = /*[[${newId}]]*/ 0;
         const newName = /*[[${newName}]]*/ '';
         let type = /*[[${type}]]*/ '';
-        const customerPhone = /*[[${customerPhone}]]*/ '';
+        const customerPhone = /*[[${customerPhone != null ? customerPhone : ''}]]*/ '';
         
         // Nếu type chưa kết thúc bằng _CREATED, tự động thêm vào
         if (type && !type.endsWith('_CREATED')) {
