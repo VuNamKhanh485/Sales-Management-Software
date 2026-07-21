@@ -311,7 +311,7 @@
                     <li th:classappend="${currentPage==0}?'disabled'">
                         <a th:href="@{/product(page=${currentPage -1},size=${size},keyword=${filter.keyword},brandId=${filter.brandId},categoryId=${filter.categoryId},status=${filter.status},sortField=${sortField},sortDir=${sortDir})}">‹</a>
                     </li>
-                    <th:block th:each="i : ${#numbers.sequence(0, totalPages -1)}" th:if="${i >= currentPage -2 and i <= currentPage+2}">
+                    <th:block th:each="i : ${#numbers.sequence(0, totalPages -1)}" th:if="${i >= currentPage -3 and i <= currentPage+3}">
                         <li th:classappend="${i==currentPage}?'active'">
                             <a th:href="@{/product(page=${i},size=${size},keyword=${filter.keyword},brandId=${filter.brandId},categoryId=${filter.categoryId},status=${filter.status},sortField=${sortField},sortDir=${sortDir})}" th:text="${i+1}"></a>
                         </li>
