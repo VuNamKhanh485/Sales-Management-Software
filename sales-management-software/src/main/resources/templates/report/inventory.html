@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Tổng hợp Nhập Xuất Tồn</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 6px 10px; text-align: right; }
+        th, td:nth-child(-n+5) { text-align: left; }
+        thead { background-color: #f2f2f2; }
+        .filter-bar { margin-bottom: 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+
+<div th:if="${errors}">
+    <div class="alert alert-danger"
+         th:each="err : ${errors}"
+         th:text="${err.message}">
+    </div>
+</div>
+
+<h2>TỔNG HỢP NHẬP XUẤT TỒN KHO</h2>
+
+<form id="reportForm" th:action="@{/report/inventory}" method="get" class="filter-bar">
+
+    <select name="branchId">
+        <option value="">-- Tất cả kho --</option>
+        <option th:each="b : ${branches}"
+                th:value="${b.id}"
+                th:text="${b.name}"
+                th:selected="${filter.branchId != null and filter.branchId == b.id}"></option>
+    </select>
+
+    <select name="categoryId">
+        <option value="">-- Tất cả nhóm hàng --</option>
+        <option th:each="c : ${categories}"
+                th:value="${c.id}"
+                th:text="${c.name}"
+                th:selected="${filter.categoryId != null and filter.categoryId == c.id}"></option>
+    </select>
+
+    <select name="brandId">
+        <option value="">-- Tất cả thương hiệu --</option>
+        <option th:each="br : ${brands}"
+                th:value="${br.id}"
+                th:text="${br.name}"
+                th:selected="${filter.brandId != null and filter.brandId == br.id}"></option>
+    </select>
+
+    <input type="text" name="keyword" placeholder="Tìm theo SKU / tên hàng"
+           th:value="${filter.keyword}" />
+
+    <label>Từ ngày: <input type="date" name="fromDate" th:value="${filter.fromDate}"/></label>
+    <label>Đến ngày: <input type="date" name="toDate" th:value="${filter.toDate}"/></label>
+
+    <label>
+        <input type="checkbox" name="groupByBranch" value="true"
+               th:checked="${filter.groupByBranch}" />
+        Tách riêng theo từng kho
+    </label>
+
+    <button type="submit">Lấy dữ liệu</button>
+
+    <a th:href="@{/report/inventory/export(
+            fromDate=${filter.fromDate}, toDate=${filter.toDate},
+            branchId=${filter.branchId}, categoryId=${filter.categoryId},
+            brandId=${filter.brandId}, keyword=${filter.keyword},
+            groupByBranch=${filter.groupByBranch})}">
+        <button type="button">Xuất Excel</button>
+    </a>
+</form>
+
+<table>
+    <thead>
+    <tr>
+        <th th:if="${filter.groupByBranch}">Kho</th>
+        <th>Mã SKU</th>
+        <th>Tên hàng hóa</th>
+        <th>ĐVT</th>
+        <th>Nhóm hàng</th>
+        <th>Tồn đầu kỳ</th>
+        <th>Giá trị đầu kỳ</th>
+        <th>Nhập trong kỳ</th>
+        <th>Giá trị nhập</th>
+        <th>Xuất trong kỳ</th>
+        <th>Giá trị xuất</th>
+        <th>Tồn cuối kỳ</th>
+        <th>Giá trị cuối kỳ</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="row : ${data}">
+        <td th:if="${filter.groupByBranch}" th:text="${row.branchName}"></td>
+        <td th:text="${row.sku}"></td>
+        <td th:text="${row.productName}"></td>
+        <td th:text="${row.unitName}"></td>
+        <td th:text="${row.categoryName}"></td>
+        <td th:text="${row.openingStock}"></td>
+        <td th:text="${#numbers.formatDecimal(row.openingValue, 0, 'COMMA', 0, 'POINT')}"></td>
+        <td th:text="${row.stockIn}"></td>
+        <td th:text="${#numbers.formatDecimal(row.stockInValue, 0, 'COMMA', 0, 'POINT')}"></td>
+        <td th:text="${row.stockOut}"></td>
+        <td th:text="${#numbers.formatDecimal(row.stockOutValue, 0, 'COMMA', 0, 'POINT')}"></td>
+        <td th:text="${row.closingStock}"></td>
+        <td th:text="${#numbers.formatDecimal(row.closingValue, 0, 'COMMA', 0, 'POINT')}"></td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(data)}">
+        <td colspan="12" style="text-align:center;">Không có dữ liệu</td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+<script>
+    document.getElementById("reportForm").addEventListener("submit", function (e) {
+        const from = document.querySelector("input[name='fromDate']").value;
+        const to = document.querySelector("input[name='toDate']").value;
+
+        if (new Date(from) > new Date(to)) {
+            alert("Từ ngày không được sau Đến ngày.");
+            e.preventDefault();
+        }
+
+    });
+</script>
+</html>
