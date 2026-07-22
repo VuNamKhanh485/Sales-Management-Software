@@ -15,12 +15,12 @@
     <div class="sub-nav">
         <a href="/imports" class="sub-nav__back">Quản lý nhập hàng</a>
         <span class="sub-nav__sep">›</span>
-        <h1 class="sub-nav__title">Tạo yêu cầu nhập hàng</h1>
+        <h1 class="sub-nav__title" th:text="${importRequest.id != null ? 'Cập nhật phiếu nhập hàng' : 'Tạo phiếu nhập mới'}">Tạo phiếu nhập mới</h1>
     </div>
 
-    <main class="page-content form-page" style="max-width: 1000px;">
-<body>
+    <main class="page-content form-page" style="max-width: 1400px; margin: 0 auto;">
         <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
         <form th:action="@{/imports/save}" th:object="${importRequest}" method="post" id="import-form">
             
@@ -29,7 +29,13 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Chi nhánh nhập hàng <span class="text-danger">*</span></label>
-                        <div th:if="${sessionUser != null and sessionUser.branchId != null}">
+                        <div th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">
+                            <select class="form-select" th:field="*{branchId}" id="branchId" required>
+                                <option value="">-- Chọn chi nhánh --</option>
+                                <option th:each="b : ${branches}" th:value="${b.id}" th:text="${b.name}"></option>
+                            </select>
+                        </div>
+                        <div th:if="${sessionUser != null and !sessionUser.hasRole('OWNER')}">
                             <select class="form-select" disabled>
                                 <option th:each="b : ${branches}" 
                                         th:value="${b.id}" 
@@ -38,20 +44,22 @@
                             </select>
                             <input type="hidden" th:field="*{branchId}" />
                         </div>
-                        <div th:if="${sessionUser == null or sessionUser.branchId == null}">
-                            <select class="form-select" th:field="*{branchId}" id="branchId" required>
-                                <option value="">-- Chọn chi nhánh --</option>
-                                <option th:each="b : ${branches}" th:value="${b.id}" th:text="${b.name}"></option>
-                            </select>
-                        </div>
                     </div>
                     
                     <div class="form-group">
                         <label for="supplierId" class="form-label">Nhà cung cấp <span class="text-danger">*</span></label>
-                        <select class="form-select" th:field="*{supplierId}" id="supplierId" required>
-                            <option value="">-- Chọn nhà cung cấp --</option>
-                            <option th:each="s : ${suppliers}" th:value="${s.id}" th:text="${s.name}"></option>
-                        </select>
+                        <div style="display: flex; gap: 8px;">
+                            <select class="form-select" th:field="*{supplierId}" id="supplierId" required style="flex: 1;">
+                                <option value="">-- Chọn nhà cung cấp --</option>
+                                <option th:each="s : ${suppliers}" th:value="${s.id}" th:text="${s.name}"></option>
+                            </select>
+                            <button type="submit" th:formaction="@{/imports/create/filter}" class="btn" id="btn-filter-supplier" formnovalidate style="background-color: var(--primary-light); color: var(--primary); border: 1px solid var(--primary-light); height: 40px; padding: 0 16px; font-weight: 500; border-radius: var(--r-md);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 4px;">
+                                    <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2z"/>
+                                </svg>
+                                Lọc
+                            </button>
+                        </div>
                     </div>
 
                     <div class="form-group form-group--full">
@@ -61,40 +69,39 @@
                 </div>
             </div>
 
-            <div class="form-card">
+            <div class="form-card" th:if="${importRequest.supplierId != null}">
                 <h2 class="form-card__title">Thêm sản phẩm nhập kho</h2>
                 <div class="search-bar" style="align-items: flex-end;">
-                    <div style="flex: 2; position: relative;">
+                    <div style="flex: 3;">
                         <label class="form-label">Chọn sản phẩm <span class="text-danger">*</span></label>
-                        <div class="search-input-wrap">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                            </svg>
-                            <input type="text" id="quick-product-search" class="search-input" placeholder="Nhập tên, SKU..." autocomplete="off" />
-                        </div>
-                        <input type="hidden" id="quick-product-id" />
-                        <div id="quick-product-dropdown" class="product-dropdown-list" style="display: none; max-height: 250px; overflow-y: auto;"></div>
+                        <select class="form-select" id="quick-product-select" onchange="updateUnitSelect(this.value)">
+                            <option value="">-- Chọn sản phẩm --</option>
+                            <option th:each="p : ${activeProducts}" 
+                                    th:value="${p.id}" 
+                                    th:text="${p.name}"></option>
+                        </select>
                     </div>
 
-                    <div style="flex: 1;">
+                    <div style="flex: 1.5;">
                         <label class="form-label">Đơn vị <span class="text-danger">*</span></label>
-                        <select id="quick-unit-select" class="filter-select w-100" disabled>
+                        <select name="productUnitId" class="form-select" id="quick-unit-select">
                             <option value="">-- Đơn vị --</option>
                         </select>
                     </div>
 
                     <div style="flex: 1;">
                         <label class="form-label">Số lượng <span class="text-danger">*</span></label>
-                        <input type="number" id="quick-quantity" class="form-input" min="1" value="1" />
+                        <input type="number" name="quantity" id="quick-quantity" class="form-input" min="1" value="1" />
                     </div>
 
-                    <div style="flex: 1;">
+                    <div style="flex: 1.5;">
                         <label class="form-label">Giá nhập (đ) <span class="text-danger">*</span></label>
-                        <input type="number" id="quick-price" class="form-input" min="0" step="1000" placeholder="Giá..." />
+                        <input type="number" name="importPrice" id="quick-price" class="form-input" min="0" step="1000" placeholder="Giá..." />
                     </div>
 
                     <div>
-                        <button type="button" id="quick-add-btn" class="btn btn-primary" style="height: 42px; padding: 0 16px;">
+                        <button type="submit" th:formaction="@{/imports/create/add-item}" class="btn btn-primary" style="height: 42px; padding: 0 16px;" formnovalidate 
+                                onclick="if(!document.getElementById('quick-unit-select').value || document.getElementById('quick-price').value === '' || parseFloat(document.getElementById('quick-price').value) <= 0) { alert('Vui lòng chọn Đơn vị và điền Giá nhập hợp lệ (> 0)!'); return false; }">
                             Thêm
                         </button>
                     </div>
@@ -123,15 +130,27 @@
                                     <th>Số lượng</th>
                                     <th>Giá nhập (đ)</th>
                                     <th>Thành tiền</th>
-                                    <th>Hành động</th>
+                                    <th style="width: 80px;">Hành động</th>
                                 </tr>
                             </thead>
-                            <tbody id="item-table-body">
-                                <tr id="empty-table-row">
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(importRequest.items)}">
                                     <td colspan="8">
                                         <div class="empty-state">
                                             <h3 class="empty-state__title">Chưa có sản phẩm nào được thêm.</h3>
                                         </div>
+                                    </td>
+                                </tr>
+                                <tr th:each="item, stat : ${importRequest.items}">
+                                    <td th:text="${stat.count}">1</td>
+                                    <td th:text="${item.productName}">Product Name</td>
+                                    <td th:text="${item.sku}">SKU</td>
+                                    <td th:text="${item.unitName}">Unit</td>
+                                    <td th:text="${item.quantity}">10</td>
+                                    <td th:text="${item.importPrice != null ? #numbers.formatDecimal(item.importPrice, 0, 'COMMA', 0, 'POINT') : 0} + ' đ'">100,000 đ</td>
+                                    <td th:text="${item.lineTotal != null ? #numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 0, 'POINT') : 0} + ' đ'">1,000,000 đ</td>
+                                    <td>
+                                        <button type="submit" th:formaction="@{'/imports/create/remove-item/' + ${stat.index}}" class="btn btn-sm" style="color: var(--danger); border: 1px solid var(--danger); background: white; padding: 4px 8px; border-radius: 4px;" formnovalidate>Xóa</button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -148,7 +167,7 @@
                         </div>
                         <div>
                             <div class="summary-label">Mặt hàng (SKU)</div>
-                            <div class="summary-value" id="summary-skus">0</div>
+                            <div class="summary-value" th:text="${totalSKUs}">0</div>
                         </div>
                     </div>
                     
@@ -160,7 +179,7 @@
                         </div>
                         <div>
                             <div class="summary-label">Tổng số lượng</div>
-                            <div class="summary-value" id="summary-qty">0</div>
+                            <div class="summary-value" th:text="${totalQty}">0</div>
                         </div>
                     </div>
 
@@ -173,24 +192,40 @@
                         </div>
                         <div>
                             <div class="summary-label" style="color: var(--primary);">Tổng tiền phiếu nhập</div>
-                            <div class="summary-value summary-value--large" id="grand-total">0 đ</div>
+                            <div class="summary-value summary-value--large" th:text="${totalAmount != null ? #numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT') : 0} + ' đ'">0 đ</div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="form-actions" style="margin-top: 24px;">
-                <button type="submit" class="btn btn-primary" id="submit-btn">Gửi yêu cầu nhập hàng</button>
+                <button type="submit" class="btn btn-primary" id="submit-btn" th:text="${importRequest.id != null ? 'Lưu thay đổi' : 'Gửi yêu cầu nhập hàng'}">Gửi yêu cầu nhập hàng</button>
+                <a th:href="@{/imports/create(reset=true)}" class="btn btn-secondary">Làm mới</a>
                 <a th:href="@{/imports}" class="btn btn-secondary">Hủy</a>
             </div>
         </form>
     </main>
-
     <script th:inline="javascript">
         /*<![CDATA[*/
-        window.activeProducts = /*[[${activeProducts}]]*/ [];
+        const activeProducts = /*[[${activeProducts}]]*/ [];
+        
+        function updateUnitSelect(productId) {
+            const unitSelect = document.getElementById('quick-unit-select');
+            unitSelect.innerHTML = '<option value="">-- Đơn vị --</option>';
+            
+            if (!productId) return;
+            
+            const product = activeProducts.find(p => p.id == productId);
+            if (product && product.productUnitsResponses) {
+                product.productUnitsResponses.forEach(pu => {
+                    const option = document.createElement('option');
+                    option.value = pu.id;
+                    option.textContent = pu.unit.name;
+                    unitSelect.appendChild(option);
+                });
+            }
+        }
         /*]]>*/
     </script>
-    <script th:src="@{/js/inventory/imports-form.js}"></script>
 </body>
 </html>

@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 public class ImportResponse {
     private Long id;
     private String code;
+    private Long branchId;
     private String branchName;
     private String supplierName;
     private String creatorName;

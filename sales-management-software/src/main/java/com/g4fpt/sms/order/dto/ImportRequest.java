@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImportRequest {
+    private Long id;
     private Long branchId;
     private Long supplierId;
     private String note;

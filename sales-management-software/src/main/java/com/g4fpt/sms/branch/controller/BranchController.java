@@ -124,9 +124,12 @@ public class BranchController {
     //DELETE
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-
-        branchService.delete(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Xóa chi nhánh thành công");
+        try {
+            branchService.delete(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Xóa chi nhánh thành công");
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
 
         return "redirect:/branch";
     }

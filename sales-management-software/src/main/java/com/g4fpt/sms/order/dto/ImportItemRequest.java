@@ -15,4 +15,10 @@ public class ImportItemRequest {
     private Long productUnitId;
     private Integer quantity;
     private BigDecimal importPrice;
+    
+    // UI Display Fields
+    private String productName;
+    private String sku;
+    private String unitName;
+    private BigDecimal lineTotal;
 }

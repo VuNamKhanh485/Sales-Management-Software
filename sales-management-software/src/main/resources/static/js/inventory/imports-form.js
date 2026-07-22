@@ -1,7 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
-    var activeProducts = window.activeProducts || [];
+    var allActiveProducts = window.activeProducts || [];
+    var activeProducts = [];
 
     // Elements
+    var supplierIdSelect = document.getElementById('supplierId');
     var quickProductSearch = document.getElementById('quick-product-search');
     var quickProductId = document.getElementById('quick-product-id');
     var quickProductDropdown = document.getElementById('quick-product-dropdown');
@@ -12,6 +14,39 @@ document.addEventListener('DOMContentLoaded', function() {
     var tableBody = document.getElementById('item-table-body');
     var emptyTableRow = document.getElementById('empty-table-row');
     var importForm = document.getElementById('import-form');
+
+    if (supplierIdSelect) {
+        var btnFilterSupplier = document.getElementById('btn-filter-supplier');
+
+        function doFilterSupplier() {
+            var selectedSupplierId = parseInt(supplierIdSelect.value);
+            if (selectedSupplierId) {
+                activeProducts = allActiveProducts.filter(function(product) {
+                    return product.supplierIds && product.supplierIds.includes(selectedSupplierId);
+                });
+                alert('Đã lọc ra ' + activeProducts.length + ' sản phẩm của nhà cung cấp này!');
+            } else {
+                activeProducts = [];
+                alert('Vui lòng chọn một nhà cung cấp trước khi lọc!');
+            }
+            // Clear current quick search state when supplier is filtered
+            if (quickProductSearch) quickProductSearch.value = '';
+            if (quickProductId) quickProductId.value = '';
+            if (quickUnitSelect) {
+                quickUnitSelect.innerHTML = '<option value="">-- Đơn vị --</option>';
+                quickUnitSelect.disabled = true;
+            }
+        }
+
+        if (btnFilterSupplier) {
+            btnFilterSupplier.addEventListener('click', doFilterSupplier);
+        }
+
+        // Trigger filter initially if supplier is already selected (e.g. from validation error re-render)
+        if (supplierIdSelect.value) {
+            doFilterSupplier();
+        }
+    }
 
     // Expose global function for inline row events
     window.updateRowTotal = function(input) {
@@ -132,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
             product.productUnitsResponses.forEach(function(pu) {
                 var opt = document.createElement('option');
                 opt.value = pu.id;
-                opt.textContent = pu.unit.name + ' (Giá bán: ' + pu.price.toLocaleString('vi-VN') + ' đ)';
+                opt.textContent = pu.unit.name;
                 opt.dataset.sku = pu.sku;
                 opt.dataset.unitName = pu.unit.name;
                 opt.dataset.productName = product.name;

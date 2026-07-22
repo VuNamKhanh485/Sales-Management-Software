@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Popup Thêm Nhà cung cấp</title>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/core/popup.css}">
+</head>
+<body class="popup-body">
+    <!-- Hiển thị script báo về frame cha nếu tạo thành công -->
+    <th:block th:if="${success}">
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            var newSupplierId = /*[[${newSupplierId}]]*/ null;
+            var newSupplierName = /*[[${newSupplierName}]]*/ null;
+            if(window.parent) {
+                window.parent.postMessage({
+                    type: 'SUPPLIER_CREATED',
+                    id: newSupplierId,
+                    name: newSupplierName
+                }, '*');
+            }
+            /*]]>*/
+        </script>
+    </th:block>
+
+    <form th:action="@{/supplier/popup-form}" th:object="${supplierRequest}" method="post">
+        <div class="form-grid">
+            <div class="form-group form-group--full">
+                <label class="form-label">Mã nhà cung cấp <span style="color:red">*</span>
+                    <input type="text" class="form-input" th:field="*{code}" placeholder="VD: NCC001" required />
+                </label>
+                <div th:if="${#fields.hasErrors('code')}" th:errors="*{code}" style="color:var(--danger); font-size:13px; margin-top:4px;"></div>
+            </div>
+            
+            <div class="form-group form-group--full">
+                <label class="form-label">Tên nhà cung cấp <span style="color:red">*</span>
+                    <input type="text" class="form-input" th:field="*{name}" placeholder="VD: Công ty TNHH ABC..." required />
+                </label>
+                <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" style="color:var(--danger); font-size:13px; margin-top:4px;"></div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Số điện thoại <span style="color:red">*</span>
+                    <input type="text" class="form-input" th:field="*{phone}" placeholder="VD: 0987654321" required />
+                </label>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Email <span style="color:red">*</span>
+                    <input type="email" class="form-input" th:field="*{email}" placeholder="VD: email@example.com" required />
+                </label>
+            </div>
+
+            <div class="form-group form-group--full">
+                <label class="form-label">Địa chỉ <span style="color:red">*</span>
+                    <input type="text" class="form-input" th:field="*{address}" placeholder="VD: 123 Đường X..." required />
+                </label>
+            </div>
+
+            <input type="hidden" th:field="*{status}" value="ACTIVE">
+        </div>
+        
+        <div class="form-actions" style="margin-top: 20px;">
+            <button type="button" class="btn-cancel" onclick="window.parent.closeModal('modalSupplier')">Hủy</button>
+            <button type="submit" class="btn-primary">Tạo mới</button>
+        </div>
+    </form>
+</body>
+</html>

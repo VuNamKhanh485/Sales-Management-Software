@@ -1,5 +1,6 @@
 package com.g4fpt.sms.supplier.entity;
 
+import com.g4fpt.sms.product.entity.Product;
 import com.g4fpt.sms.supplier.enums.SupplierStatus;
 import com.g4fpt.sms.order.entity.OrderTransaction;
 import jakarta.persistence.*;
@@ -8,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -60,4 +62,7 @@ public class Supplier {
 
     @OneToMany(mappedBy = "supplier",  fetch = FetchType.LAZY)
     private List<OrderTransaction> orderTransactionList;
+
+    @ManyToMany(mappedBy = "suppliers", fetch = FetchType.LAZY)
+    private List<Product> products = new ArrayList<>();
 }
