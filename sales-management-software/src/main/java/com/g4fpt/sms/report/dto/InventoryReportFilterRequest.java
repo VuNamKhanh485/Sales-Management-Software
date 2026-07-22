@@ -1,5 +1,6 @@
 package com.g4fpt.sms.report.dto;
 
+import com.g4fpt.sms.report.emuns.SnapshotType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,4 +20,5 @@ public class InventoryReportFilterRequest {
     private Long brandId;
     private String keyword;
     private boolean groupByBranch;
+    private SnapshotType snapshotType;
 }
