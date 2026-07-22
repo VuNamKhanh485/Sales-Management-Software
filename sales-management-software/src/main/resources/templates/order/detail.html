@@ -25,14 +25,7 @@
                 <i class="bi bi-arrow-left me-1"></i> Quay lại
             </a>
         </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-success btn-sm rounded-pill px-3" onclick="downloadPdf()">
-                <i class="bi bi-file-pdf me-1"></i> Xuất PDF
-            </button>
-            <button class="btn btn-primary btn-sm rounded-pill px-3" onclick="printReceipt()">
-                <i class="bi bi-printer me-1"></i> In hóa đơn
-            </button>
-        </div>
+
     </div>
 
     <!-- Hóa đơn chính -->
@@ -50,6 +43,7 @@
                 <div class="invoice-title-text text-primary mb-1">HÓA ĐƠN BÁN HÀNG</div>
                 <div class="text-muted small">Mã hóa đơn: <strong class="text-dark" th:text="${order.code}"></strong></div>
                 <div class="text-muted small">Ngày tạo: <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></span></div>
+                <div class="text-muted small">Thu ngân: <strong class="text-dark" th:text="${employee != null ? employee.fullName : ''}"></strong></div>
             </div>
         </div>
 
@@ -153,11 +147,7 @@
             </div>
         </div>
 
-        <!-- Footer -->
-        <div class="text-center mt-5 pt-3 border-top text-muted small">
-            <p class="mb-0">Cảm ơn quý khách đã tin dùng sản phẩm của chúng tôi!</p>
-            <p class="mb-0 text-muted" style="font-size: 10px;">Phần mềm Quản lý Bán hàng SMS</p>
-        </div>
+
     </div>
 
 </div>

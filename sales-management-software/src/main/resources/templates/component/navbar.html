@@ -32,6 +32,10 @@
         <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF', 'CASHIER')}">
             <a th:href="@{/reports/overview}" th:classappend="${page == 'report' ? 'active' : ''}">Báo cáo Tổng hợp</a>
         </li>
+        <li
+            th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF', 'CASHIER')}">
+            <a th:href="@{/reports/detailed-sales}" th:classappend="${page == 'detailed-report' ? 'active' : ''}">Báo cáo Chi tiết</a>
+        </li>
         <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}">
             <a th:href="@{/employee}" th:classappend="${page == 'employee' ? 'active' : ''}">Nhân viên</a>
         </li>
