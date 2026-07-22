@@ -1,16 +1,14 @@
 package com.g4fpt.sms.report.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @Getter
 @Setter
-@AllArgsConstructor
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class InventoryReportDTO {
     private Long branchId;
     private String branchName;
@@ -20,12 +18,12 @@ public class InventoryReportDTO {
     private String unitName;
     private String categoryName;
 
-    private Integer tonDauKy;
-    private BigDecimal giaTriDauKy;
-    private Integer nhapTrongKy;
-    private BigDecimal giaTriNhap;
-    private Integer xuatTrongKy;
-    private BigDecimal giaTriXuat;
-    private Integer tonCuoiKy;
-    private BigDecimal giaTriCuoiKy;
+    private Integer openingStock;
+    private BigDecimal openingValue;
+    private Integer stockIn;
+    private BigDecimal stockInValue;
+    private Integer stockOut;
+    private BigDecimal stockOutValue;
+    private Integer closingStock;
+    private BigDecimal closingValue;
 }
