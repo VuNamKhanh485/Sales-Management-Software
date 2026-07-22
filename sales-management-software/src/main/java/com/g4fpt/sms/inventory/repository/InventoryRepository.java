@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -17,8 +18,11 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     @Query("SELECT COUNT(DISTINCT i.productUnit.product.id) FROM Inventory i WHERE i.branch.id = :branchId")
     long countDistinctProductByBranchId(@Param("branchId") Long branchId);
 
-    // Lấy toàn bộ mặt hàng trong kho của một chi nhánh
+    // Lấy toàn bộ mặt hàng trong kho của một chi nhánh (có phân trang)
     Page<Inventory> findByBranchId(Long branchId, Pageable pageable);
+
+    // Lấy toàn bộ mặt hàng trong kho của một chi nhánh (không phân trang)
+    List<Inventory> findAllByBranchId(Long branchId);
 
     // Kiểm tra xem mặt hàng đã tồn tại trong kho của chi nhánh này chưa
     boolean existsByBranchIdAndProductUnitId(Long branchId, Long productUnitId);
@@ -43,4 +47,6 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     Page<Inventory> findLowStockByBranchId(@Param("branchId") Long branchId, Pageable pageable);
 
     boolean existsByProductUnitId(Long productUnitId);
+
+    boolean existsByBranchIdAndStockGreaterThan(Long branchId, Integer stock);
 }

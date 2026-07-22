@@ -21,6 +21,7 @@
 
         <!-- Flash messages -->
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
         <div class="header-actions">
             <form th:action="@{/branch}" method="GET" class="search-bar" style="margin-bottom:0; flex:1;">

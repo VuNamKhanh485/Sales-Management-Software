@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết phiếu chuyển kho — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/payment/cashbook.css}">
+    <style>
+        .modern-table tbody tr:nth-child(even) {
+            background-color: var(--surface-pearl);
+        }
+        .modern-table tbody tr:hover {
+            background-color: var(--canvas-parchment);
+        }
+    </style>
+</head>
+<body>
+
+    <div th:replace="~{component/navbar :: global-nav('transfer')}"></div>
+
+    <div class="sub-nav">
+        <div style="display: flex; align-items: center;">
+            <a href="/transfer" class="sub-nav__back">Quản lý chuyển kho</a>
+            <span class="sub-nav__sep">›</span>
+            <h1 class="sub-nav__title">Chi tiết phiếu chuyển kho: <span style="color: var(--primary);" th:text="${transferTx.code}">TRN-XXX</span></h1>
+        </div>
+    </div>
+
+    <main class="page-content" style="max-width: 1400px; margin: 0 auto;">
+
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div style="display: flex; flex-direction: column; gap: var(--sp-lg);">
+
+            <div class="card-panel" style="padding: var(--sp-lg);">
+                <h2 class="form-card__title" style="margin-bottom: var(--sp-md);">Thông tin chung</h2>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-lg);">
+                    <div>
+                        <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: var(--sp-xxs);">Kho xuất (Gửi đi):</div>
+                        <div style="font-weight: 500; font-size: 15px;" th:text="${transferTx.fromBranchName}">Chi nhánh A</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: var(--sp-xxs);">Kho nhận (Xin hàng):</div>
+                        <div style="font-weight: 500; font-size: 15px;" th:text="${transferTx.toBranchName}">Chi nhánh B</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: var(--sp-xxs);">Người tạo phiếu:</div>
+                        <div style="font-weight: 500; font-size: 15px;" th:text="${transferTx.creatorName}">Nguyễn Văn B</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: var(--sp-xxs);">Ngày tạo:</div>
+                        <div style="font-weight: 500; font-size: 15px;" th:text="${#temporals.format(transferTx.createdAt, 'dd-MM-yyyy HH:mm')}">28-06-2026 10:00</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: var(--sp-xxs);">Trạng thái:</div>
+                        <div>
+                            <span th:if="${transferTx.status == 'PENDING'}" class="badge badge-inactive" style="background: #fef3c7; color: #d97706; border-color: #fef3c7;">Chờ duyệt</span>
+                            <span th:if="${transferTx.status == 'COMPLETED'}" class="badge badge-active" style="background: #dcfce7; color: #166534; border-color: #dcfce7;">Hoàn thành (Đã chuyển kho)</span>
+                            <span th:if="${transferTx.status == 'CANCELLED'}" class="badge" style="background: #fee2e2; color: #991b1b; border-color: #fee2e2;">Đã từ chối</span>
+                        </div>
+                    </div>
+                    <div style="grid-column: span 3;">
+                        <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: var(--sp-xxs);">Ghi chú / Lý do:</div>
+                        <div style="font-weight: 500; font-size: 15px;" th:text="${transferTx.note != null and !transferTx.note.empty ? transferTx.note : 'Không có ghi chú'}">...</div>
+                    </div>
+                    
+                    <div style="grid-column: 1 / -1; background-color: rgba(0, 102, 204, 0.05); border: 1px solid rgba(0, 102, 204, 0.15); border-radius: var(--r-sm); padding: var(--sp-md) var(--sp-lg); display: flex; justify-content: space-between; align-items: center; margin-top: var(--sp-xs);">
+                        <div style="color: var(--primary); font-size: 15px; font-weight: 600;">Tổng giá trị hàng chuyển</div>
+                        <div class="value-cash" style="color: var(--primary); font-size: 24px; font-weight: 700;" th:text="${#numbers.formatDecimal(transferTx.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">10,000,000 đ</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-panel">
+                <div style="padding: var(--sp-md) var(--sp-lg); border-bottom: 1px solid var(--hairline);">
+                    <h2 class="form-card__title" style="margin: 0;">Danh sách sản phẩm chuyển kho</h2>
+                </div>
+                <div class="table-scroll">
+                    <table class="modern-table" style="width: 100%; border-collapse: collapse;">
+                        <thead style="background-color: var(--surface-pearl);">
+                        <tr>
+                            <th style="padding: var(--sp-sm) var(--sp-md); font-size: 13px; font-weight: 600; color: var(--ink-muted-48); width: 60px; text-align: center; border-bottom: 1px solid var(--hairline);">STT</th>
+                            <th style="padding: var(--sp-sm) var(--sp-md); font-size: 13px; font-weight: 600; color: var(--ink-muted-48); text-align: left; border-bottom: 1px solid var(--hairline);">Tên sản phẩm</th>
+                            <th style="padding: var(--sp-sm) var(--sp-md); font-size: 13px; font-weight: 600; color: var(--ink-muted-48); text-align: left; border-bottom: 1px solid var(--hairline);">SKU</th>
+                            <th style="padding: var(--sp-sm) var(--sp-md); font-size: 13px; font-weight: 600; color: var(--ink-muted-48); text-align: center; border-bottom: 1px solid var(--hairline);">Đơn vị tính</th>
+                            <th style="padding: var(--sp-sm) var(--sp-md); font-size: 13px; font-weight: 600; color: var(--ink-muted-48); text-align: center; border-bottom: 1px solid var(--hairline);">Số lượng</th>
+                            <th style="padding: var(--sp-sm) var(--sp-md); font-size: 13px; font-weight: 600; color: var(--ink-muted-48); text-align: right; border-bottom: 1px solid var(--hairline);">Giá chuyển</th>
+                            <th style="padding: var(--sp-sm) var(--sp-md); font-size: 13px; font-weight: 600; color: var(--ink-muted-48); text-align: right; border-bottom: 1px solid var(--hairline);">Thành tiền</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="item, stat : ${details}" style="border-bottom: 1px solid var(--hairline);">
+                            <td style="padding: var(--sp-md); text-align: center; color: var(--ink-muted-48); font-weight: 500;" th:text="${stat.count}">1</td>
+                            <td style="padding: var(--sp-md); font-weight: 600;" th:text="${item.productName}">Sản phẩm A</td>
+                            <td style="padding: var(--sp-md);">
+                                <span class="badge" style="background: var(--surface-pearl); color: var(--ink-muted-48); border: 1px solid var(--hairline); font-family: monospace;" th:text="${item.sku}">SKU-123</span>
+                            </td>
+                            <td style="padding: var(--sp-md); text-align: center;" th:text="${item.unitName}">Hộp</td>
+                            <td style="padding: var(--sp-md); text-align: center; font-weight: 600;" th:text="${item.quantity}">10</td>
+                            <td style="padding: var(--sp-md); text-align: right; color: var(--ink-muted-48);" th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</td>
+                            <td class="value-cash" style="padding: var(--sp-md); text-align: right; font-weight: 600; color: var(--primary);" th:text="${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 0, 'POINT')} + ' đ'">1,000,000 đ</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PHÊ DUYỆT -->
+            <div class="card-panel" style="padding: var(--sp-lg); border-left: 4px solid var(--warning);"
+                 th:if="${transferTx.status == 'PENDING' and sessionUser != null and (sessionUser.hasRole('OWNER') or (sessionUser.hasRole('BRANCH_MANAGER') and sessionUser.branchId == transferTx.fromBranchId))}">
+                <h2 class="form-card__title" style="margin-bottom: var(--sp-xs);">Phê duyệt phiếu chuyển kho (Dành cho quản lý kho xuất)</h2>
+                <p style="font-size: 14px; color: var(--ink-muted-48); margin-bottom: var(--sp-lg);">Lưu ý: Nếu duyệt, hệ thống sẽ trừ trực tiếp tồn kho của kho xuất và cộng vào kho nhận.</p>
+
+                <div style="display: flex; gap: var(--sp-lg); flex-wrap: wrap; align-items: flex-start;">
+                    
+                    <form th:action="@{/transfer/{id}/approve(id=${transferTx.id})}" method="post" style="flex: 1; min-width: 250px;">
+                        <button type="submit" class="btn btn-primary" style="width: 100%; border-radius: var(--r-md); height: 48px; padding: 0 var(--sp-lg); font-size: 15px; font-weight: 600; display: inline-flex; justify-content: center; align-items: center; gap: 8px;" onclick="return confirm('Bạn chắc chắn muốn DUYỆT phiếu này? Hệ thống sẽ cập nhật kho ngay lập tức!')">
+                            Đồng ý chuyển kho
+                        </button>
+                    </form>
+
+                    <!-- Khu vực nhập lý do từ chối luôn hiển thị -->
+                    <form th:action="@{/transfer/{id}/reject(id=${transferTx.id})}" method="post" style="flex: 2; min-width: 300px; display: flex; flex-direction: column; gap: var(--sp-sm); background-color: #fef2f2; padding: var(--sp-md); border-radius: var(--r-md); border: 1px dashed #fca5a5;">
+                        <div>
+                            <label for="reason" class="form-label" style="color: var(--danger); display: block; margin-bottom: var(--sp-xxs); font-weight: 500;">Lý do từ chối (Không bắt buộc):</label>
+                            <textarea id="reason" name="reason" class="form-input" rows="2" placeholder="Vui lòng nhập lý do từ chối để nhân viên biết..." style="width: 100%; padding: var(--sp-sm);"></textarea>
+                        </div>
+                        <div style="display: flex; justify-content: flex-end;">
+                            <button type="submit" class="btn" style="background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: var(--r-md); height: 40px; padding: 0 var(--sp-lg); font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;" onclick="return confirm('Xác nhận từ chối yêu cầu chuyển kho này?')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                Xác nhận Từ chối
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>

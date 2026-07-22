@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ImportItemRequest {
+public class TransferItemRequest {
     private Long productUnitId;
     private Integer quantity;
     private BigDecimal importPrice;

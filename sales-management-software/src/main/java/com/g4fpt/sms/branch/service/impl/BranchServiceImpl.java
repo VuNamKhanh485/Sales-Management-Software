@@ -4,6 +4,8 @@ import com.g4fpt.sms.branch.dto.BranchRequest;
 import com.g4fpt.sms.branch.entity.Branch;
 import com.g4fpt.sms.branch.repository.BranchRepository;
 import com.g4fpt.sms.branch.service.BranchService;
+import com.g4fpt.sms.employee.repository.EmployeeRepository;
+import com.g4fpt.sms.inventory.repository.InventoryRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,9 +20,13 @@ import java.util.Optional;
 public class BranchServiceImpl implements BranchService {
 
     private final BranchRepository branchRepository;
+    private final EmployeeRepository employeeRepository;
+    private final InventoryRepository inventoryRepository;
 
-    public BranchServiceImpl(BranchRepository branchRepository) {
+    public BranchServiceImpl(BranchRepository branchRepository, EmployeeRepository employeeRepository, InventoryRepository inventoryRepository) {
         this.branchRepository = branchRepository;
+        this.employeeRepository = employeeRepository;
+        this.inventoryRepository = inventoryRepository;
     }
 
     @Override
@@ -79,6 +85,14 @@ public class BranchServiceImpl implements BranchService {
 
     @Override
     public void delete(Long id) {
+        if (inventoryRepository.existsByBranchIdAndStockGreaterThan(id, 0)) {
+            throw new RuntimeException("Không thể xóa chi nhánh vì vẫn còn hàng hóa tồn kho.");
+        }
+
+        if (employeeRepository.existsByBranchId(id)) {
+            throw new RuntimeException("Không thể xóa chi nhánh vì vẫn còn nhân viên trực thuộc.");
+        }
+
         branchRepository.deleteById(id);
     }
 

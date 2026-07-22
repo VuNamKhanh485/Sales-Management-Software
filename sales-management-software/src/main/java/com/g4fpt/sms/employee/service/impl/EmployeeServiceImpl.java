@@ -26,9 +26,9 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final PasswordUtil passwordUtil;
 
     public EmployeeServiceImpl(EmployeeRepository employeeRepository,
-                               RoleRepository roleRepository,
-                               BranchRepository branchRepository,
-                               PasswordUtil passwordUtil) {
+            RoleRepository roleRepository,
+            BranchRepository branchRepository,
+            PasswordUtil passwordUtil) {
         this.employeeRepository = employeeRepository;
         this.roleRepository = roleRepository;
         this.branchRepository = branchRepository;
@@ -38,11 +38,11 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     @Transactional(readOnly = true)
     public Page<Employee> searchEmployees(String keyword,
-                                          Long branchId,
-                                          Long roleId,
-                                          WorkStatus status,
-                                          Pageable pageable,
-                                          SessionUser currentUser) {
+            Long branchId,
+            Long roleId,
+            WorkStatus status,
+            Pageable pageable,
+            SessionUser currentUser) {
 
         checkCanAccessEmployeeModule(currentUser);
 
@@ -198,6 +198,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public void toggleStatus(Long id, SessionUser currentUser) {
+        if (id.equals(currentUser.getId())) {
+            throw new RuntimeException("Bạn không thể tự khóa tài khoản của chính mình");
+        }
+
         Employee employee = findById(id);
         checkCanManageEmployee(employee, currentUser);
 
@@ -212,6 +216,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public void delete(Long id, SessionUser currentUser) {
+        if (id.equals(currentUser.getId())) {
+            throw new RuntimeException("Bạn không thể tự xóa hoặc cho nghỉ việc chính mình");
+        }
+
         Employee employee = findById(id);
         checkCanManageEmployee(employee, currentUser);
 

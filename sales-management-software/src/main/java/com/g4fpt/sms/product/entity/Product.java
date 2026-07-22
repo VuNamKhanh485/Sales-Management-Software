@@ -1,6 +1,7 @@
 package com.g4fpt.sms.product.entity;
 
 import com.g4fpt.sms.product.enums.ProductStatus;
+import com.g4fpt.sms.supplier.entity.Supplier;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -66,4 +67,12 @@ public class Product {
     @OneToMany(mappedBy = "product",
                 cascade = CascadeType.ALL)
     private List<ProductUnit> productUnits = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "product_supplier",
+        joinColumns = @JoinColumn(name = "product_id"),
+        inverseJoinColumns = @JoinColumn(name = "supplier_id")
+    )
+    private List<Supplier> suppliers = new ArrayList<>();
 }

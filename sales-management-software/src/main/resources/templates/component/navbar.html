@@ -18,6 +18,9 @@
             <a th:href="@{/imports}" th:classappend="${page == 'imports' ? 'active' : ''}">Nhập hàng</a>
         </li>
         <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}">
+            <a th:href="@{/transfer}" th:classappend="${page == 'transfer' ? 'active' : ''}">Chuyển kho</a>
+        </li>
+        <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}">
             <a th:href="@{/supplier}" th:classappend="${page == 'supplier' ? 'active' : ''}">Nhà cung cấp</a>
         </li>
         <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}">
@@ -73,6 +76,11 @@
         <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}"
            th:href="@{/imports}" th:class="${page == 'imports' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Nhập hàng</span>
+        </a>
+
+        <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}"
+           th:href="@{/transfer}" th:class="${page == 'transfer' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
+            <span>Chuyển kho</span>
         </a>
 
         <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}"

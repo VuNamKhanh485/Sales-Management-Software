@@ -18,6 +18,7 @@ public class ProductResponse {
     private String description;
     private ProductStatus status;
     private String note;
+    private List<Long> supplierIds;
     private List<ProductUnitResponse> productUnitsResponses;
 
     public String getBaseSku(){

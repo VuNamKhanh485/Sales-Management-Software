@@ -101,4 +101,36 @@ public class SupplierController {
         redirectAttributes.addFlashAttribute("successMessage", "Xóa thành công");
         return "redirect:/supplier";
     }
+
+    @GetMapping("/popup-form")
+    public String popupForm(Model model) {
+        model.addAttribute("supplierRequest", new SupplierRequest());
+        return "supplier/popup-form";
+    }
+
+    @PostMapping("/popup-form")
+    public String submitPopupForm(@Valid @ModelAttribute SupplierRequest supplierRequest, BindingResult result, Model model) {
+        if (result.hasErrors()) {
+            return "supplier/popup-form";
+        }
+        try {
+            if (supplierService.findAll().stream().anyMatch(s -> s.getCode().equalsIgnoreCase(supplierRequest.getCode()))) {
+                result.rejectValue("supplierCode", "error.supplierCode", "Mã này đã được sử dụng");
+                return "supplier/popup-form";
+            }
+            supplierService.create(supplierRequest);
+            
+            // Lấy ID vừa tạo (cách tạm thời là tìm theo Code vì code là duy nhất)
+            SupplierResponse newSupplier = supplierService.findAll().stream()
+                    .filter(s -> s.getCode().equalsIgnoreCase(supplierRequest.getCode()))
+                    .findFirst().orElseThrow(() -> new NotFoundException("Supplier not found after creation"));
+                    
+            model.addAttribute("success", true);
+            model.addAttribute("newSupplierId", newSupplier.getId());
+            model.addAttribute("newSupplierName", newSupplier.getName());
+        } catch (DuplicateException e) {
+            result.rejectValue("supplierCode", "error.supplierCode", e.getMessage());
+        }
+        return "supplier/popup-form";
+    }
 }

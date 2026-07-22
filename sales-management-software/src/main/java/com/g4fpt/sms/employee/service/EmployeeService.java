@@ -15,8 +15,7 @@ public interface EmployeeService {
             Long roleId,
             WorkStatus status,
             Pageable pageable,
-            SessionUser currentUser
-    );
+            SessionUser currentUser);
 
     Employee findById(Long id);
 
