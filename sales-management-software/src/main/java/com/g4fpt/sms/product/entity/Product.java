@@ -1,6 +1,7 @@
 package com.g4fpt.sms.product.entity;
 
 import com.g4fpt.sms.product.enums.ProductStatus;
+import com.g4fpt.sms.supplier.entity.Supplier;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -73,5 +74,5 @@ public class Product {
         joinColumns = @JoinColumn(name = "product_id"),
         inverseJoinColumns = @JoinColumn(name = "supplier_id")
     )
-    private List<com.g4fpt.sms.supplier.entity.Supplier> suppliers = new ArrayList<>();
+    private List<Supplier> suppliers = new ArrayList<>();
 }
