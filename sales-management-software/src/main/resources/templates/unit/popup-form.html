@@ -15,7 +15,7 @@
                 </label>
                 <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" style="color:var(--danger); font-size:13px; margin-top:4px;"></div>
             </div>
-            <input type="hidden" th:field="*{status}" value="ACTIVE">
+            <input type="hidden" name="status" value="ACTIVE">
         </div>
         <div class="form-actions" style="margin-top: 20px;">
             <button type="button" class="btn-cancel" onclick="window.parent.closeModal('modalUnit')">Hủy</button>

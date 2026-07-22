@@ -9,7 +9,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <link rel="stylesheet" th:href="@{/css/inventory/product-form.css}">
+    <link rel="stylesheet" th:href="@{/css/product/product-form.css}">
 </head>
 <body>
 
@@ -186,7 +186,7 @@
                                     <td th:text="${stat.index + 1}" class="row-index"></td>
                                     <input type="hidden" th:field="*{productUnitsRequest[__${stat.index}__].id}">
                                     
-                                    <td class="unit-select-wrap">
+                                    <td>
                                         <select class="form-select" th:field="*{productUnitsRequest[__${stat.index}__].unitId}"
                                                 style="padding:4px 20px 4px 8px; font-size:13px; min-width:100px;">
                                             <option value="">-- Chọn --</option>
@@ -337,6 +337,6 @@
     let rowIndex = document.querySelectorAll('#unitTable tr:not(#no-unit-row)').length;
     let currentUnitSelect = null;
 </script>
-<script th:src="@{/js/inventory/product-form.js}"></script>
+<script th:src="@{/js/product/product-form.js}"></script>
 </body>
 </html>
