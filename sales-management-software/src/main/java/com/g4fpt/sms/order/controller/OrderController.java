@@ -3,6 +3,7 @@ package com.g4fpt.sms.order.controller;
 import com.g4fpt.sms.branch.repository.BranchRepository;
 import com.g4fpt.sms.order.entity.OrderTransaction;
 import com.g4fpt.sms.order.repository.OrderTransactionRepository;
+import com.g4fpt.sms.employee.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,6 +18,7 @@ public class OrderController {
 
     private final OrderTransactionRepository orderTransactionRepository;
     private final BranchRepository branchRepository;
+    private final EmployeeRepository employeeRepository;
 
     @GetMapping("/{id}")
     public String showOrderDetail(@PathVariable Long id, Model model) {
@@ -28,6 +30,12 @@ public class OrderController {
         if (order.getBranchId() != null) {
             branchRepository.findById(order.getBranchId()).ifPresent(branch -> {
                 model.addAttribute("branch", branch);
+            });
+        }
+
+        if (order.getCreatedBy() != null) {
+            employeeRepository.findById(order.getCreatedBy()).ifPresent(employee -> {
+                model.addAttribute("employee", employee);
             });
         }
 

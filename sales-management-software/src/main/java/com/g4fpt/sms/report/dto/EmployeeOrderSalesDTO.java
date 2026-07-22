@@ -5,15 +5,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class    EmployeeSalesDTO {
-    private Long employeeId;
-    private String employeeCode;
-    private String employeeName;
-    private Long totalOrders;
-    private BigDecimal totalSales;
+public class EmployeeOrderSalesDTO {
+    private Long orderId;
+    private String orderCode;
+    private LocalDateTime createdAt;
     private String branchName;
+    private String employeeName;
+    private BigDecimal totalAmount;
 }

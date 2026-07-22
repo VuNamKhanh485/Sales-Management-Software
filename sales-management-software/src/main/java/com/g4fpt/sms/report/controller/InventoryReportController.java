@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import com.g4fpt.sms.report.emuns.SnapshotType;
 
 @Controller
 @RequestMapping("/report/inventory")
@@ -34,6 +35,7 @@ public class InventoryReportController {
     public String viewReport(@ModelAttribute InventoryReportFilterRequest filter, Model model) {
         if (filter.getFromDate() == null) filter.setFromDate(LocalDate.now(ZoneId.systemDefault()).withDayOfMonth(1));
         if (filter.getToDate() == null) filter.setToDate(LocalDate.now(ZoneId.systemDefault()));
+        if (filter.getSnapshotType() == null) filter.setSnapshotType(SnapshotType.DAY);
         try {
             List<InventoryReportDTO> data = inventoryReportService.generateReport(filter);
             model.addAttribute("data", data);
@@ -54,6 +56,7 @@ public class InventoryReportController {
                             HttpServletResponse response) throws IOException{
         if (filter.getFromDate() == null) filter.setFromDate(LocalDate.now(ZoneId.systemDefault()).withDayOfMonth(1));
         if (filter.getToDate() == null) filter.setToDate(LocalDate.now(ZoneId.systemDefault()));
+        if (filter.getSnapshotType() == null) filter.setSnapshotType(SnapshotType.DAY);
 
         byte[] data = inventoryReportService.exportExcel(filter);
 

@@ -92,8 +92,8 @@ public class VoucherDTO {
         voucher.setName(dto.getName());
         voucher.setDiscountType(dto.getDiscountType());
         voucher.setDiscountValue(dto.getDiscountValue());
-        voucher.setMinOrderAmount(dto.getMinOrderAmount());
-        voucher.setMaxDiscountAmount(dto.getMaxDiscountAmount());
+        voucher.setMinOrderAmount(dto.getMinOrderAmount() != null ? dto.getMinOrderAmount() : BigDecimal.ZERO);
+        voucher.setMaxDiscountAmount(dto.getMaxDiscountAmount() != null ? dto.getMaxDiscountAmount() : BigDecimal.ZERO);
         voucher.setStartAt(dto.getStartAt());
         voucher.setEndAt(dto.getEndAt());
         voucher.setStatus(dto.getStatus() != null ? dto.getStatus() : VoucherStatus.ACTIVE);

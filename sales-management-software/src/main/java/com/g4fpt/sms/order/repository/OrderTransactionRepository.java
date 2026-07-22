@@ -81,4 +81,51 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
             @Param("branchId") Long branchId,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT new com.g4fpt.sms.report.dto.EmployeeOrderSalesDTO(" +
+           "o.id, o.code, o.createdAt, b.name, e.fullName, o.finalAmount) " +
+           "FROM OrderTransaction o " +
+           "JOIN Employee e ON o.createdBy = e.id " +
+           "LEFT JOIN e.branch b " +
+           "WHERE (:branchId IS NULL OR o.branchId = :branchId) AND " +
+           "(:employeeId IS NULL OR e.id = :employeeId) AND " +
+           "o.transactionType = 'SALE' AND o.status = 'COMPLETED' AND " +
+           "o.createdAt >= :startDate AND o.createdAt <= :endDate " +
+           "ORDER BY o.createdAt DESC")
+    Page<com.g4fpt.sms.report.dto.EmployeeOrderSalesDTO> getDetailedOrderSalesPage(
+            @Param("branchId") Long branchId,
+            @Param("employeeId") Long employeeId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            Pageable pageable);
+
+    @Query("SELECT new com.g4fpt.sms.report.dto.EmployeeOrderSalesDTO(" +
+           "o.id, o.code, o.createdAt, b.name, e.fullName, o.finalAmount) " +
+           "FROM OrderTransaction o " +
+           "JOIN Employee e ON o.createdBy = e.id " +
+           "LEFT JOIN e.branch b " +
+           "WHERE (:branchId IS NULL OR o.branchId = :branchId) AND " +
+           "(:employeeId IS NULL OR e.id = :employeeId) AND " +
+           "o.transactionType = 'SALE' AND o.status = 'COMPLETED' AND " +
+           "o.createdAt >= :startDate AND o.createdAt <= :endDate " +
+           "ORDER BY o.createdAt DESC")
+    List<com.g4fpt.sms.report.dto.EmployeeOrderSalesDTO> getDetailedOrderSalesList(
+            @Param("branchId") Long branchId,
+            @Param("employeeId") Long employeeId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT COUNT(o), SUM(o.finalAmount) " +
+           "FROM OrderTransaction o " +
+           "JOIN Employee e ON o.createdBy = e.id " +
+           "LEFT JOIN e.branch b " +
+           "WHERE (:branchId IS NULL OR o.branchId = :branchId) AND " +
+           "(:employeeId IS NULL OR e.id = :employeeId) AND " +
+           "o.transactionType = 'SALE' AND o.status = 'COMPLETED' AND " +
+           "o.createdAt >= :startDate AND o.createdAt <= :endDate")
+    List<Object[]> getDetailedOrderSalesTotals(
+            @Param("branchId") Long branchId,
+            @Param("employeeId") Long employeeId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 }

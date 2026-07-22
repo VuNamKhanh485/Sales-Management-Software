@@ -11,52 +11,50 @@ import java.util.List;
 import java.util.Optional;
 
 public interface InventorySnapshotRepository
-        extends JpaRepository<InventorySnapshot, Long> {
+                extends JpaRepository<InventorySnapshot, Long> {
 
-    boolean existsBySnapshotTypeAndSnapshotDate(
-            SnapshotType snapshotType,
-            LocalDate snapshotDate
-    );
+        boolean existsBySnapshotTypeAndSnapshotDate(
+                        SnapshotType snapshotType,
+                        LocalDate snapshotDate);
 
-    @Query("""
-    SELECT s
-    FROM InventorySnapshot s
-    WHERE s.snapshotType = :snapshotType
-      AND s.snapshotDate = (
-            SELECT MAX(i.snapshotDate)
-            FROM InventorySnapshot i
-            WHERE i.snapshotType = :snapshotType
-              AND i.snapshotDate <= :snapshotDate
-      )
-      AND (:branchId IS NULL OR s.branchId = :branchId)
-""")
-    List<InventorySnapshot> findLatestSnapshots(
-            @Param("snapshotType") SnapshotType snapshotType,
-            @Param("snapshotDate") LocalDate snapshotDate,
-            @Param("branchId") Long branchId);
+        @Query("""
+                            SELECT s
+                            FROM InventorySnapshot s
+                            WHERE s.snapshotType = :snapshotType
+                              AND s.snapshotDate = (
+                                    SELECT MAX(i.snapshotDate)
+                                    FROM InventorySnapshot i
+                                    WHERE i.snapshotType = :snapshotType
+                                      AND i.snapshotDate <= :snapshotDate
+                              )
+                              AND (:branchId IS NULL OR s.branchId = :branchId)
+                        """)
+        List<InventorySnapshot> findLatestSnapshots(
+                        @Param("snapshotType") SnapshotType snapshotType,
+                        @Param("snapshotDate") LocalDate snapshotDate,
+                        @Param("branchId") Long branchId);
 
-    @Query("""
-        SELECT s
-        FROM InventorySnapshot s
-        WHERE s.snapshotType = :type
-          AND s.snapshotDate <= :snapshotDate
-          AND (:branchId IS NULL OR s.branchId = :branchId)
-          AND (:categoryId IS NULL OR s.productUnit.product.category.id = :categoryId)
-          AND (:brandId IS NULL OR s.productUnit.product.brand.id = :brandId)
-          AND (
-                :keyword IS NULL
-                OR LOWER(s.productUnit.product.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
-                OR LOWER(s.productUnit.sku) LIKE LOWER(CONCAT('%', :keyword, '%'))
-          )
-        ORDER BY s.productUnit.product.name
-    """)
-    List<InventorySnapshot> findSnapshotReport(
-            @Param("snapshotType") SnapshotType type,
-            @Param("snapshotDate") LocalDate snapshotDate,
-            @Param("branchId") Long branchId,
-            @Param("categoryId") Long categoryId,
-            @Param("brandId") Long brandId,
-            @Param("keyword") String keyword
-    );
+        @Query("""
+                            SELECT s
+                            FROM InventorySnapshot s
+                            WHERE s.snapshotType = :type
+                              AND s.snapshotDate <= :snapshotDate
+                              AND (:branchId IS NULL OR s.branchId = :branchId)
+                              AND (:categoryId IS NULL OR s.productUnit.product.category.id = :categoryId)
+                              AND (:brandId IS NULL OR s.productUnit.product.brand.id = :brandId)
+                              AND (
+                                    :keyword IS NULL
+                                    OR LOWER(s.productUnit.product.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                                    OR LOWER(s.productUnit.sku) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                              )
+                            ORDER BY s.productUnit.product.name
+                        """)
+        List<InventorySnapshot> findSnapshotReport(
+                        @Param("type") SnapshotType type,
+                        @Param("snapshotDate") LocalDate snapshotDate,
+                        @Param("branchId") Long branchId,
+                        @Param("categoryId") Long categoryId,
+                        @Param("brandId") Long brandId,
+                        @Param("keyword") String keyword);
 
 }

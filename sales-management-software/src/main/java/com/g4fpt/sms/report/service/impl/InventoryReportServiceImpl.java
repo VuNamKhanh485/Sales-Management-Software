@@ -41,9 +41,6 @@ public class InventoryReportServiceImpl implements InventoryReportService {
     private final InventorySnapshotRepository  inventorySnapshotRepository;
 
     public List<InventoryReportDTO> generateReport(InventoryReportFilterRequest filter) {
-
-        validateFilter(filter);
-
         return switch (filter.getSnapshotType()) {
             case DAY -> generateDayReport(filter);
             case MONTH -> generateMonthReport(filter);

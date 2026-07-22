@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo Chi tiết Bán hàng — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/report/report.css}">
+    <style>
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 24px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div th:replace="~{component/navbar :: global-nav('detailed-report')}"></div>
+
+    <div class="sub-nav">
+        <h1 class="sub-nav__title">Báo cáo Theo Đơn Hàng</h1>
+        <a th:href="@{/reports/detailed-sales/export(branchId=${selectedBranchId},employeeId=${selectedEmployeeId},startDate=${startDate},endDate=${endDate})}" class="btn-pearl-capsule">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M8 13h8"></path><path d="M8 17h8"></path><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Xuất Excel
+        </a>
+    </div>
+
+    <main class="page-wrap">
+
+        <form action="/reports/detailed-sales" method="get" class="search-bar">
+            <div class="filter-row">
+                <select name="branchId" id="branchSelect" class="filter-select" th:if="${isOwner}">
+                    <option value="">Tất cả chi nhánh</option>
+                    <option th:each="b : ${branches}" th:value="${b.id}" th:text="${b.name}" th:selected="${b.id == selectedBranchId}"></option>
+                </select>
+                <th:block th:if="${!isOwner && isManager}">
+                    <input type="hidden" name="branchId" id="branchSelect" th:value="${selectedBranchId}" />
+                    <span class="badge" th:each="b : ${branches}" th:if="${b.id == selectedBranchId}" th:text="${b.name}">Chi nhánh</span>
+                </th:block>
+
+                <select id="employeeSelect" name="employeeId" class="filter-select">
+                    <option value="">-- Tất cả nhân viên --</option>
+                    <option th:each="e : ${employees}" 
+                            th:if="${selectedBranchId == null || (e.branch != null && e.branch.id == selectedBranchId)}"
+                            th:attr="data-branch-id=${e.branch != null ? e.branch.id : ''}"
+                            th:value="${e.id}" th:text="${e.fullName}" th:selected="${e.id == selectedEmployeeId}"></option>
+                </select>
+                
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="date" name="startDate" class="form-input" style="width: auto;" th:value="${startDate}">
+                    <span style="color: var(--ink-muted-48); font-size: 14px;">đến</span>
+                    <input type="date" name="endDate" class="form-input" style="width: auto;" th:value="${endDate}">
+                </div>
+                
+                <button type="submit" class="btn-primary btn-primary--sm">Lọc</button>
+            </div>
+        </form>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-card__label">Tổng Số Đơn Hàng</div>
+                <div class="stat-card__value" th:text="${#numbers.formatDecimal(totalOrders, 0, 'COMMA', 0, 'POINT')}">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card__label">Tổng Doanh Thu</div>
+                <div class="stat-card__value" style="color: var(--success);" th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+            </div>
+        </div>
+
+        <div class="card-panel">
+            <table>
+                <thead>
+                    <tr>
+                        <th>TT</th>
+                        <th>Thời gian</th>
+                        <th>Chi nhánh</th>
+                        <th>Nhân viên</th>
+                        <th>Mã đơn hàng</th>
+                        <th class="text-right">Thành tiền</th>
+                        <th class="text-center">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${reportData == null || reportData.isEmpty()}">
+                        <td colspan="7" class="empty-state">
+                            Không có dữ liệu trong khoảng thời gian này.
+                        </td>
+                    </tr>
+                    <tr th:each="order, stat : ${reportData}">
+                        <td th:text="${stat.count + (currentPage - 1) * size}"></td>
+                        <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td th:text="${order.branchName}"></td>
+                        <td th:text="${order.employeeName}"></td>
+                        <td th:text="${order.orderCode}" style="font-weight: 500; color: #0f172a;"></td>
+                        <td class="amount-col text-right" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                        <td class="text-center">
+                            <a th:href="@{'/orders/' + ${order.orderId}}" 
+                               class="btn-secondary btn-secondary--sm" style="text-decoration: none;">
+                                Xem chi tiết
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div th:if="${totalPages > 1}" style="display: flex; justify-content: center; margin-top: var(--sp-lg);">
+            <ul class="pagination">
+                <li th:class="${currentPage == 1 ? 'disabled' : ''}">
+                    <a th:href="@{/reports/detailed-sales(branchId=${selectedBranchId},employeeId=${selectedEmployeeId},startDate=${startDate},endDate=${endDate},page=${currentPage > 1 ? currentPage - 1 : 1},size=${size})}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                        </svg>
+                    </a>
+                </li>
+                
+                <li>
+                    <strong>
+                        <span th:text="${currentPage}"></span> / <span th:text="${totalPages}"></span>
+                    </strong>
+                </li>
+
+                <li th:class="${currentPage == totalPages ? 'disabled' : ''}">
+                    <a th:href="@{/reports/detailed-sales(branchId=${selectedBranchId},employeeId=${selectedEmployeeId},startDate=${startDate},endDate=${endDate},page=${currentPage < totalPages ? currentPage + 1 : totalPages},size=${size})}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+    </main>
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const branchSelect = document.getElementById('branchSelect');
+            const employeeSelect = document.getElementById('employeeSelect');
+
+            if (branchSelect && employeeSelect) {
+                function filterEmployees() {
+                    const selectedBranch = branchSelect.value;
+                    const options = employeeSelect.querySelectorAll('option');
+                    
+                    let hasVisibleSelected = false;
+                    options.forEach(option => {
+                        const branchId = option.getAttribute('data-branch-id');
+                        // Always show 'Tất cả nhân viên' (which has empty branchId)
+                        if (!option.value) {
+                            option.style.display = '';
+                            return;
+                        }
+                        
+                        if (!selectedBranch || branchId === selectedBranch) {
+                            option.style.display = '';
+                            if (option.selected) hasVisibleSelected = true;
+                        } else {
+                            option.style.display = 'none';
+                        }
+                    });
+
+                    // If the currently selected employee is hidden, reset to 'Tất cả nhân viên'
+                    if (employeeSelect.value && !hasVisibleSelected) {
+                        employeeSelect.value = '';
+                    }
+                }
+
+                branchSelect.addEventListener('change', filterEmployees);
+                // Initial filter on page load
+                filterEmployees();
+            }
+        });
+        
+
+    </script>
+</body>
+</html>
