@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface InventoryReportService {
     List<InventoryReportDTO> generateReport(InventoryReportFilterRequest filter);
-    void exportExcel(InventoryReportFilterRequest filter, HttpServletResponse response) throws IOException;
+    byte[] exportExcel(InventoryReportFilterRequest filter) throws IOException;
 }

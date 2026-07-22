@@ -1,7 +1,7 @@
 package com.g4fpt.sms.report.repository;
 
 import com.g4fpt.sms.order.entity.OrderTransactionDetail;
-import com.g4fpt.sms.report.dto.InventoryMovementProjection;
+import com.g4fpt.sms.report.projection.InventoryMovementProjection;
 import com.g4fpt.sms.report.projection.LastImportPriceProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
