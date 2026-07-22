@@ -49,4 +49,30 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     boolean existsByProductUnitId(Long productUnitId);
 
     boolean existsByBranchIdAndStockGreaterThan(Long branchId, Integer stock);
+
+    /**
+     * Filter dùng cho inventory report
+     * @param branchId tìm theo id của chi nhánh có thể để trống
+     * @param categoryId tìm theo id của danh mục có thể để trống
+     * @param brandId tìm theo id của nhãn hàng có thể để trống
+     * @param keyword tìm theo từ khóa có thể để trống
+     * @return Danh sách kho trùng với các biến yêu cầu trên
+     */
+    @Query("SELECT i FROM Inventory i " +
+            "JOIN FETCH i.branch b " +
+            "JOIN FETCH i.productUnit pu " +
+            "JOIN FETCH pu.product p " +
+            "JOIN FETCH pu.unit u " +
+            "WHERE (:branchId IS NULL OR i.branch.id = :branchId) " +
+            "AND (:categoryId IS NULL OR p.category.id = :categoryId) " +
+            "AND (:brandId IS NULL OR p.brand.id = :brandId) " +
+            "AND (:keyword IS NULL OR pu.sku LIKE %:keyword% OR p.name LIKE %:keyword%)")
+    List<Inventory> findByFilter(
+            @Param("branchId") Long branchId,
+            @Param("categoryId") Long categoryId,
+            @Param("brandId") Long brandId,
+            @Param("keyword") String keyword
+    );
+
+
 }
