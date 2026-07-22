@@ -43,11 +43,14 @@ public class ImportServiceImpl implements ImportService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ImportResponse> getAllImports(String status, String keyword) {
+    public List<ImportResponse> getAllImports(String status, String keyword, Long userBranchId) {
         List<OrderTransaction> txList = orderTransactionRepository.searchImports(status, keyword);
         List<ImportResponse> responseList = new ArrayList<>();
 
         for (OrderTransaction tx : txList) {
+            if (userBranchId != null && !userBranchId.equals(tx.getBranchId())) {
+                continue;
+            }
             // Lấy tên chi nhánh, nhà cung cấp, người tạo để hiển thị
             Branch branch = branchRepository.findById(tx.getBranchId()).orElse(null);
             String branchName = (branch != null) ? branch.getName() : "Không xác định";
@@ -171,6 +174,113 @@ public class ImportServiceImpl implements ImportService {
         tx.setPaidAmount(BigDecimal.ZERO);
         tx.setChangeAmount(BigDecimal.ZERO);
 
+        orderTransactionRepository.save(tx);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ImportRequest loadImportRequestForEdit(Long id) {
+        OrderTransaction tx = orderTransactionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu nhập với ID: " + id));
+
+        if (!"PENDING".equals(tx.getStatus())) {
+            throw new IllegalArgumentException("Chỉ được phép chỉnh sửa phiếu nhập ở trạng thái PENDING.");
+        }
+
+        ImportRequest request = new ImportRequest();
+        request.setId(tx.getId());
+        request.setBranchId(tx.getBranchId());
+        request.setSupplierId(tx.getSupplier() != null ? tx.getSupplier().getId() : null);
+        request.setNote(tx.getNote());
+
+        List<ImportItemRequest> items = new ArrayList<>();
+        for (OrderTransactionDetail detail : tx.getDetails()) {
+            ImportItemRequest item = new ImportItemRequest();
+            item.setProductUnitId(detail.getProductUnit().getId());
+            item.setQuantity(detail.getQuantity());
+            item.setImportPrice(detail.getImportPrice());
+            item.setProductName(detail.getProductUnit().getProduct().getName());
+            item.setSku(detail.getProductUnit().getSku());
+            item.setUnitName(detail.getProductUnit().getUnit().getName());
+            item.setLineTotal(detail.getTotalAmount());
+            items.add(item);
+        }
+        request.setItems(items);
+        return request;
+    }
+
+    @Override
+    @Transactional
+    public void updateImportRequest(Long id, ImportRequest request, Long employeeId) {
+        OrderTransaction tx = orderTransactionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu nhập với ID: " + id));
+
+        if (!"PENDING".equals(tx.getStatus())) {
+            throw new IllegalArgumentException("Chỉ được phép chỉnh sửa phiếu nhập ở trạng thái PENDING.");
+        }
+
+        if (request.getBranchId() == null) {
+            throw new IllegalArgumentException("Vui lòng chọn chi nhánh cần nhập hàng!");
+        }
+        if (request.getSupplierId() == null) {
+            throw new IllegalArgumentException("Vui lòng chọn nhà cung cấp!");
+        }
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            throw new IllegalArgumentException("Danh sách sản phẩm không được rỗng!");
+        }
+
+        Branch branch = branchRepository.findById(request.getBranchId())
+                .orElseThrow(() -> new IllegalArgumentException("Chi nhánh không tồn tại!"));
+
+        Supplier supplier = supplierRepository.findById(request.getSupplierId())
+                .orElseThrow(() -> new IllegalArgumentException("Nhà cung cấp không tồn tại!"));
+
+        tx.setBranchId(branch.getId());
+        tx.setSupplier(supplier);
+        tx.setNote(request.getNote());
+        
+        tx.getDetails().clear();
+        
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        List<Long> selectedProductUnitIds = new ArrayList<>();
+
+        for (ImportItemRequest itemReq : request.getItems()) {
+            if (itemReq.getProductUnitId() == null) {
+                throw new IllegalArgumentException("Sản phẩm và đơn vị không hợp lệ!");
+            }
+            if (selectedProductUnitIds.contains(itemReq.getProductUnitId())) {
+                throw new IllegalArgumentException("Không được chọn trùng sản phẩm và đơn vị trong cùng một phiếu nhập!");
+            }
+            selectedProductUnitIds.add(itemReq.getProductUnitId());
+
+            if (itemReq.getQuantity() == null || itemReq.getQuantity() <= 0) {
+                throw new IllegalArgumentException("Số lượng nhập phải lớn hơn 0!");
+            }
+            if (itemReq.getImportPrice() == null || itemReq.getImportPrice().compareTo(BigDecimal.ZERO) < 0) {
+                throw new IllegalArgumentException("Giá nhập không được âm!");
+            }
+
+            ProductUnit productUnit = productUnitRepository.findById(itemReq.getProductUnitId())
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sản phẩm với đơn vị quy đổi đã chọn!"));
+
+            OrderTransactionDetail detail = new OrderTransactionDetail();
+            detail.setOrderTransaction(tx);
+            detail.setProductUnit(productUnit);
+            detail.setQuantity(itemReq.getQuantity());
+            detail.setSalePrice(BigDecimal.ZERO);
+            detail.setImportPrice(itemReq.getImportPrice());
+            detail.setDiscountAmount(BigDecimal.ZERO);
+
+            BigDecimal lineTotal = itemReq.getImportPrice().multiply(new BigDecimal(itemReq.getQuantity()));
+            detail.setTotalAmount(lineTotal);
+
+            tx.getDetails().add(detail);
+            totalAmount = totalAmount.add(lineTotal);
+        }
+
+        tx.setTotalAmount(totalAmount);
+        tx.setFinalAmount(totalAmount);
+        
         orderTransactionRepository.save(tx);
     }
 

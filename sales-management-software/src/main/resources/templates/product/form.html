@@ -90,6 +90,23 @@
                     </div>
 
                     <div class="form-group form-group--full">
+                        <label class="form-label">Nhà cung cấp</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background-color: #fff; max-height: 200px; overflow-y: auto;">
+                            <div th:each="sup : ${supplierList}" style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox"
+                                       th:id="${'sup_' + sup.id}"
+                                       th:value="${sup.id}"
+                                       th:field="*{supplierIds}"
+                                       style="width: 16px; height: 16px; cursor: pointer; margin: 0;">
+                                <label th:for="${'sup_' + sup.id}"
+                                       th:text="${sup.name}"
+                                       style="margin: 0; font-weight: normal; cursor: pointer; font-size: 14px;"></label>
+                            </div>
+                        </div>
+                        <div class="field-error" th:if="${#fields.hasErrors('supplierIds')}" th:errors="*{supplierIds}"></div>
+                    </div>
+
+                    <div class="form-group form-group--full">
                         <label class="form-label">
                             Ảnh
                             <input type="file"
@@ -318,7 +335,6 @@
 <script th:inline="javascript">
     const unitList = /*[[${unitList}]]*/ [];
     let rowIndex = document.querySelectorAll('#unitTable tr:not(#no-unit-row)').length;
-    let currentUnitSelect = null;
     let currentUnitSelect = null;
 </script>
 <script th:src="@{/js/inventory/product-form.js}"></script>

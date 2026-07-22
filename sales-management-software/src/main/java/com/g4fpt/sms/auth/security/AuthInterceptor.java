@@ -51,8 +51,8 @@ public class AuthInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // 3. OWNER, BRANCH_MANAGER, WAREHOUSE_STAFF: /inventory, /imports, /supplier
-        if ((uri.startsWith("/inventory") || uri.startsWith("/imports") || uri.startsWith("/supplier"))
+        // 3. OWNER, BRANCH_MANAGER, WAREHOUSE_STAFF: /inventory, /imports, /supplier, /transfer
+        if ((uri.startsWith("/inventory") || uri.startsWith("/imports") || uri.startsWith("/supplier") || uri.startsWith("/transfer"))
                 && !loggedInUser.hasAnyRole("OWNER", "BRANCH_MANAGER", "WAREHOUSE_STAFF")) {
             response.sendRedirect(contextPath + "/error/403");
             return false;

@@ -12,6 +12,7 @@ import com.g4fpt.sms.common.exception.ValidationException;
 import com.g4fpt.sms.product.entity.ProductUnit;
 import com.g4fpt.sms.product.mapper.ProductMapper;
 import com.g4fpt.sms.product.repository.*;
+import com.g4fpt.sms.supplier.repository.SupplierRepository;
 import com.g4fpt.sms.product.service.FileStorageService;
 import com.g4fpt.sms.product.service.ProductService;
 import com.g4fpt.sms.product.service.ProductUnitService;
@@ -42,6 +43,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductMapper productMapper;
     private final ProductUnitService productUnitService;
     private final FileStorageService fileStorageService;
+    private final SupplierRepository supplierRepository;
 
     @Transactional
     @Override
@@ -182,5 +184,11 @@ public class ProductServiceImpl implements ProductService {
         product.setDescription(productRequest.getDescription());
         product.setStatus(productRequest.getStatus());
         product.setNote(productRequest.getNote());
+        
+        if (productRequest.getSupplierIds() != null && !productRequest.getSupplierIds().isEmpty()) {
+            product.setSuppliers(supplierRepository.findAllById(productRequest.getSupplierIds()));
+        } else {
+            product.setSuppliers(new ArrayList<>());
+        }
     }
 }

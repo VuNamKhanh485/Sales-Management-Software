@@ -12,6 +12,7 @@ import com.g4fpt.sms.product.enums.ProductStatus;
 import com.g4fpt.sms.common.exception.ValidationException;
 import com.g4fpt.sms.product.mapper.ProductMapper;
 import com.g4fpt.sms.product.service.*;
+import com.g4fpt.sms.supplier.service.SupplierService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,6 +36,7 @@ public class ProductController {
     private final BrandService brandService;
     private final UnitService unitService;
     private final ProductMapper productMapper;
+    private final SupplierService supplierService;
 
     @GetMapping
     public String list(Model model,
@@ -150,6 +152,7 @@ public class ProductController {
                 
         model.addAttribute("categoryList", activeCategories);
         model.addAttribute("brandList", activeBrands);
+        model.addAttribute("supplierList", supplierService.findAll());
         model.addAttribute("unitList", unitService.findAll());
     }
 

@@ -12,15 +12,16 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ImportResponse {
+public class TransferResponse {
     private Long id;
     private String code;
-    private Long branchId;
-    private String branchName;
-    private String supplierName;
+    private Long fromBranchId;
+    private String fromBranchName;
+    private Long toBranchId;
+    private String toBranchName;
     private String creatorName;
-    private String status;
     private BigDecimal totalAmount;
+    private String status; // PENDING_APPROVAL, COMPLETED, REJECTED
     private LocalDateTime createdAt;
     private String note;
 }

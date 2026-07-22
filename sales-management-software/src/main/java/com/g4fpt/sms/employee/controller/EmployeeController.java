@@ -27,8 +27,8 @@ public class EmployeeController {
     private final BranchRepository branchRepository;
 
     public EmployeeController(EmployeeService employeeService,
-                              RoleRepository roleRepository,
-                              BranchRepository branchRepository) {
+            RoleRepository roleRepository,
+            BranchRepository branchRepository) {
         this.employeeService = employeeService;
         this.roleRepository = roleRepository;
         this.branchRepository = branchRepository;
@@ -36,16 +36,15 @@ public class EmployeeController {
 
     @GetMapping
     public String list(@RequestParam(required = false) String keyword,
-                       @RequestParam(required = false) Long branchId,
-                       @RequestParam(required = false) Long roleId,
-                       @RequestParam(required = false) WorkStatus status,
-                       @RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "5") int size,
-                       HttpSession session,
-                       Model model) {
+            @RequestParam(required = false) Long branchId,
+            @RequestParam(required = false) Long roleId,
+            @RequestParam(required = false) WorkStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            HttpSession session,
+            Model model) {
 
-        SessionUser currentUser =
-                (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
+        SessionUser currentUser = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
 
         if (!canAccess(currentUser)) {
             return "redirect:/error/403";
@@ -60,8 +59,7 @@ public class EmployeeController {
                         roleId,
                         status,
                         pageable,
-                        currentUser
-                ));
+                        currentUser));
 
         model.addAttribute("keyword", keyword);
         model.addAttribute("branchId", branchId);
@@ -77,8 +75,7 @@ public class EmployeeController {
 
     @GetMapping("/new")
     public String createForm(HttpSession session, Model model) {
-        SessionUser currentUser =
-                (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
+        SessionUser currentUser = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
 
         if (!canAccess(currentUser)) {
             return "redirect:/error/403";
@@ -98,13 +95,12 @@ public class EmployeeController {
 
     @PostMapping("/new")
     public String create(@Valid @ModelAttribute("employeeForm") EmployeeForm form,
-                         BindingResult bindingResult,
-                         HttpSession session,
-                         Model model,
-                         RedirectAttributes redirectAttributes) {
+            BindingResult bindingResult,
+            HttpSession session,
+            Model model,
+            RedirectAttributes redirectAttributes) {
 
-        SessionUser currentUser =
-                (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
+        SessionUser currentUser = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
 
         if (!canAccess(currentUser)) {
             return "redirect:/error/403";
@@ -128,11 +124,10 @@ public class EmployeeController {
 
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id,
-                           HttpSession session,
-                           Model model) {
+            HttpSession session,
+            Model model) {
 
-        SessionUser currentUser =
-                (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
+        SessionUser currentUser = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
 
         if (!canAccess(currentUser)) {
             return "redirect:/error/403";
@@ -149,14 +144,13 @@ public class EmployeeController {
 
     @PostMapping("/{id}/edit")
     public String update(@PathVariable Long id,
-                         @Valid @ModelAttribute("employeeForm") EmployeeForm form,
-                         BindingResult bindingResult,
-                         HttpSession session,
-                         Model model,
-                         RedirectAttributes redirectAttributes) {
+            @Valid @ModelAttribute("employeeForm") EmployeeForm form,
+            BindingResult bindingResult,
+            HttpSession session,
+            Model model,
+            RedirectAttributes redirectAttributes) {
 
-        SessionUser currentUser =
-                (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
+        SessionUser currentUser = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
 
         if (!canAccess(currentUser)) {
             return "redirect:/error/403";
@@ -180,11 +174,10 @@ public class EmployeeController {
 
     @PostMapping("/{id}/toggle-status")
     public String toggleStatus(@PathVariable Long id,
-                               HttpSession session,
-                               RedirectAttributes redirectAttributes) {
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
 
-        SessionUser currentUser =
-                (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
+        SessionUser currentUser = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
 
         if (!canAccess(currentUser)) {
             return "redirect:/error/403";
@@ -202,11 +195,10 @@ public class EmployeeController {
 
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id,
-                         HttpSession session,
-                         RedirectAttributes redirectAttributes) {
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
 
-        SessionUser currentUser =
-                (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
+        SessionUser currentUser = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
 
         if (!canAccess(currentUser)) {
             return "redirect:/error/403";

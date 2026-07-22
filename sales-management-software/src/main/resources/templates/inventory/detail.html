@@ -17,11 +17,7 @@
             <span class="sub-nav__sep" style="color: var(--ink-muted-48); font-size: 12px;">›</span>
             <h1 class="sub-nav__title">Chi tiết kho: <span style="color: var(--primary);" th:text="${branch.name}">Chi nhánh</span></h1>
         </div>
-        <div class="sub-nav__actions">
-            <a th:href="@{/inventory/create(branchId=${branch.id})}" class="btn-primary btn-primary--sm">
-                Nhập kho
-            </a>
-        </div>
+
     </div>
 
     <main class="page-content">

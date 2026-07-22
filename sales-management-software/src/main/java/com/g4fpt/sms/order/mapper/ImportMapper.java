@@ -16,6 +16,7 @@ public class ImportMapper {
         ImportResponse res = new ImportResponse();
         res.setId(tx.getId());
         res.setCode(tx.getCode());
+        res.setBranchId(tx.getBranchId());
         res.setBranchName(branchName);
         res.setSupplierName(supplierName);
         res.setCreatorName(creatorName);

@@ -66,4 +66,12 @@ public class Product {
     @OneToMany(mappedBy = "product",
                 cascade = CascadeType.ALL)
     private List<ProductUnit> productUnits = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "product_supplier",
+        joinColumns = @JoinColumn(name = "product_id"),
+        inverseJoinColumns = @JoinColumn(name = "supplier_id")
+    )
+    private List<com.g4fpt.sms.supplier.entity.Supplier> suppliers = new ArrayList<>();
 }

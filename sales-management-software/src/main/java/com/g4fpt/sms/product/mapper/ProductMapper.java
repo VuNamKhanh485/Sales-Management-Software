@@ -34,6 +34,7 @@ public class ProductMapper {
         request.setDescription(productResponse.getDescription());
         request.setStatus(productResponse.getStatus());
         request.setNote(productResponse.getNote());
+        request.setSupplierIds(productResponse.getSupplierIds());
 
         if (productResponse.getProductUnitsResponses() != null) {
             request.setProductUnitsRequest(
@@ -77,6 +78,15 @@ public class ProductMapper {
                     product.getProductUnits()
                             .stream()
                             .map(productUnitMapper::toResponse)
+                            .toList()
+            );
+        }
+
+        if (product.getSuppliers() != null) {
+            response.setSupplierIds(
+                    product.getSuppliers()
+                            .stream()
+                            .map(com.g4fpt.sms.supplier.entity.Supplier::getId)
                             .toList()
             );
         }

@@ -3,60 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tạo yêu cầu nhập hàng — SMS</title>
+    <title>Tạo phiếu chuyển kho — SMS</title>
     <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
     <link rel="stylesheet" th:href="@{/css/payment/cashbook.css}">
     <link rel="stylesheet" th:href="@{/css/inventory/imports.css}">
 </head>
 <body>
 
-    <div th:replace="~{component/navbar :: global-nav('imports')}"></div>
+    <div th:replace="~{component/navbar :: global-nav('transfer')}"></div>
 
     <div class="sub-nav">
-        <a href="/imports" class="sub-nav__back">Quản lý nhập hàng</a>
+        <a href="/transfer" class="sub-nav__back">Quản lý chuyển kho</a>
         <span class="sub-nav__sep">›</span>
-        <h1 class="sub-nav__title" th:text="${importRequest.id != null ? 'Cập nhật phiếu nhập hàng' : 'Tạo phiếu nhập mới'}">Tạo phiếu nhập mới</h1>
+        <h1 class="sub-nav__title">Tạo phiếu chuyển kho</h1>
     </div>
 
     <main class="page-content form-page" style="max-width: 1400px; margin: 0 auto;">
         <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
 
-        <form th:action="@{/imports/save}" th:object="${importRequest}" method="post" id="import-form">
+        <form th:action="@{/transfer/save}" th:object="${transferRequest}" method="post" id="transfer-form">
             
             <div class="form-card">
                 <h2 class="form-card__title">Thông tin chung</h2>
                 <div class="form-grid">
+                    
                     <div class="form-group">
-                        <label class="form-label">Chi nhánh nhập hàng <span class="text-danger">*</span></label>
+                        <label class="form-label">Kho nhận (Kho của bạn) <span class="text-danger">*</span></label>
                         <div th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">
-                            <select class="form-select" th:field="*{branchId}" id="branchId" required>
-                                <option value="">-- Chọn chi nhánh --</option>
+                            <select class="form-select" th:field="*{toBranchId}" id="toBranchId" required>
+                                <option value="">-- Chọn kho nhận --</option>
                                 <option th:each="b : ${branches}" th:value="${b.id}" th:text="${b.name}"></option>
                             </select>
                         </div>
                         <div th:if="${sessionUser != null and !sessionUser.hasRole('OWNER')}">
                             <select class="form-select" disabled>
-                                <option th:each="b : ${branches}" 
-                                        th:value="${b.id}" 
-                                        th:selected="${b.id == sessionUser.branchId}"
-                                        th:text="${b.name}"></option>
+                                <option th:each="b : ${branches}" th:value="${b.id}" th:text="${b.name}" th:selected="${b.id == sessionUser.branchId}"></option>
                             </select>
-                            <input type="hidden" th:field="*{branchId}" />
+                            <input type="hidden" th:field="*{toBranchId}" />
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
-                        <label for="supplierId" class="form-label">Nhà cung cấp <span class="text-danger">*</span></label>
+                        <label for="fromBranchId" class="form-label">Kho xuất (Xin chuyển từ) <span class="text-danger">*</span></label>
                         <div style="display: flex; gap: 8px;">
-                            <select class="form-select" th:field="*{supplierId}" id="supplierId" required style="flex: 1;">
-                                <option value="">-- Chọn nhà cung cấp --</option>
-                                <option th:each="s : ${suppliers}" th:value="${s.id}" th:text="${s.name}"></option>
+                            <select class="form-select" th:field="*{fromBranchId}" id="fromBranchId" required style="flex: 1;">
+                                <option value="">-- Chọn kho xuất --</option>
+                                <option th:each="b : ${branches}" th:value="${b.id}" th:text="${b.name}"></option>
                             </select>
-                            <button type="submit" th:formaction="@{/imports/create/filter}" class="btn" id="btn-filter-supplier" formnovalidate style="background-color: var(--primary-light); color: var(--primary); border: 1px solid var(--primary-light); height: 40px; padding: 0 16px; font-weight: 500; border-radius: var(--r-md);">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 4px;">
-                                    <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2z"/>
-                                </svg>
+                            <button type="submit" th:formaction="@{/transfer/create/filter}" class="btn btn-secondary" id="btn-filter-branch" formnovalidate style="height: 40px; padding: 0 16px;">
                                 Lọc
                             </button>
                         </div>
@@ -64,13 +59,13 @@
 
                     <div class="form-group form-group--full">
                         <label for="note" class="form-label">Ghi chú</label>
-                        <input type="text" class="form-input" th:field="*{note}" id="note" placeholder="Nhập ghi chú hoặc lý do nhập hàng..." />
+                        <input type="text" class="form-input" th:field="*{note}" id="note" placeholder="Nhập ghi chú hoặc lý do chuyển kho..." />
                     </div>
                 </div>
             </div>
 
-            <div class="form-card" th:if="${importRequest.supplierId != null}">
-                <h2 class="form-card__title">Thêm sản phẩm nhập kho</h2>
+            <div class="form-card" th:if="${transferRequest.fromBranchId != null and transferRequest.toBranchId != null}">
+                <h2 class="form-card__title">Thêm sản phẩm xin chuyển</h2>
                 <div class="search-bar" style="align-items: flex-end;">
                     <div style="flex: 3;">
                         <label class="form-label">Chọn sản phẩm <span class="text-danger">*</span></label>
@@ -95,13 +90,13 @@
                     </div>
 
                     <div style="flex: 1.5;">
-                        <label class="form-label">Giá nhập (đ) <span class="text-danger">*</span></label>
-                        <input type="number" name="importPrice" id="quick-price" class="form-input" min="0" step="1000" placeholder="Giá..." />
+                        <label class="form-label">Giá chuyển (đ) <span class="text-danger">*</span></label>
+                        <input type="number" name="importPrice" id="quick-price" class="form-input" min="1" step="1000" placeholder="Giá..." />
                     </div>
 
                     <div>
-                        <button type="submit" th:formaction="@{/imports/create/add-item}" class="btn btn-primary" style="height: 42px; padding: 0 16px;" formnovalidate 
-                                onclick="if(!document.getElementById('quick-unit-select').value || document.getElementById('quick-price').value === '' || parseFloat(document.getElementById('quick-price').value) <= 0) { alert('Vui lòng chọn Đơn vị và điền Giá nhập hợp lệ (> 0)!'); return false; }">
+                        <button type="submit" th:formaction="@{/transfer/create/add-item}" class="btn btn-primary" style="height: 42px; padding: 0 16px;" formnovalidate 
+                                onclick="if(!document.getElementById('quick-unit-select').value || document.getElementById('quick-price').value === '' || parseFloat(document.getElementById('quick-price').value) <= 0) { alert('Vui lòng chọn Đơn vị và điền Giá chuyển hợp lệ (> 0)!'); return false; }">
                             Thêm
                         </button>
                     </div>
@@ -123,20 +118,20 @@
                                     <th>SKU</th>
                                     <th>Đơn vị</th>
                                     <th>Số lượng</th>
-                                    <th>Giá nhập (đ)</th>
+                                    <th>Giá chuyển (đ)</th>
                                     <th>Thành tiền</th>
                                     <th style="width: 80px;">Hành động</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr th:if="${#lists.isEmpty(importRequest.items)}">
+                                <tr th:if="${#lists.isEmpty(transferRequest.items)}">
                                     <td colspan="8">
                                         <div class="empty-state">
                                             <h3 class="empty-state__title">Chưa có sản phẩm nào được thêm.</h3>
                                         </div>
                                     </td>
                                 </tr>
-                                <tr th:each="item, stat : ${importRequest.items}">
+                                <tr th:each="item, stat : ${transferRequest.items}">
                                     <td th:text="${stat.count}">1</td>
                                     <td th:text="${item.productName}">Product Name</td>
                                     <td th:text="${item.sku}">SKU</td>
@@ -145,7 +140,7 @@
                                     <td th:text="${item.importPrice != null ? #numbers.formatDecimal(item.importPrice, 0, 'COMMA', 0, 'POINT') : 0} + ' đ'">100,000 đ</td>
                                     <td th:text="${item.lineTotal != null ? #numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 0, 'POINT') : 0} + ' đ'">1,000,000 đ</td>
                                     <td>
-                                        <button type="submit" th:formaction="@{'/imports/create/remove-item/' + ${stat.index}}" class="btn btn-sm" style="color: var(--danger); border: 1px solid var(--danger); background: white; padding: 4px 8px; border-radius: 4px;" formnovalidate>Xóa</button>
+                                        <button type="submit" th:formaction="@{'/transfer/create/remove-item/' + ${stat.index}}" class="btn btn-sm" style="color: var(--danger); border: 1px solid var(--danger); background: white; padding: 4px 8px; border-radius: 4px;" formnovalidate>Xóa</button>
                                     </td>
                                 </tr>
                             </tbody>
@@ -186,7 +181,7 @@
                             </svg>
                         </div>
                         <div>
-                            <div class="summary-label" style="color: var(--primary);">Tổng tiền phiếu nhập</div>
+                            <div class="summary-label" style="color: var(--primary);">Tổng giá trị</div>
                             <div class="summary-value summary-value--large" th:text="${totalAmount != null ? #numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT') : 0} + ' đ'">0 đ</div>
                         </div>
                     </div>
@@ -194,9 +189,9 @@
             </div>
 
             <div class="form-actions" style="margin-top: 24px;">
-                <button type="submit" class="btn btn-primary" id="submit-btn" th:text="${importRequest.id != null ? 'Lưu thay đổi' : 'Gửi yêu cầu nhập hàng'}">Gửi yêu cầu nhập hàng</button>
-                <a th:href="@{/imports/create(reset=true)}" class="btn btn-secondary">Làm mới</a>
-                <a th:href="@{/imports}" class="btn btn-secondary">Hủy</a>
+                <button type="submit" class="btn btn-primary" id="submit-btn" onclick="return confirm('Xác nhận tạo phiếu chuyển kho?')">Gửi yêu cầu chuyển kho</button>
+                <a th:href="@{/transfer/create(reset=true)}" class="btn btn-secondary">Làm mới</a>
+                <a th:href="@{/transfer}" class="btn btn-secondary">Hủy</a>
             </div>
         </form>
     </main>

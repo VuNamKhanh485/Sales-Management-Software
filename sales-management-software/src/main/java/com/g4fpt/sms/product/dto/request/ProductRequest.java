@@ -29,6 +29,7 @@ public class ProductRequest {
     @NotNull(message = "Status is required")
     private ProductStatus status;
     private String note;
+    private List<Long> supplierIds;
     @NotEmpty(message = "Need at least 1 unit")
     @Valid
     private List<ProductUnitRequest> productUnitsRequest;

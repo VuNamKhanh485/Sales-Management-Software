@@ -12,10 +12,10 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ImportRequest {
+public class TransferRequest {
     private Long id;
-    private Long branchId;
-    private Long supplierId;
+    private Long fromBranchId;
+    private Long toBranchId; // Mặc định là branch của người đăng nhập
     private String note;
-    private List<ImportItemRequest> items = new ArrayList<>();
+    private List<TransferItemRequest> items = new ArrayList<>();
 }

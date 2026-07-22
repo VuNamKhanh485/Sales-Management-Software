@@ -11,14 +11,13 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ImportItemRequest {
+public class TransferDetailResponse {
+    private Long id;
     private Long productUnitId;
-    private Integer quantity;
-    private BigDecimal importPrice;
-    
-    // UI Display Fields
     private String productName;
     private String sku;
     private String unitName;
+    private Integer quantity;
+    private BigDecimal price; // giá nhập/chuyển
     private BigDecimal lineTotal;
 }
