@@ -27,9 +27,15 @@ public class Inventory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "branch_id", insertable = false, updatable = false)
+    private Long branchId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
     private Branch branch;
+
+    @Column(name = "product_unit_id", insertable = false, updatable = false)
+    private Long productUnitId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_unit_id", nullable = false)

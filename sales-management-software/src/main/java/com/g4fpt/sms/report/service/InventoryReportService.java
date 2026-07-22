@@ -2,11 +2,11 @@ package com.g4fpt.sms.report.service;
 
 import com.g4fpt.sms.report.dto.InventoryReportDTO;
 import com.g4fpt.sms.report.dto.InventoryReportFilterRequest;
-import org.springframework.stereotype.Service;
-
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
-@Service
 public interface InventoryReportService {
-    public List<InventoryReportDTO> generateReport(InventoryReportFilterRequest filter);
+    List<InventoryReportDTO> generateReport(InventoryReportFilterRequest filter);
+    void exportExcel(InventoryReportFilterRequest filter, HttpServletResponse response) throws IOException;
 }
