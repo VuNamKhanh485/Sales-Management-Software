@@ -117,4 +117,95 @@ public class ReportServiceImpl implements ReportService {
     public List<OrderTransaction> getEmployeeSalesDetails(Long employeeId, Long branchId, LocalDateTime startDate, LocalDateTime endDate) {
         return orderTransactionRepository.findEmployeeSalesDetails(employeeId, branchId, startDate, endDate);
     }
+
+
+
+    @Override
+    public org.springframework.data.domain.Page<com.g4fpt.sms.report.dto.EmployeeOrderSalesDTO> getDetailedOrderSalesPage(Long branchId, Long employeeId, LocalDateTime startDate, LocalDateTime endDate, org.springframework.data.domain.Pageable pageable) {
+        return orderTransactionRepository.getDetailedOrderSalesPage(branchId, employeeId, startDate, endDate, pageable);
+    }
+
+    @Override
+    public List<com.g4fpt.sms.report.dto.EmployeeOrderSalesDTO> getDetailedOrderSalesList(Long branchId, Long employeeId, LocalDateTime startDate, LocalDateTime endDate) {
+        return orderTransactionRepository.getDetailedOrderSalesList(branchId, employeeId, startDate, endDate);
+    }
+
+    @Override
+    public List<Object[]> getDetailedOrderSalesTotals(Long branchId, Long employeeId, LocalDateTime startDate, LocalDateTime endDate) {
+        return orderTransactionRepository.getDetailedOrderSalesTotals(branchId, employeeId, startDate, endDate);
+    }
+
+
+
+    @Override
+    public byte[] exportDetailedOrderSalesToExcel(List<com.g4fpt.sms.report.dto.EmployeeOrderSalesDTO> data) throws java.io.IOException {
+        try (org.apache.poi.ss.usermodel.Workbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook();
+             java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream()) {
+            
+            org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Bang ke ban hang");
+            
+            // Header Row
+            org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
+            String[] columns = {"TT", "Thời gian", "Chi nhánh", "Nhân viên", "Mã đơn hàng", "Thành tiền"};
+            
+            org.apache.poi.ss.usermodel.CellStyle headerStyle = workbook.createCellStyle();
+            org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            
+            for (int i = 0; i < columns.length; i++) {
+                org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
+                cell.setCellValue(columns[i]);
+                cell.setCellStyle(headerStyle);
+            }
+            
+            // Format for date
+            org.apache.poi.ss.usermodel.CellStyle dateStyle = workbook.createCellStyle();
+            org.apache.poi.ss.usermodel.CreationHelper createHelper = workbook.getCreationHelper();
+            dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/MM/yyyy HH:mm"));
+
+            // Data Rows
+            int rowIdx = 1;
+            double totalRevenue = 0.0;
+            for (com.g4fpt.sms.report.dto.EmployeeOrderSalesDTO order : data) {
+                org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowIdx);
+                
+                row.createCell(0).setCellValue(rowIdx);
+                
+                org.apache.poi.ss.usermodel.Cell dateCell = row.createCell(1);
+                if (order.getCreatedAt() != null) {
+                    dateCell.setCellValue(java.sql.Timestamp.valueOf(order.getCreatedAt()));
+                    dateCell.setCellStyle(dateStyle);
+                }
+                
+                row.createCell(2).setCellValue(order.getBranchName() != null ? order.getBranchName() : "");
+                row.createCell(3).setCellValue(order.getEmployeeName() != null ? order.getEmployeeName() : "");
+                row.createCell(4).setCellValue(order.getOrderCode() != null ? order.getOrderCode() : "");
+                
+                double amount = order.getTotalAmount() != null ? order.getTotalAmount().doubleValue() : 0.0;
+                row.createCell(5).setCellValue(amount);
+                totalRevenue += amount;
+                
+                rowIdx++;
+            }
+            
+            // Total Row
+            org.apache.poi.ss.usermodel.Row totalRow = sheet.createRow(rowIdx);
+            org.apache.poi.ss.usermodel.Cell totalLabelCell = totalRow.createCell(4);
+            totalLabelCell.setCellValue("Tổng doanh thu:");
+            totalLabelCell.setCellStyle(headerStyle);
+            
+            org.apache.poi.ss.usermodel.Cell totalValueCell = totalRow.createCell(5);
+            totalValueCell.setCellValue(totalRevenue);
+            totalValueCell.setCellStyle(headerStyle);
+
+            // Auto size columns
+            for (int i = 0; i < columns.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+            
+            workbook.write(out);
+            return out.toByteArray();
+        }
+    }
 }

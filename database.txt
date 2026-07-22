@@ -1,11 +1,10 @@
--- DROP DATABASE sms_db;
+
 CREATE DATABASE IF NOT EXISTS sms_db;
 USE sms_db;
 
 -- role
 CREATE TABLE Role (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-
     code VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(100) NOT NULL,
     description TEXT NULL
@@ -189,7 +188,7 @@ CREATE TABLE Category (
 -- unit
 CREATE TABLE Unit (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-
+	status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
     name VARCHAR(255) NOT NULL UNIQUE,
 
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -242,7 +241,9 @@ CREATE TABLE Voucher (
 
     start_at DATETIME NOT NULL,
     end_at DATETIME NOT NULL,
-
+    
+	customer_rank_id BIGINT NULL,
+    
     status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
 
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -256,7 +257,10 @@ CREATE TABLE Voucher (
                 OR discount_value <= 100
             )
         ),
-
+	CONSTRAINT fk_voucher_customer_rank
+		FOREIGN KEY (customer_rank_id) 
+        REFERENCES CustomerRank(id),
+        
     CONSTRAINT chk_voucher_min_order
         CHECK (min_order_amount >= 0),
 
@@ -390,11 +394,13 @@ CREATE TABLE OrderTransaction (
 
     total_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
     discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+    points_used DECIMAL(12,2) DEFAULT NULL,
+    point_discount DECIMAL(12,2) DEFAULT NULL,
     final_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
 
     paid_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
     change_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
-
+    
     status ENUM(
         'PENDING',
         'COMPLETED',
@@ -456,6 +462,12 @@ CREATE TABLE OrderTransaction (
         FOREIGN KEY (to_branch_id)
         REFERENCES Branch(id),
 
+	CONSTRAINT chk_points_non_negative 
+		CHECK (
+			points_used >= 0 
+            AND point_discount >= 0
+		),
+        
     CONSTRAINT chk_order_amount
         CHECK (
             total_amount >= 0
@@ -505,5 +517,83 @@ CREATE TABLE OrderTransactionDetail (
             AND import_price >= 0
             AND discount_amount >= 0
             AND total_amount >= 0
+        )
+);
+
+CREATE TABLE ReturnRequest (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id BIGINT NOT NULL,
+    branch_id BIGINT NOT NULL,
+    requested_by BIGINT NOT NULL,
+    reason TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    reviewed_by BIGINT,
+    reviewed_at DATETIME,
+    reject_reason TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (order_id) REFERENCES OrderTransaction(id)
+);
+
+CREATE TABLE ReturnRequestItem (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    return_request_id BIGINT NOT NULL,
+    order_detail_id BIGINT NOT NULL,
+    product_unit_id BIGINT NOT NULL,
+    quantity INT NOT NULL,
+    sale_price DECIMAL(19,2) NOT NULL,
+    FOREIGN KEY (return_request_id) REFERENCES ReturnRequest(id),
+    FOREIGN KEY (order_detail_id) REFERENCES OrderTransactionDetail(id),
+    FOREIGN KEY (product_unit_id) REFERENCES ProductUnit(id)
+);
+
+CREATE TABLE ReturnRequestImage (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    return_request_id BIGINT NOT NULL,
+    image_url VARCHAR(500) NOT NULL,
+    FOREIGN KEY (return_request_id) REFERENCES ReturnRequest(id)
+);
+
+CREATE TABLE CashbookTransaction (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    branch_id BIGINT NOT NULL,
+    transaction_type VARCHAR(50) NOT NULL, -- 'IN' (Thu) hoặc 'OUT' (Chi)
+    payment_method VARCHAR(50) NOT NULL,   -- 'CASH' (Tiền mặt) hoặc 'BANK' (Chuyển khoản)
+    amount DECIMAL(19, 2) NOT NULL,
+    reference_code VARCHAR(255),           -- Mã tham chiếu (Mã đơn hàng, mã phiếu nhập...)
+    description VARCHAR(255),              -- Lý do thu/chi
+    created_by BIGINT NOT NULL,            -- ID của nhân viên tạo phiếu
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Khóa ngoại (Tuỳ chọn: Nếu bạn có bảng branch và employee)
+    CONSTRAINT fk_cashbook_branch FOREIGN KEY (branch_id) REFERENCES Branch(id),
+    CONSTRAINT fk_cashbook_employee FOREIGN KEY (created_by) REFERENCES Employee(id)
+);
+-- inventory_snapshot
+CREATE TABLE InventorySnapshot (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    snapshot_type VARCHAR(20) NOT NULL,
+    snapshot_date DATE NOT NULL,
+    branch_id BIGINT NOT NULL,
+    product_unit_id BIGINT NOT NULL,
+    opening_stock INT NOT NULL DEFAULT 0,
+    opening_value DECIMAL(18,2) NOT NULL DEFAULT 0.00,
+    stock_in INT NOT NULL DEFAULT 0,
+    stock_in_value DECIMAL(18,2) NOT NULL DEFAULT 0.00,
+    stock_out INT NOT NULL DEFAULT 0,
+    stock_out_value DECIMAL(18,2) NOT NULL DEFAULT 0.00,
+    closing_stock INT NOT NULL DEFAULT 0,
+    closing_value DECIMAL(18,2) NOT NULL DEFAULT 0.00,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_inventory_snapshot_branch
+        FOREIGN KEY (branch_id) REFERENCES Branch(id),
+    CONSTRAINT fk_inventory_snapshot_product_unit
+        FOREIGN KEY (product_unit_id) REFERENCES ProductUnit(id),
+    CONSTRAINT uq_inventory_snapshot
+        UNIQUE (
+            snapshot_type,
+            snapshot_date,
+            branch_id,
+            product_unit_id
         )
 );

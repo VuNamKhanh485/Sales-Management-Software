@@ -3,8 +3,7 @@
 <nav class="global-nav" th:fragment="global-nav(page)">
     <a href="/dashboard" class="global-nav__brand">SMS</a>
     <ul style="display:flex; gap:0; list-style:none; margin:0; padding:0; align-items:center; flex:1;">
-        <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}"><a th:href="@{/dashboard}"
-                th:classappend="${page == 'dashboard' ? 'active' : ''}">Home</a></li>
+        <li><a th:href="@{/dashboard}" th:classappend="${page == 'dashboard' ? 'active' : ''}">Dashboard</a></li>
         <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF')}">
             <a th:href="@{/pos}" th:classappend="${page == 'pos' ? 'active' : ''}">Bán hàng</a>
         </li>
@@ -27,9 +26,12 @@
         <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}">
             <a th:href="@{/cashbook}" th:classappend="${page == 'cashbook' ? 'active' : ''}">Sổ quỹ</a>
         </li>
+        <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF', 'CASHIER')}">
+            <a th:href="@{/reports/overview}" th:classappend="${page == 'report' ? 'active' : ''}">Báo cáo Tổng hợp</a>
+        </li>
         <li
             th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF', 'CASHIER')}">
-            <a th:href="@{/reports/overview}" th:classappend="${page == 'report' ? 'active' : ''}">Báo cáo Tổng hợp</a>
+            <a th:href="@{/reports/detailed-sales}" th:classappend="${page == 'detailed-report' ? 'active' : ''}">Báo cáo Chi tiết</a>
         </li>
         <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}">
             <a th:href="@{/employee}" th:classappend="${page == 'employee' ? 'active' : ''}">Nhân viên</a>
@@ -39,63 +41,58 @@
         </li>
     </ul>
     <div style="display:flex; align-items:center; gap:12px; margin-left:auto;" th:if="${sessionUser != null}">
-        <a th:href="@{/profile}" style="font-size:12px; color:rgba(245,245,247,0.8); text-decoration:none;"
-            th:text="${sessionUser.fullName}">Admin</a>
-        <a th:href="@{/auth/logout}"
-            style="background:transparent; border:none; color:rgba(245,245,247,0.8); cursor:pointer; font-size:12px; padding:4px 8px; text-decoration:none;">
+        <a th:href="@{/profile}" style="font-size:12px; color:rgba(245,245,247,0.8); text-decoration:none;" th:text="${sessionUser.fullName}">Admin</a>
+        <a th:href="@{/auth/logout}" style="background:transparent; border:none; color:rgba(245,245,247,0.8); cursor:pointer; font-size:12px; padding:4px 8px; text-decoration:none;">
             Đăng xuất
         </a>
     </div>
 </nav>
 
-<aside class="d-flex flex-column flex-shrink-0 p-3 bg-light border-end"
-    style="width: 250px; min-width: 250px; min-height: 100vh;" th:fragment="sidebar-component(page)">
+<aside class="d-flex flex-column flex-shrink-0 p-3 bg-light border-end" style="width: 250px; min-width: 250px; min-height: 100vh;" th:fragment="sidebar-component(page)">
     <div class="mb-4">
         <h2 class="h4 mb-0 fw-bold text-primary">Sales Admin</h2>
         <small class="text-muted">Management</small>
     </div>
 
     <nav class="nav nav-pills flex-column mb-auto">
-        <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}" th:href="@{/dashboard}"
-            th:class="${page == 'dashboard' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
+        <a th:href="@{/dashboard}" th:class="${page == 'dashboard' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Dashboard</span>
         </a>
         <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF')}"
-            th:href="@{/pos}" th:class="${page == 'pos' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
+           th:href="@{/pos}" th:class="${page == 'pos' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Bán hàng (POS)</span>
         </a>
         <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF')}"
-            th:href="@{/customers}"
-            th:class="${page == 'customer' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
+           th:href="@{/customers}" th:class="${page == 'customer' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Khách hàng</span>
         </a>
         <a th:href="@{/product}" th:class="${page == 'product' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Sản phẩm</span>
         </a>
         <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}"
-            th:href="@{/inventory}"
-            th:class="${page == 'inventory' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
+           th:href="@{/inventory}" th:class="${page == 'inventory' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Kho hàng</span>
         </a>
 
         <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}"
-            th:href="@{/imports}" th:class="${page == 'imports' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
+           th:href="@{/imports}" th:class="${page == 'imports' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Nhập hàng</span>
         </a>
 
         <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}"
-            th:href="@{/supplier}"
-            th:class="${page == 'supplier' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
+           th:href="@{/supplier}" th:class="${page == 'supplier' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Nhà cung cấp</span>
         </a>
 
-        <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}" th:href="@{/employee}"
-            th:class="${page == 'employee' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
+        <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}"
+           th:href="@{/employee}"
+           th:class="${page == 'employee' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Quản lý nhân viên</span>
         </a>
 
-        <a th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}" th:href="@{/branch}"
-            th:class="${page == 'branch' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
+        <a th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}"
+           th:href="@{/branch}"
+           th:class="${page == 'branch' ? 'nav-link active mb-1' : 'nav-link text-dark mb-1'}">
             <span>Quản lý chi nhánh</span>
         </a>
     </nav>
