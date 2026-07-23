@@ -42,7 +42,13 @@ public class AuthController {
             return "auth/login";
         }
 
-        Optional<SessionUser> optionalUser = authService.authenticate(form.getEmail(), form.getPassword());
+        Optional<SessionUser> optionalUser;
+        try {
+            optionalUser = authService.authenticate(form.getEmail(), form.getPassword());
+        } catch (IllegalStateException e) {
+            model.addAttribute("loginError", e.getMessage());
+            return "auth/login";
+        }
 
         if (optionalUser.isEmpty()) {
             model.addAttribute("loginError", "Email hoặc mật khẩu không đúng, hoặc tài khoản đã bị khóa");

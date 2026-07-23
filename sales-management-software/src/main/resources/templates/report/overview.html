@@ -17,7 +17,7 @@
         <h1 class="sub-nav__title">Báo cáo Tổng hợp</h1>
     </div>
 
-    <main class="page-content">
+    <main class="page-wrap">
 
         <form action="/reports/overview" method="get" class="search-bar search-bar-center mb-4">
             <select name="branchId" class="filter-select" th:if="${isOwner}">
@@ -39,7 +39,20 @@
 
         <!-- Phần Lợi nhuận và Dòng tiền -->
         <th:block th:if="${isManager}">
-            <h2 class="mb-3 mt-4" style="font-size: 1.25rem; font-weight: 600;">Lợi nhuận & Dòng tiền</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; margin-top: 2rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <h2 class="t-lead" style="margin: 0; font-weight: 600;">Lợi nhuận & Dòng tiền</h2>
+                    <a th:href="@{/reports/cashflow(branchId=${selectedBranchId}, startDate=${startDate}, endDate=${endDate})}" class="btn btn-secondary btn-secondary--sm" style="padding: 4px 12px; font-size: 13px;">Chi tiết</a>
+                </div>
+                <div>
+                    <select id="chartTypeSelect" class="filter-select" style="padding: 0.25rem 0.5rem; font-size: 14px;">
+                        <option value="bar">Biểu đồ kết hợp (Cột & Đường)</option>
+                        <option value="line">Biểu đồ Đường (Line)</option>
+                        <option value="bar-only">Biểu đồ Cột (Bar)</option>
+                        <option value="pie">Biểu đồ Tròn (Pie)</option>
+                    </select>
+                </div>
+            </div>
             
             <div class="stats-row">
                 <div class="stat-card">
@@ -61,41 +74,6 @@
             </div>
         </th:block>
 
-        <!-- Phần Doanh số Nhân viên -->
-        <h2 class="mb-3 mt-5" style="font-size: 1.25rem; font-weight: 600;">Thành tích Nhân viên</h2>
-        
-        <div class="report-table-container">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th style="width: 50px;">STT</th>
-                        <th>Mã NV</th>
-                        <th>Tên nhân viên</th>
-                        <th>Chi nhánh</th>
-                        <th style="text-align: center;">Số lượng đơn hàng</th>
-                        <th style="text-align: right;">Tổng doanh thu</th>
-                        <th style="text-align: center; width: 100px;">Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:if="${#lists.isEmpty(employeeSalesData)}">
-                        <td colspan="7" style="text-align: center; color: #666; padding: 2rem;">Không có dữ liệu trong khoảng thời gian này.</td>
-                    </tr>
-                    <tr th:each="row, iterStat : ${employeeSalesData}">
-                        <td th:text="${iterStat.count}">1</td>
-                        <td th:text="${row.employeeCode}">EMP01</td>
-                        <td th:text="${row.employeeName}">Nguyễn Văn A</td>
-                        <td th:text="${row.branchName}">Chi nhánh 1</td>
-                        <td style="text-align: center;" th:text="${row.totalOrders}">10</td>
-                        <td style="text-align: right; font-weight: bold; color: #34c759;" th:text="${#numbers.formatDecimal(row.totalSales, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</td>
-                        <td style="text-align: center;">
-                            <a th:href="@{/reports/employee-sales/{id}(id=${row.employeeId}, branchId=${selectedBranchId}, startDate=${startDate}, endDate=${endDate})}" class="btn btn-primary btn-primary--sm" style="padding: 4px 8px; font-size: 12px;">Chi tiết</a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
     </main>
 
     <script th:inline="javascript">
@@ -104,7 +82,10 @@
             labels: /*[[${profitData.labels}]]*/ [],
             revenue: /*[[${profitData.revenueData}]]*/ [],
             expense: /*[[${profitData.expenseData}]]*/ [],
-            profit: /*[[${profitData.profitData}]]*/ []
+            profit: /*[[${profitData.profitData}]]*/ [],
+            totalRevenue: /*[[${profitData.totalRevenue}]]*/ 0,
+            totalExpense: /*[[${profitData.totalExpense}]]*/ 0,
+            totalProfit: /*[[${profitData.netProfit}]]*/ 0
         };
         /*]]>*/
     </script>

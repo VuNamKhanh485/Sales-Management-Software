@@ -42,13 +42,19 @@
                     <span class="badge" th:each="b : ${branches}" th:if="${b.id == selectedBranchId}" th:text="${b.name}">Chi nhánh</span>
                 </th:block>
 
-                <select id="employeeSelect" name="employeeId" class="filter-select">
-                    <option value="">-- Tất cả nhân viên --</option>
-                    <option th:each="e : ${employees}" 
-                            th:if="${selectedBranchId == null || (e.branch != null && e.branch.id == selectedBranchId)}"
-                            th:attr="data-branch-id=${e.branch != null ? e.branch.id : ''}"
-                            th:value="${e.id}" th:text="${e.fullName}" th:selected="${e.id == selectedEmployeeId}"></option>
-                </select>
+                <th:block th:if="${isManager}">
+                    <select id="employeeSelect" name="employeeId" class="filter-select">
+                        <option value="">-- Tất cả nhân viên --</option>
+                        <option th:each="e : ${employees}" 
+                                th:if="${selectedBranchId == null || (e.branch != null && e.branch.id == selectedBranchId)}"
+                                th:attr="data-branch-id=${e.branch != null ? e.branch.id : ''}"
+                                th:value="${e.id}" th:text="${e.fullName}" th:selected="${e.id == selectedEmployeeId}"></option>
+                    </select>
+                </th:block>
+                <th:block th:if="${!isManager}">
+                    <input type="hidden" name="employeeId" id="employeeSelect" th:value="${selectedEmployeeId}" />
+                    <span class="badge" th:each="e : ${employees}" th:if="${e.id == selectedEmployeeId}" th:text="${e.fullName}">Nhân viên</span>
+                </th:block>
                 
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <input type="date" name="startDate" class="form-input" style="width: auto;" th:value="${startDate}">

@@ -48,7 +48,7 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
             @Param("keyword") String keyword);
 
     @Query("SELECT o FROM OrderTransaction o WHERE " +
-           "(:branchId IS NULL OR o.branchId = :branchId) AND " +
+           "(:branchId IS NULL OR o.branchId = :branchId OR (o.transactionType = 'TRANSFER' AND o.fromBranchId = :branchId)) AND " +
            "o.status = 'COMPLETED' AND " +
            "o.createdAt >= :startDate AND o.createdAt <= :endDate " +
            "ORDER BY o.createdAt ASC")

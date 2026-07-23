@@ -161,6 +161,92 @@ public class ReportController {
         return "report/overview";
     }
 
+    @GetMapping("/cashflow")
+    public String showCashflowDetails(
+            @RequestParam(value = "branchId", required = false) Long branchId,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            Model model,
+            HttpSession session) {
+
+        SessionUser user = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
+        if (user != null && !user.hasRole("OWNER")) {
+            branchId = user.getBranchId();
+        }
+
+        if (startDate == null) {
+            startDate = LocalDate.now().minusDays(30);
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now();
+        }
+
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
+
+        List<com.g4fpt.sms.report.dto.CashflowDetailDTO> cashflowData = reportService.getDetailedCashflow(branchId, startDateTime, endDateTime);
+        List<Branch> branches = branchService.getAll();
+
+        boolean isManager = user != null && user.hasAnyRole("OWNER", "BRANCH_MANAGER");
+        boolean isOwner = user != null && user.hasRole("OWNER");
+
+        java.math.BigDecimal totalIn = java.math.BigDecimal.ZERO;
+        java.math.BigDecimal totalOut = java.math.BigDecimal.ZERO;
+        java.math.BigDecimal totalSalesIn = java.math.BigDecimal.ZERO;
+        java.math.BigDecimal totalCashbookIn = java.math.BigDecimal.ZERO;
+        java.math.BigDecimal totalTransferIn = java.math.BigDecimal.ZERO;
+        java.math.BigDecimal totalImportOut = java.math.BigDecimal.ZERO;
+        java.math.BigDecimal totalReturnOut = java.math.BigDecimal.ZERO;
+        java.math.BigDecimal totalCashbookOut = java.math.BigDecimal.ZERO;
+        java.math.BigDecimal totalTransferOut = java.math.BigDecimal.ZERO;
+
+        for (com.g4fpt.sms.report.dto.CashflowDetailDTO dto : cashflowData) {
+            java.math.BigDecimal amountIn = dto.getAmountIn() != null ? dto.getAmountIn() : java.math.BigDecimal.ZERO;
+            java.math.BigDecimal amountOut = dto.getAmountOut() != null ? dto.getAmountOut() : java.math.BigDecimal.ZERO;
+            
+            totalIn = totalIn.add(amountIn);
+            totalOut = totalOut.add(amountOut);
+
+            if ("Bán hàng".equals(dto.getType())) {
+                totalSalesIn = totalSalesIn.add(amountIn);
+            } else if ("Sổ quỹ - Thu".equals(dto.getType())) {
+                totalCashbookIn = totalCashbookIn.add(amountIn);
+            } else if ("Chuyển kho (Xuất)".equals(dto.getType())) {
+                totalTransferIn = totalTransferIn.add(amountIn);
+            } else if ("Nhập hàng".equals(dto.getType())) {
+                totalImportOut = totalImportOut.add(amountOut);
+            } else if ("Trả hàng".equals(dto.getType())) {
+                totalReturnOut = totalReturnOut.add(amountOut);
+            } else if ("Sổ quỹ - Chi".equals(dto.getType())) {
+                totalCashbookOut = totalCashbookOut.add(amountOut);
+            } else if ("Chuyển kho (Nhập)".equals(dto.getType())) {
+                totalTransferOut = totalTransferOut.add(amountOut);
+            }
+        }
+
+        model.addAttribute("cashflowData", cashflowData);
+        model.addAttribute("totalIn", totalIn);
+        model.addAttribute("totalOut", totalOut);
+        model.addAttribute("netProfit", totalIn.subtract(totalOut));
+        
+        model.addAttribute("totalSalesIn", totalSalesIn);
+        model.addAttribute("totalCashbookIn", totalCashbookIn);
+        model.addAttribute("totalTransferIn", totalTransferIn);
+        model.addAttribute("totalImportOut", totalImportOut);
+        model.addAttribute("totalReturnOut", totalReturnOut);
+        model.addAttribute("totalCashbookOut", totalCashbookOut);
+        model.addAttribute("totalTransferOut", totalTransferOut);
+        
+        model.addAttribute("branches", branches);
+        model.addAttribute("selectedBranchId", branchId);
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("isManager", isManager);
+        model.addAttribute("isOwner", isOwner);
+
+        return "report/cashflow-details";
+    }
+
     @GetMapping("/employee-sales/{employeeId}")
     public String showEmployeeSalesDetails(
             @PathVariable Long employeeId,

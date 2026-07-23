@@ -63,6 +63,22 @@ public class ReportServiceImpl implements ReportService {
             } else if ("IMPORT".equals(tx.getTransactionType()) || "RETURN".equals(tx.getTransactionType())) {
                 totalExpense = totalExpense.add(tx.getFinalAmount());
                 expenseByDate.put(dateKey, expenseByDate.get(dateKey).add(tx.getFinalAmount()));
+            } else if ("TRANSFER".equals(tx.getTransactionType())) {
+                if (branchId == null) {
+                    totalRevenue = totalRevenue.add(tx.getFinalAmount());
+                    revenueByDate.put(dateKey, revenueByDate.get(dateKey).add(tx.getFinalAmount()));
+                    totalExpense = totalExpense.add(tx.getFinalAmount());
+                    expenseByDate.put(dateKey, expenseByDate.get(dateKey).add(tx.getFinalAmount()));
+                } else {
+                    if (branchId.equals(tx.getFromBranchId())) {
+                        totalRevenue = totalRevenue.add(tx.getFinalAmount());
+                        revenueByDate.put(dateKey, revenueByDate.get(dateKey).add(tx.getFinalAmount()));
+                    }
+                    if (branchId.equals(tx.getToBranchId())) {
+                        totalExpense = totalExpense.add(tx.getFinalAmount());
+                        expenseByDate.put(dateKey, expenseByDate.get(dateKey).add(tx.getFinalAmount()));
+                    }
+                }
             }
         }
 
@@ -106,6 +122,101 @@ public class ReportServiceImpl implements ReportService {
         result.put("profitData", profitData);
 
         return result;
+    }
+
+    @Override
+    public List<com.g4fpt.sms.report.dto.CashflowDetailDTO> getDetailedCashflow(Long branchId, LocalDateTime startDate, LocalDateTime endDate) {
+        List<OrderTransaction> transactions = orderTransactionRepository.findCompletedTransactionsForReport(branchId, startDate, endDate);
+        
+        List<CashbookTransaction> cashbookTransactions;
+        if (branchId != null) {
+            cashbookTransactions = cashbookTransactionRepository.findByBranchIdAndCreatedAtBetweenOrderByCreatedAtAsc(branchId, startDate, endDate);
+        } else {
+            cashbookTransactions = cashbookTransactionRepository.findByCreatedAtBetweenOrderByCreatedAtAsc(startDate, endDate);
+        }
+
+        List<com.g4fpt.sms.report.dto.CashflowDetailDTO> details = new ArrayList<>();
+
+        for (OrderTransaction tx : transactions) {
+            com.g4fpt.sms.report.dto.CashflowDetailDTO dto = new com.g4fpt.sms.report.dto.CashflowDetailDTO();
+            dto.setCreatedAt(tx.getCreatedAt());
+            dto.setCode(tx.getCode());
+            
+            if ("SALE".equals(tx.getTransactionType())) {
+                dto.setType("Bán hàng");
+                dto.setAmountIn(tx.getFinalAmount());
+                dto.setAmountOut(BigDecimal.ZERO);
+            } else if ("IMPORT".equals(tx.getTransactionType())) {
+                dto.setType("Nhập hàng");
+                dto.setAmountIn(BigDecimal.ZERO);
+                dto.setAmountOut(tx.getFinalAmount());
+            } else if ("RETURN".equals(tx.getTransactionType())) {
+                dto.setType("Trả hàng");
+                dto.setAmountIn(BigDecimal.ZERO);
+                dto.setAmountOut(tx.getFinalAmount());
+            } else if ("TRANSFER".equals(tx.getTransactionType())) {
+                if (branchId == null) {
+                    // Record both sides for global view
+                    com.g4fpt.sms.report.dto.CashflowDetailDTO dtoOut = new com.g4fpt.sms.report.dto.CashflowDetailDTO();
+                    dtoOut.setCreatedAt(tx.getCreatedAt());
+                    dtoOut.setCode(tx.getCode());
+                    dtoOut.setType("Chuyển kho (Xuất)");
+                    dtoOut.setAmountIn(tx.getFinalAmount());
+                    dtoOut.setAmountOut(BigDecimal.ZERO);
+                    dtoOut.setDescription("Thu tiền chuyển kho cho chi nhánh khác");
+                    details.add(dtoOut);
+                    
+                    com.g4fpt.sms.report.dto.CashflowDetailDTO dtoIn = new com.g4fpt.sms.report.dto.CashflowDetailDTO();
+                    dtoIn.setCreatedAt(tx.getCreatedAt());
+                    dtoIn.setCode(tx.getCode());
+                    dtoIn.setType("Chuyển kho (Nhập)");
+                    dtoIn.setAmountIn(BigDecimal.ZERO);
+                    dtoIn.setAmountOut(tx.getFinalAmount());
+                    dtoIn.setDescription("Trả tiền nhận hàng chuyển kho");
+                    details.add(dtoIn);
+                    continue;
+                } else {
+                    if (branchId.equals(tx.getFromBranchId())) {
+                        dto.setType("Chuyển kho (Xuất)");
+                        dto.setAmountIn(tx.getFinalAmount());
+                        dto.setAmountOut(BigDecimal.ZERO);
+                        dto.setDescription("Thu tiền chuyển kho");
+                    } else if (branchId.equals(tx.getToBranchId())) {
+                        dto.setType("Chuyển kho (Nhập)");
+                        dto.setAmountIn(BigDecimal.ZERO);
+                        dto.setAmountOut(tx.getFinalAmount());
+                        dto.setDescription("Trả tiền nhận hàng chuyển kho");
+                    } else {
+                        continue;
+                    }
+                }
+            } else {
+                continue; // Ignore other types if any
+            }
+            dto.setDescription(tx.getNote());
+            details.add(dto);
+        }
+
+        for (CashbookTransaction ctx : cashbookTransactions) {
+            com.g4fpt.sms.report.dto.CashflowDetailDTO dto = new com.g4fpt.sms.report.dto.CashflowDetailDTO();
+            dto.setCreatedAt(ctx.getCreatedAt());
+            dto.setCode(ctx.getReferenceCode() != null ? ctx.getReferenceCode() : "CB-" + ctx.getId());
+            
+            if ("IN".equals(ctx.getTransactionType())) {
+                dto.setType("Sổ quỹ - Thu");
+                dto.setAmountIn(ctx.getAmount());
+                dto.setAmountOut(BigDecimal.ZERO);
+            } else if ("OUT".equals(ctx.getTransactionType())) {
+                dto.setType("Sổ quỹ - Chi");
+                dto.setAmountIn(BigDecimal.ZERO);
+                dto.setAmountOut(ctx.getAmount());
+            }
+            dto.setDescription(ctx.getDescription());
+            details.add(dto);
+        }
+
+        details.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt())); // Mới nhất lên đầu
+        return details;
     }
 
     @Override

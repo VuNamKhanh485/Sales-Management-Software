@@ -3,6 +3,7 @@ package com.g4fpt.sms.payment.controller;
 import com.g4fpt.sms.auth.dto.SessionUser;
 import com.g4fpt.sms.auth.util.SessionConstants;
 import com.g4fpt.sms.branch.entity.Branch;
+import com.g4fpt.sms.branch.entity.BranchStatus;
 import com.g4fpt.sms.branch.service.BranchService;
 import com.g4fpt.sms.payment.dto.CashbookDTO;
 import com.g4fpt.sms.payment.entity.CashbookTransaction;
@@ -17,6 +18,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/cashbook")
@@ -37,7 +39,7 @@ public class CashbookController {
             HttpSession session) {
 
         SessionUser user = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
-        if (user != null && ("BRANCH_MANAGER".equals(user.getRoleName()) || "CASHIER".equals(user.getRoleName()))) {
+        if (user != null && !user.hasRole("OWNER")) {
             if (branchId == null) {
                 branchId = user.getBranchId(); // Default to their branch
             }
@@ -72,7 +74,7 @@ public class CashbookController {
             HttpSession session) {
 
         SessionUser user = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
-        if (user != null && ("BRANCH_MANAGER".equals(user.getRoleName()) || "CASHIER".equals(user.getRoleName()))) {
+        if (user != null && !user.hasRole("OWNER")) {
             if (branchId == null) {
                 branchId = user.getBranchId();
             }
@@ -92,19 +94,24 @@ public class CashbookController {
     @GetMapping("/create")
     public String showCreateForm(Model model, HttpSession session, RedirectAttributes redirectAttributes) {
         SessionUser user = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
-        
-        if (user == null || (!"SYSTEM_OWNER".equals(user.getRoleName()) && !"BRANCH_MANAGER".equals(user.getRoleName()))) {
+
+        if (user == null || !user.hasAnyRole("OWNER", "BRANCH_MANAGER")) {
             redirectAttributes.addFlashAttribute("errorMessage", "Bạn không có quyền tạo phiếu thu/chi.");
             return "redirect:/cashbook";
         }
-        
+
         CashbookDTO dto = new CashbookDTO();
-        if ("BRANCH_MANAGER".equals(user.getRoleName())) {
+        if (user.hasRole("BRANCH_MANAGER")) {
             dto.setBranchId(user.getBranchId());
         }
-        
+
         model.addAttribute("cashbookDTO", dto);
-        model.addAttribute("branches", branchService.getAll());
+
+        List<Branch> activeBranches = branchService.getAll().stream()
+                .filter(b -> b.getStatus() == BranchStatus.ACTIVE)
+                .collect(Collectors.toList());
+        model.addAttribute("branches", activeBranches);
+
         model.addAttribute("sessionUser", user);
         return "payment/cashbook/form";
     }
@@ -116,16 +123,16 @@ public class CashbookController {
             RedirectAttributes redirectAttributes) {
 
         SessionUser user = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
-        
-        if (user == null || (!"SYSTEM_OWNER".equals(user.getRoleName()) && !"BRANCH_MANAGER".equals(user.getRoleName()))) {
+
+        if (user == null || !user.hasAnyRole("OWNER", "BRANCH_MANAGER")) {
             redirectAttributes.addFlashAttribute("errorMessage", "Bạn không có quyền tạo phiếu thu/chi.");
             return "redirect:/cashbook";
         }
-        
+
         Long currentUserId = user.getId();
-        
+
         // Force branch id for Branch Manager to prevent tampering
-        if ("BRANCH_MANAGER".equals(user.getRoleName())) {
+        if (user.hasRole("BRANCH_MANAGER")) {
             dto.setBranchId(user.getBranchId());
         }
 

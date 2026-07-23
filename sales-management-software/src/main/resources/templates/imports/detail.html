@@ -7,33 +7,48 @@
     <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
     <link rel="stylesheet" th:href="@{/css/payment/cashbook.css}">
     <style>
-        .reject-reason-box {
-            display: none;
-            flex-direction: column;
-            gap: var(--sp-sm);
-            background-color: #fef2f2;
-            padding: var(--sp-lg);
-            border-radius: var(--r-sm);
-            border: 1px dashed #fca5a5;
-            margin-top: var(--sp-md);
-            animation: fadeIn 0.3s ease;
+        .info-label {
+            font-size: 12px; 
+            color: var(--ink-muted-48); 
+            margin-bottom: 4px; 
+            text-transform: uppercase; 
+            font-weight: 600; 
+            letter-spacing: 0.05em;
+        }
+        .info-value {
+            font-size: 15px; 
+            font-weight: 500; 
+            color: var(--ink);
         }
         
-        .reject-reason-box.active {
+        /* Responsive layout */
+        .detail-layout {
             display: flex;
+            gap: 24px;
+            align-items: flex-start;
+            max-width: 1200px;
+            margin: 32px auto;
+            padding: 0 var(--sp-lg);
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .detail-sidebar {
+            flex: 0 0 380px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .detail-main {
+            flex: 1;
+            min-width: 0;
         }
         
-        /* Table hover & zebra effect */
-        .modern-table tbody tr:nth-child(even) {
-            background-color: var(--surface-pearl);
-        }
-        .modern-table tbody tr:hover {
-            background-color: var(--canvas-parchment);
+        @media (max-width: 900px) {
+            .detail-layout {
+                flex-direction: column;
+            }
+            .detail-sidebar, .detail-main {
+                flex: 1 1 auto;
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -43,139 +58,137 @@
 
     <div class="sub-nav">
         <div style="display: flex; align-items: center;">
-            <a href="/imports" class="sub-nav__back">Quản lý nhập hàng</a>
-            <span class="sub-nav__sep">›</span>
-            <h1 class="sub-nav__title">Chi tiết phiếu nhập: <span style="color: var(--primary);" th:text="${importTx.code}">IMP-XXX</span></h1>
-        </div>
-        
-        <div style="margin-left: auto; display: flex; gap: 8px; align-items: center;" th:if="${importTx.status == 'PENDING' and sessionUser != null and sessionUser.hasAnyRole('OWNER', 'WAREHOUSE_STAFF')}">
-            <a th:href="@{/imports/edit/{id}(id=${importTx.id})}" class="btn" style="background-color: var(--surface-pearl); color: var(--ink-dark); border: 1px solid var(--hairline); border-radius: var(--r-md); height: 36px; padding: 0 var(--sp-md); display: inline-flex; align-items: center; gap: 8px; font-weight: 500;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                Chỉnh sửa
-            </a>
-            
-            <form th:action="@{/imports/{id}/reject(id=${importTx.id})}" method="post" style="margin: 0;">
-                <input type="hidden" name="reason" value="Người tạo tự hủy phiếu" />
-                <button type="submit" class="btn" style="background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: var(--r-md); height: 36px; padding: 0 var(--sp-md); display: inline-flex; align-items: center; gap: 8px; font-weight: 500;" onclick="return confirm('Bạn có chắc chắn muốn HỦY phiếu nhập này không?')">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    Hủy phiếu
-                </button>
-            </form>
+            <a href="/imports" class="sub-nav__back" style="color: var(--ink-muted-48); font-weight: 500;">Quản lý nhập hàng</a>
+            <span style="margin: 0 12px; color: var(--ink-muted-48); font-size: 18px;">›</span>
+            <h1 class="sub-nav__title">Chi tiết phiếu: <span style="color: var(--primary);" th:text="${importTx.code}">IMP-XXX</span></h1>
         </div>
     </div>
 
-    <main class="page-content" style="max-width: 1400px; margin: 0 auto;">
+    <main class="detail-layout">
 
-        <div style="display: flex; flex-direction: column; gap: var(--sp-lg);">
-
-            <!-- 1. THÔNG TIN CHUNG (TOP) -->
-            <div class="card-panel" style="padding: var(--sp-lg);">
-                <h2 class="form-card__title" style="margin-bottom: var(--sp-md);">Thông tin chung</h2>
+        <!-- CỘT TRÁI: Thông tin & Hành động -->
+        <aside class="detail-sidebar">
+            
+            <!-- Khối Thông tin chung -->
+            <div class="card-panel" style="padding: 24px; margin-bottom: 0;">
+                <h2 class="form-card__title" style="margin-bottom: 24px; font-size: 20px;">Thông tin phiếu nhập</h2>
                 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-lg);">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
                     <div>
-                        <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: var(--sp-xxs);">Chi nhánh nhập:</div>
-                        <div style="font-weight: 500; font-size: 15px;" th:text="${importTx.branchName}">Chi nhánh A</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: var(--sp-xxs);">Nhà cung cấp:</div>
-                        <div style="font-weight: 500; font-size: 15px;" th:text="${importTx.supplierName}">Nhà cung cấp X</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: var(--sp-xxs);">Người tạo phiếu:</div>
-                        <div style="font-weight: 500; font-size: 15px;" th:text="${importTx.creatorName}">Nguyễn Văn B</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: var(--sp-xxs);">Ngày tạo:</div>
-                        <div style="font-weight: 500; font-size: 15px;" th:text="${#temporals.format(importTx.createdAt, 'dd-MM-yyyy HH:mm')}">28-06-2026 10:00</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: var(--sp-xxs);">Trạng thái:</div>
+                        <div class="info-label">Trạng thái</div>
                         <div>
-                            <span th:if="${importTx.status == 'PENDING'}" class="badge badge-inactive" style="background: #fef3c7; color: #d97706; border-color: #fef3c7;">Chờ duyệt</span>
-                            <span th:if="${importTx.status == 'COMPLETED'}" class="badge badge-active" style="background: #dcfce7; color: #166534; border-color: #dcfce7;">Hoàn thành (Đã nhập kho)</span>
-                            <span th:if="${importTx.status == 'CANCELLED'}" class="badge" style="background: #fee2e2; color: #991b1b; border-color: #fee2e2;">Đã hủy (Từ chối)</span>
+                            <span th:if="${importTx.status == 'PENDING'}" class="badge badge-inactive">Chờ duyệt</span>
+                            <span th:if="${importTx.status == 'COMPLETED'}" class="badge badge-active">Hoàn thành (Đã nhập kho)</span>
+                            <span th:if="${importTx.status == 'CANCELLED'}" class="badge" style="background: #fee2e2; color: #991b1b;">Đã hủy (Từ chối)</span>
                         </div>
                     </div>
-                    <div style="grid-column: span 3;">
-                        <div style="font-size: 13px; color: var(--ink-muted-48); margin-bottom: var(--sp-xxs);">Ghi chú / Lý do:</div>
-                        <div style="font-weight: 500; font-size: 15px;" th:text="${importTx.note != null and !importTx.note.empty ? importTx.note : 'Không có ghi chú'}">...</div>
+
+                    <div>
+                        <div class="info-label">Chi nhánh nhập</div>
+                        <div class="info-value" th:text="${importTx.branchName}">Chi nhánh A</div>
+                    </div>
+
+                    <div>
+                        <div class="info-label">Nhà cung cấp</div>
+                        <div class="info-value" th:text="${importTx.supplierName}">Nhà cung cấp X</div>
+                    </div>
+
+                    <div>
+                        <div class="info-label">Người tạo phiếu</div>
+                        <div class="info-value" th:text="${importTx.creatorName}">Nguyễn Văn B</div>
                     </div>
                     
-                    <div style="grid-column: 1 / -1; background-color: rgba(0, 102, 204, 0.05); border: 1px solid rgba(0, 102, 204, 0.15); border-radius: var(--r-sm); padding: var(--sp-md) var(--sp-lg); display: flex; justify-content: space-between; align-items: center; margin-top: var(--sp-xs);">
-                        <div style="color: var(--primary); font-size: 15px; font-weight: 600;">Tổng giá trị phiếu nhập</div>
-                        <div class="value-cash" style="color: var(--primary); font-size: 24px; font-weight: 700;" th:text="${#numbers.formatDecimal(importTx.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">10,000,000 đ</div>
+                    <div>
+                        <div class="info-label">Ngày tạo</div>
+                        <div class="info-value" th:text="${#temporals.format(importTx.createdAt, 'dd-MM-yyyy HH:mm')}">28-06-2026 10:00</div>
+                    </div>
+
+                    <div style="padding-top: 16px; border-top: 1px solid var(--divider-soft);">
+                        <div class="info-label">Tổng tiền phiếu nhập</div>
+                        <div class="value-cash" style="font-size: 28px; font-weight: 700; color: var(--primary); letter-spacing: -0.5px;" th:text="${#numbers.formatDecimal(importTx.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">10,000,000 đ</div>
+                    </div>
+
+                    <div style="padding-top: 16px; border-top: 1px solid var(--divider-soft);">
+                        <div class="info-label">Ghi chú / Lý do</div>
+                        <div style="font-size: 14px; color: var(--ink-muted-48); line-height: 1.5;" th:text="${importTx.note != null and !importTx.note.empty ? importTx.note : 'Không có ghi chú'}">...</div>
                     </div>
                 </div>
             </div>
 
-            <!-- 2. DANH SÁCH SẢN PHẨM (MIDDLE) -->
-            <div class="card-panel">
-                <div style="padding: var(--sp-md) var(--sp-lg); border-bottom: 1px solid var(--hairline);">
-                    <h2 class="form-card__title" style="margin: 0;">Danh sách sản phẩm nhập hàng</h2>
+            <!-- Khối Phê duyệt (Chỉ hiển thị khi PENDING và role OWNER) -->
+            <div class="card-panel" style="padding: 24px; background: #fffaf0; border: 1px solid #fbd38d; margin-bottom: 0;"
+                 th:if="${importTx.status == 'PENDING' and sessionUser != null and sessionUser.hasRole('OWNER')}">
+                <h2 class="form-card__title" style="margin-bottom: 8px; font-size: 18px; color: #c05621;">Phê duyệt phiếu nhập</h2>
+                <p style="font-size: 14px; color: #9c4221; margin-bottom: 24px; line-height: 1.4;">Vui lòng kiểm tra kỹ danh sách hàng hóa bên phải trước khi quyết định.</p>
+
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <form th:action="@{/imports/{id}/approve(id=${importTx.id})}" method="post">
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 15px; justify-content: center; background: #0066cc; border-radius: var(--r-md);" onclick="return confirm('Bạn chắc chắn muốn DUYỆT phiếu này và CỘNG TỒN KHO?')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 6px;">
+                                <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/>
+                            </svg>
+                            Đồng ý duyệt nhập hàng
+                        </button>
+                    </form>
+
+                    <form th:action="@{/imports/{id}/reject(id=${importTx.id})}" method="post">
+                        <button type="submit" class="btn" style="width: 100%; padding: 12px; font-size: 15px; justify-content: center; background: transparent; border: 1px solid #e53e3e; color: #e53e3e; border-radius: var(--r-md);" onclick="return confirm('Bạn chắc chắn muốn HỦY phiếu yêu cầu nhập hàng này?')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 6px;">
+                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                            </svg>
+                            Từ chối phiếu
+                        </button>
+                    </form>
+
+                    <div style="height: 1px; background: rgba(0,0,0,0.06); margin: 8px 0;"></div>
+
+                    <form th:action="@{/imports/{id}/reject(id=${importTx.id})}" method="post" style="display: flex; flex-direction: column; gap: 8px;">
+                        <input type="text" name="reason" class="form-input" placeholder="Lý do từ chối (tùy chọn)..." style="font-size: 14px; background: #ffffff;">
+                        <button type="submit" class="btn" style="width: 100%; padding: 10px; font-size: 14px; justify-content: center; background: #ffffff; border: 1px solid var(--hairline); color: var(--ink-muted-80); border-radius: var(--r-md);">
+                            Từ chối kèm lý do
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- CỘT PHẢI: Bảng sản phẩm -->
+        <section class="detail-main">
+            <div class="card-panel" style="padding: 0; overflow: hidden; margin-bottom: 0;">
+                <div style="padding: 24px; border-bottom: 1px solid var(--hairline); background: var(--surface-pearl);">
+                    <h2 class="form-card__title" style="margin: 0; font-size: 20px;">Danh sách sản phẩm nhập hàng</h2>
                 </div>
                 <div class="table-scroll">
-                    <table class="modern-table" style="width: 100%; border-collapse: collapse;">
-                        <thead style="background-color: var(--surface-pearl);">
+                    <table>
+                        <thead>
                         <tr>
-                            <th style="padding: var(--sp-sm) var(--sp-md); font-size: 13px; font-weight: 600; color: var(--ink-muted-48); width: 60px; text-align: center; border-bottom: 1px solid var(--hairline);">STT</th>
-                            <th style="padding: var(--sp-sm) var(--sp-md); font-size: 13px; font-weight: 600; color: var(--ink-muted-48); text-align: left; border-bottom: 1px solid var(--hairline);">Tên sản phẩm</th>
-                            <th style="padding: var(--sp-sm) var(--sp-md); font-size: 13px; font-weight: 600; color: var(--ink-muted-48); text-align: left; border-bottom: 1px solid var(--hairline);">SKU</th>
-                            <th style="padding: var(--sp-sm) var(--sp-md); font-size: 13px; font-weight: 600; color: var(--ink-muted-48); text-align: center; border-bottom: 1px solid var(--hairline);">Đơn vị tính</th>
-                            <th style="padding: var(--sp-sm) var(--sp-md); font-size: 13px; font-weight: 600; color: var(--ink-muted-48); text-align: center; border-bottom: 1px solid var(--hairline);">Số lượng</th>
-                            <th style="padding: var(--sp-sm) var(--sp-md); font-size: 13px; font-weight: 600; color: var(--ink-muted-48); text-align: right; border-bottom: 1px solid var(--hairline);">Giá nhập</th>
-                            <th style="padding: var(--sp-sm) var(--sp-md); font-size: 13px; font-weight: 600; color: var(--ink-muted-48); text-align: right; border-bottom: 1px solid var(--hairline);">Thành tiền</th>
+                            <th style="width: 50px; text-align: center;">STT</th>
+                            <th>Tên sản phẩm</th>
+                            <th>SKU</th>
+                            <th>Đơn vị</th>
+                            <th style="text-align: right;">Số lượng</th>
+                            <th style="text-align: right;">Giá nhập</th>
+                            <th style="text-align: right; padding-right: 24px;">Thành tiền</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="item, stat : ${details}" style="border-bottom: 1px solid var(--hairline);">
-                            <td style="padding: var(--sp-md); text-align: center; color: var(--ink-muted-48); font-weight: 500;" th:text="${stat.count}">1</td>
-                            <td style="padding: var(--sp-md); font-weight: 600;" th:text="${item.productName}">Sản phẩm A</td>
-                            <td style="padding: var(--sp-md);">
-                                <span class="badge" style="background: var(--surface-pearl); color: var(--ink-muted-48); border: 1px solid var(--hairline); font-family: monospace;" th:text="${item.sku}">SKU-123</span>
+                        <tr th:each="item, stat : ${details}">
+                            <td style="text-align: center; color: var(--ink-muted-48);" th:text="${stat.count}">1</td>
+                            <td style="font-weight: 500;" th:text="${item.productName}">Sản phẩm A</td>
+                            <td>
+                                <span class="badge badge-inactive" style="background: var(--canvas-parchment); color: var(--ink-muted-80);" th:text="${item.sku}">SKU-123</span>
                             </td>
-                            <td style="padding: var(--sp-md); text-align: center;" th:text="${item.unitName}">Hộp</td>
-                            <td style="padding: var(--sp-md); text-align: center; font-weight: 600;" th:text="${item.quantity}">10</td>
-                            <td style="padding: var(--sp-md); text-align: right; color: var(--ink-muted-48);" th:text="${#numbers.formatDecimal(item.importPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</td>
-                            <td class="value-cash" style="padding: var(--sp-md); text-align: right; font-weight: 600; color: var(--primary);" th:text="${#numbers.formatDecimal(item.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">1,000,000 đ</td>
+                            <td style="color: var(--ink-muted-80);" th:text="${item.unitName}">Hộp</td>
+                            <td style="text-align: right; font-weight: 600;" th:text="${item.quantity}">10</td>
+                            <td style="text-align: right; color: var(--ink-muted-80);" th:text="${#numbers.formatDecimal(item.importPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</td>
+                            <td class="value-cash" style="text-align: right; padding-right: 24px; font-weight: 600;" th:text="${#numbers.formatDecimal(item.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">1,000,000 đ</td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-
-            <!-- 3. PHÊ DUYỆT (BOTTOM) -->
-            <div class="card-panel" style="padding: var(--sp-lg); border-left: 4px solid var(--warning);"
-                 th:if="${importTx.status == 'PENDING' and sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}">
-                <h2 class="form-card__title" style="margin-bottom: var(--sp-xs);">Phê duyệt / Từ chối phiếu nhập</h2>
-                <p style="font-size: 14px; color: var(--ink-muted-48); margin-bottom: var(--sp-lg);">Vui lòng kiểm tra kỹ danh sách hàng hóa và tổng tiền trước khi phê duyệt hoặc hủy.</p>
-
-                <div style="display: flex; gap: var(--sp-lg); flex-wrap: wrap; align-items: flex-start;">
-                    <!-- Nút Phê duyệt -->
-                    <form th:action="@{/imports/{id}/approve(id=${importTx.id})}" method="post" style="flex: 1; min-width: 250px;">
-                        <button type="submit" class="btn btn-primary" style="width: 100%; border-radius: var(--r-md); height: 48px; padding: 0 var(--sp-lg); font-size: 15px; font-weight: 600; display: inline-flex; justify-content: center; align-items: center; gap: 8px;" onclick="return confirm('Bạn chắc chắn muốn DUYỆT phiếu này và CỘNG TỒN KHO?')">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            Đồng ý duyệt nhập hàng
-                        </button>
-                    </form>
-
-                    <!-- Khu vực nhập lý do từ chối luôn hiển thị -->
-                    <form th:action="@{/imports/{id}/reject(id=${importTx.id})}" method="post" style="flex: 2; min-width: 300px; display: flex; flex-direction: column; gap: var(--sp-sm); background-color: #fef2f2; padding: var(--sp-md); border-radius: var(--r-md); border: 1px dashed #fca5a5;">
-                        <div>
-                            <label for="reason" class="form-label" style="color: var(--danger); display: block; margin-bottom: var(--sp-xxs); font-weight: 500;">Lý do từ chối (Không bắt buộc):</label>
-                            <textarea id="reason" name="reason" class="form-input" rows="2" placeholder="Vui lòng nhập lý do từ chối để nhân viên biết..." style="width: 100%; padding: var(--sp-sm);"></textarea>
-                        </div>
-                        <div style="display: flex; justify-content: flex-end;">
-                            <button type="submit" class="btn" style="background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: var(--r-md); height: 40px; padding: 0 var(--sp-lg); font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;" onclick="return confirm('Xác nhận từ chối phiếu nhập này?')">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                Xác nhận Từ chối
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-        </div>
+        </section>
 
     </main>
 
