@@ -13,7 +13,6 @@ import com.g4fpt.sms.report.projection.LastImportPriceProjection;
 import com.g4fpt.sms.report.repository.InventoryReportRepository;
 import com.g4fpt.sms.report.repository.InventorySnapshotRepository;
 import com.g4fpt.sms.report.service.InventoryReportService;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -24,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -40,6 +40,9 @@ public class InventoryReportServiceImpl implements InventoryReportService {
     private final InventoryRepository inventoryRepository;
     private final InventorySnapshotRepository  inventorySnapshotRepository;
 
+    private static final LocalDateTime EPOCH = LocalDateTime.of(2000, 1, 1, 0, 0);
+    private static final int PRICE_SCALE = 4;
+    
     public List<InventoryReportDTO> generateReport(InventoryReportFilterRequest filter) {
         return switch (filter.getSnapshotType()) {
             case DAY -> generateDayReport(filter);
@@ -56,88 +59,50 @@ public class InventoryReportServiceImpl implements InventoryReportService {
         LocalDateTime toDateTime = filter.getToDate().atTime(LocalTime.MAX);
         LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
 
-        // ================== Giao dịch trong kỳ ==================
+        // ================== Giao dịch TRONG KỲ báo cáo ==================
         Map<String, InventoryMovementProjection> importInPeriod =
-                toMap(inventoryReportRepository.sumImportByPeriod(
-                        fromDateTime,
-                        toDateTime,
-                        filter.getBranchId()));
-
+                toMap(inventoryReportRepository.sumImportByPeriod(fromDateTime, toDateTime, filter.getBranchId()));
         Map<String, InventoryMovementProjection> exportInPeriod =
-                toMap(inventoryReportRepository.sumExportByPeriod(
-                        fromDateTime,
-                        toDateTime,
-                        filter.getBranchId()));
+                toMap(inventoryReportRepository.sumExportByPeriod(fromDateTime, toDateTime, filter.getBranchId()));
 
-        // ================== Giao dịch từ fromDate -> hiện tại (fallback) ==================
+        // ================== Giao dịch từ fromDate -> hiện tại (để suy ra SL tồn đầu kỳ) ==================
         Map<String, InventoryMovementProjection> importToNow =
-                toMap(inventoryReportRepository.sumImportByPeriod(
-                        fromDateTime,
-                        now,
-                        filter.getBranchId()));
-
+                toMap(inventoryReportRepository.sumImportByPeriod(fromDateTime, now, filter.getBranchId()));
         Map<String, InventoryMovementProjection> exportToNow =
-                toMap(inventoryReportRepository.sumExportByPeriod(
-                        fromDateTime,
-                        now,
-                        filter.getBranchId()));
-
-        // ================== Giá nhập gần nhất ==================
-        Map<Long, BigDecimal> lastImportPrice =
-                toPriceMap(inventoryReportRepository.findLastImportPrices(
-                        toDateTime,
-                        filter.getBranchId()));
+                toMap(inventoryReportRepository.sumExportByPeriod(fromDateTime, now, filter.getBranchId()));
 
         // ================== Tồn hiện tại ==================
-        List<Inventory> currentStocks =
-                inventoryRepository.findByFilter(
-                        filter.getBranchId(),
-                        filter.getCategoryId(),
-                        filter.getBrandId(),
-                        filter.getKeyword());
+        List<Inventory> currentStocks = inventoryRepository.findByFilter(
+                filter.getBranchId(), filter.getCategoryId(), filter.getBrandId(), filter.getKeyword());
 
-        // ================== Snapshot ==================
+        // ================== Snapshot gần nhất trước fromDate (nếu có) ==================
         SnapshotType snapshotType = resolveSnapshotType(filter.getFromDate());
-
         List<InventorySnapshot> snapshots =
-                inventorySnapshotRepository.findLatestSnapshots(
-                        snapshotType,
-                        filter.getFromDate(),
-                        filter.getBranchId());
+                inventorySnapshotRepository.findLatestSnapshots(snapshotType, filter.getFromDate(), filter.getBranchId());
 
-        Map<String, InventorySnapshot> snapshotMap =
-                snapshots.stream()
-                        .collect(Collectors.toMap(
-                                s -> buildKey(s.getBranchId(), s.getProductUnitId()),
-                                s -> s));
+        Map<String, InventorySnapshot> snapshotMap = snapshots.stream()
+                .collect(Collectors.toMap(s -> buildKey(s.getBranchId(), s.getProductUnitId()), s -> s));
 
-        LocalDate snapshotDate =
-                snapshots.isEmpty() ? null : snapshots.get(0).getSnapshotDate();
+        LocalDate snapshotDate = snapshots.isEmpty() ? null : snapshots.get(0).getSnapshotDate();
 
         Map<String, InventoryMovementProjection> importAfterSnapshot = Collections.emptyMap();
         Map<String, InventoryMovementProjection> exportAfterSnapshot = Collections.emptyMap();
 
         if (snapshotDate != null && snapshotDate.isBefore(filter.getFromDate())) {
-
             LocalDateTime snapshotTime = snapshotDate.atStartOfDay();
-
-            importAfterSnapshot =
-                    toMap(inventoryReportRepository.sumImportByPeriod(
-                            snapshotTime,
-                            fromDateTime.minusNanos(1),
-                            filter.getBranchId()));
-
-            exportAfterSnapshot =
-                    toMap(inventoryReportRepository.sumExportByPeriod(
-                            snapshotTime,
-                            fromDateTime.minusNanos(1),
-                            filter.getBranchId()));
+            importAfterSnapshot = toMap(inventoryReportRepository.sumImportByPeriod(
+                    snapshotTime, fromDateTime.minusNanos(1), filter.getBranchId()));
+            exportAfterSnapshot = toMap(inventoryReportRepository.sumExportByPeriod(
+                    snapshotTime, fromDateTime.minusNanos(1), filter.getBranchId()));
         }
+
+        // ================== Nhập lũy kế từ đầu lịch sử -> fromDate (dùng khi KHÔNG có snapshot) ==================
+        Map<String, InventoryMovementProjection> importCumulativeToFromDate =
+                toMap(inventoryReportRepository.sumImportByPeriod(EPOCH, fromDateTime.minusNanos(1), filter.getBranchId()));
 
         List<InventoryReportDTO> result = new ArrayList<>();
 
         for (Inventory inv : currentStocks) {
-
             String key = buildKey(inv.getBranchId(), inv.getProductUnitId());
 
             int openingStock;
@@ -146,65 +111,64 @@ public class InventoryReportServiceImpl implements InventoryReportService {
             InventorySnapshot snapshot = snapshotMap.get(key);
 
             if (snapshot != null) {
+                // ----- Có snapshot: tính tiếp phần phát sinh giữa snapshot và fromDate theo bình quân gia quyền -----
+                int gapOpeningStock = snapshot.getClosingStock();
+                BigDecimal gapOpeningValue = snapshot.getClosingValue();
 
-                openingStock =
-                        snapshot.getClosingStock()
-                                + getQty(importAfterSnapshot, key)
-                                - getQty(exportAfterSnapshot, key);
+                int gapImportQty = getQty(importAfterSnapshot, key);
+                BigDecimal gapImportValue = getValue(importAfterSnapshot, key);
 
-                openingValue =
-                        snapshot.getClosingValue()
-                                .add(getValue(importAfterSnapshot, key))
-                                .subtract(getValue(exportAfterSnapshot, key));
+                BigDecimal gapAvgPrice = calculateAveragePrice(
+                        gapOpeningValue.add(gapImportValue), gapOpeningStock + gapImportQty);
+
+                int gapExportQty = getQty(exportAfterSnapshot, key);
+                BigDecimal gapExportValue = gapAvgPrice.multiply(BigDecimal.valueOf(gapExportQty));
+
+                openingStock = gapOpeningStock + gapImportQty - gapExportQty;
+                openingValue = gapOpeningValue.add(gapImportValue).subtract(gapExportValue);
 
             } else {
-
+                // ----- Không có snapshot: xấp xỉ bằng đơn giá bình quân nhập lũy kế đến fromDate -----
                 int currentStock = inv.getStock();
+                openingStock = currentStock - getQty(importToNow, key) + getQty(exportToNow, key);
 
-                openingStock =
-                        currentStock
-                                - getQty(importToNow, key)
-                                + getQty(exportToNow, key);
+                int cumQty = getQty(importCumulativeToFromDate, key);
+                BigDecimal cumValue = getValue(importCumulativeToFromDate, key);
+                BigDecimal avgPriceAtFromDate = calculateAveragePrice(cumValue, cumQty);
 
-                openingValue =
-                        BigDecimal.valueOf(openingStock)
-                                .multiply(lastImportPrice.getOrDefault(
-                                        inv.getProductUnitId(),
-                                        BigDecimal.ZERO));
+                openingValue = avgPriceAtFromDate.multiply(BigDecimal.valueOf(openingStock));
             }
 
+            // ================== Tính Nhập/Xuất/Tồn cuối kỳ theo bình quân gia quyền ==================
             int stockIn = getQty(importInPeriod, key);
+            BigDecimal stockInValue = getValue(importInPeriod, key); // giá nhập thực tế, lấy nguyên từ OrderTransactionDetail
+
+            BigDecimal avgPriceThisPeriod = calculateAveragePrice(
+                    openingValue.add(stockInValue), openingStock + stockIn);
+
             int stockOut = getQty(exportInPeriod, key);
+            BigDecimal stockOutValue = avgPriceThisPeriod.multiply(BigDecimal.valueOf(stockOut)); // giá vốn xuất, KHÔNG lấy sale_price
 
-            BigDecimal stockInValue = getValue(importInPeriod, key);
-            BigDecimal stockOutValue = getValue(exportInPeriod, key);
+            int closingStock = openingStock + stockIn - stockOut;
+            BigDecimal closingValue = openingValue.add(stockInValue).subtract(stockOutValue);
 
-            int closingStock =
-                    openingStock + stockIn - stockOut;
-
-            BigDecimal closingValue =
-                    openingValue
-                            .add(stockInValue)
-                            .subtract(stockOutValue);
-
-            result.add(
-                    InventoryReportDTO.builder()
-                            .branchId(inv.getBranchId())
-                            .branchName(inv.getBranch().getName())
-                            .productUnitId(inv.getProductUnitId())
-                            .sku(inv.getProductUnit().getSku())
-                            .productName(inv.getProductUnit().getProduct().getName())
-                            .unitName(inv.getProductUnit().getUnit().getName())
-                            .categoryName(inv.getProductUnit().getProduct().getCategory().getName())
-                            .openingStock(openingStock)
-                            .openingValue(openingValue)
-                            .stockIn(stockIn)
-                            .stockInValue(stockInValue)
-                            .stockOut(stockOut)
-                            .stockOutValue(stockOutValue)
-                            .closingStock(closingStock)
-                            .closingValue(closingValue)
-                            .build());
+            result.add(InventoryReportDTO.builder()
+                    .branchId(inv.getBranchId())
+                    .branchName(inv.getBranch().getName())
+                    .productUnitId(inv.getProductUnitId())
+                    .sku(inv.getProductUnit().getSku())
+                    .productName(inv.getProductUnit().getProduct().getName())
+                    .unitName(inv.getProductUnit().getUnit().getName())
+                    .categoryName(inv.getProductUnit().getProduct().getCategory().getName())
+                    .openingStock(openingStock)
+                    .openingValue(openingValue)
+                    .stockIn(stockIn)
+                    .stockInValue(stockInValue)
+                    .stockOut(stockOut)
+                    .stockOutValue(stockOutValue)
+                    .closingStock(closingStock)
+                    .closingValue(closingValue)
+                    .build());
         }
 
         if (!filter.isGroupByBranch()) {
@@ -386,12 +350,14 @@ public class InventoryReportServiceImpl implements InventoryReportService {
         ));
     }
 
-    private Map<Long, BigDecimal> toPriceMap(List<LastImportPriceProjection> list) {
-        return list.stream().collect(Collectors.toMap(
-                LastImportPriceProjection::getProductUnitId,
-                p -> p.getImportPrice() == null ? BigDecimal.ZERO : p.getImportPrice(),
-                (a, b) -> a
-        ));
+
+    /**
+     * Tính đơn giá bình quân = giá trị / số lượng.
+     * Trả về 0 nếu số lượng <= 0 (tránh chia cho 0).
+     */
+    private BigDecimal calculateAveragePrice(BigDecimal totalValue, int totalQty) {
+        if (totalQty <= 0) return BigDecimal.ZERO;
+        return totalValue.divide(BigDecimal.valueOf(totalQty), PRICE_SCALE, RoundingMode.HALF_UP);
     }
 
     private int getQty(Map<String, InventoryMovementProjection> map, String key) {
