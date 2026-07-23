@@ -8,32 +8,19 @@ import com.g4fpt.sms.order.entity.*;
 import com.g4fpt.sms.order.repository.OrderTransactionRepository;
 import com.g4fpt.sms.order.repository.ReturnRequestRepository;
 import com.g4fpt.sms.order.service.ReturnRequestService;
-import com.g4fpt.sms.product.service.FileStorageService;
-import com.g4fpt.sms.common.enums.UploadFolder;
-import com.g4fpt.sms.product.service.FileStorageService;
-import com.g4fpt.sms.common.enums.UploadFolder;
-import com.g4fpt.sms.product.service.FileStorageService;
-import com.g4fpt.sms.common.enums.UploadFolder;
-import com.g4fpt.sms.product.service.FileStorageService;
-import com.g4fpt.sms.common.enums.UploadFolder;
-import com.g4fpt.sms.product.service.FileStorageService;
-import com.g4fpt.sms.common.enums.UploadFolder;
+import com.g4fpt.sms.product.entity.ProductUnit;
 import com.g4fpt.sms.product.service.FileStorageService;
 import com.g4fpt.sms.common.enums.UploadFolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
@@ -45,19 +32,45 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
     private final CustomerRepository customerRepository;
     private final FileStorageService fileStorageService;
 
+    // Tìm kiếm đơn hàng để trả hàng
     @Override
     public OrderTransaction searchOrderByCode(String code) {
-        return orderTransactionRepository.findByCodeWithDetails(code)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng với mã: " + code));
+        OrderTransaction order = orderTransactionRepository.findByCodeWithDetails(code).orElse(null);
+        if (order == null) {
+            throw new RuntimeException("Không tìm thấy đơn hàng mã " + code);
+        }
+
+        if (!"COMPLETED".equals(order.getStatus())) {
+            String statusVn = order.getStatus().equals("REFUNDED") ? "Đã hoàn tiền"
+                    : (order.getStatus().equals("CANCELLED") ? "Đã hủy"
+                            : (order.getStatus().equals("RETURNED") ? "Đã bị hoàn"
+                                    : (order.getStatus().equals("PENDING") ? "Chờ xử lý" : order.getStatus())));
+            throw new RuntimeException("Chỉ có thể trả các đơn hàng đã thanh toán. Trạng thái hiện tại: " + statusVn);
+        }
+
+        if (!"SALE".equals(order.getTransactionType())) {
+            String typeVn = order.getTransactionType().equals("IMPORT") ? "Nhập hàng"
+                    : (order.getTransactionType().equals("TRANSFER") ? "Chuyển kho"
+                            : (order.getTransactionType().equals("RETURN") ? "Trả hàng" : order.getTransactionType()));
+            throw new RuntimeException("Chỉ có thể trả các đơn hàng bán lẻ. Loại giao dịch hiện tại: " + typeVn);
+        }
+
+        return order;
     }
 
+    // Tạo yêu cầu trả hàng
     @Override
     @Transactional
     public ReturnRequest createReturnRequest(Long orderId, Long branchId, Long requestedBy,
-                                              String reason, List<ReturnItemInput> items,
-                                              List<MultipartFile> images) {
-        OrderTransaction order = orderTransactionRepository.findByIdWithDetails(orderId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+            String reason, List<ReturnItemInput> items,
+            List<MultipartFile> images) {
+        if (returnRequestRepository.existsByOrderIdAndStatus(orderId, "PENDING")) {
+            throw new RuntimeException("Đơn hàng này đang có yêu cầu trả hàng chờ duyệt. Không thể tạo thêm yêu cầu mới!");
+        }
+        OrderTransaction order = orderTransactionRepository.findByIdWithDetails(orderId).orElse(null);
+        if (order == null) {
+            throw new RuntimeException("Không tìm thấy đơn hàng");
+        }
 
         ReturnRequest request = ReturnRequest.builder()
                 .order(order)
@@ -68,14 +81,25 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
                 .build();
 
         for (ReturnItemInput input : items) {
-            OrderTransactionDetail detail = order.getDetails().stream()
-                    .filter(d -> d.getId().equals(input.orderDetailId()))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Chi tiết đơn hàng không hợp lệ"));
+            OrderTransactionDetail detail = null;
+            // Dùng vòng lặp for thay cho Stream.filter().findFirst()
+            for (OrderTransactionDetail d : order.getDetails()) {
+                if (d.getId().equals(input.orderDetailId())) {
+                    detail = d;
+                    break;
+                }
+            }
+
+            if (detail == null) {
+                throw new RuntimeException("Chi tiết đơn hàng không hợp lệ");
+            }
 
             if (input.quantity() <= 0 || input.quantity() > detail.getQuantity()) {
-                throw new RuntimeException("Số lượng trả không hợp lệ cho sản phẩm: "
-                        + detail.getProductUnit().getProduct().getName());
+                String productName = "Không tên";
+                if (detail.getProductUnit() != null && detail.getProductUnit().getProduct() != null) {
+                    productName = detail.getProductUnit().getProduct().getName();
+                }
+                throw new RuntimeException("Số lượng trả không hợp lệ cho sản phẩm: " + productName);
             }
 
             ReturnRequestItem rri = ReturnRequestItem.builder()
@@ -109,39 +133,49 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         return returnRequestRepository.save(request);
     }
 
+    // Lấy toàn bộ danh sách yêu cầu
     @Override
     public List<ReturnRequest> getAllRequests() {
         return returnRequestRepository.findAllByOrderByCreatedAtDesc();
     }
 
+    // Lấy yêu cầu đang chờ duyệt
     @Override
     public List<ReturnRequest> getPendingRequests() {
         return returnRequestRepository.findByStatusOrderByCreatedAtDesc("PENDING");
     }
 
+    // Đếm số lượng chờ duyệt
     @Override
     public long countPendingRequests() {
         return returnRequestRepository.countByStatus("PENDING");
     }
 
+    // Xem chi tiết yêu cầu
     @Override
     public ReturnRequest getById(Long id) {
-        return returnRequestRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu trả hàng"));
+        ReturnRequest req = returnRequestRepository.findById(id).orElse(null);
+        if (req == null) {
+            throw new RuntimeException("Không tìm thấy yêu cầu trả hàng");
+        }
+        return req;
     }
 
+    // Xử lý duyệt yêu cầu
     @Override
     @Transactional
     public void approveRequest(Long requestId, Long reviewerId) {
-        ReturnRequest req = returnRequestRepository.findById(requestId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu trả hàng"));
+        ReturnRequest req = returnRequestRepository.findById(requestId).orElse(null);
+        if (req == null) {
+            throw new RuntimeException("Không tìm thấy yêu cầu trả hàng");
+        }
 
         if (!"PENDING".equals(req.getStatus())) {
             throw new RuntimeException("Yêu cầu đã được xử lý trước đó");
         }
 
         OrderTransaction order = req.getOrder();
-        if ("RETURNED".equals(order.getStatus())) {
+        if ("REFUNDED".equals(order.getStatus()) || "RETURNED".equals(order.getStatus())) {
             throw new RuntimeException("Đơn hàng này đã được duyệt trả hàng ở một yêu cầu khác");
         }
 
@@ -150,46 +184,54 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         for (ReturnRequestItem item : req.getItems()) {
             // Cộng lại tồn kho
             Inventory inv = inventoryRepository.findByBranchIdAndProductUnitId(
-                            branchId, item.getProductUnit().getId())
+                    branchId, item.getProductUnit().getId())
                     .orElse(null);
             if (inv != null) {
                 inv.setStock(inv.getStock() + item.getQuantity());
-                inventoryRepository.save(inv); // THÊM DÒNG NÀY
+                inventoryRepository.save(inv);
             }
 
             // Trừ doanh thu & điểm của khách hàng
             if (order.getCustomer() != null) {
-                Customer customer = customerRepository.findById(order.getCustomer().getId())
-                        .orElse(null);
+                Customer customer = customerRepository.findById(order.getCustomer().getId()).orElse(null);
                 if (customer != null) {
                     BigDecimal refundAmount = item.getSalePrice()
                             .multiply(BigDecimal.valueOf(item.getQuantity()));
 
-                    BigDecimal currentRevenue = customer.getTotalRevenue() != null ? customer.getTotalRevenue() : BigDecimal.ZERO;
+                    BigDecimal currentRevenue = customer.getTotalRevenue();
+                    if (currentRevenue == null) {
+                        currentRevenue = BigDecimal.ZERO;
+                    }
                     customer.setTotalRevenue(currentRevenue.subtract(refundAmount).max(BigDecimal.ZERO));
 
-                    int currentPoint = customer.getTotalPoint() != null ? customer.getTotalPoint() : 0;
+                    int currentPoint = 0;
+                    if (customer.getTotalPoint() != null) {
+                        currentPoint = customer.getTotalPoint();
+                    }
+
                     int pointToReverse = refundAmount
                             .divide(new BigDecimal("10000"), 0, RoundingMode.FLOOR).intValue();
                     int newTotalPoint = Math.max(0, currentPoint - pointToReverse);
 
                     customer.setTotalPoint(newTotalPoint);
+
                     if (customer.getUsedPoint() != null && customer.getUsedPoint() > newTotalPoint) {
                         customer.setUsedPoint(newTotalPoint);
                     }
-                    customerRepository.save(customer); // THÊM DÒNG NÀY
+
+                    customerRepository.save(customer);
                 }
             }
-        } // DẤU NGOẶC NÀY BỊ THIẾU Ở FILE CŨ
+        }
 
         req.setStatus("APPROVED");
         req.setReviewedBy(reviewerId);
         req.setReviewedAt(LocalDateTime.now());
-        returnRequestRepository.save(req); // THÊM DÒNG NÀY ĐỂ LƯU TRẠNG THÁI APPROVED
+        returnRequestRepository.save(req);
 
         // Đánh dấu đơn hàng gốc là REFUNDED
         order.setStatus("REFUNDED");
-        orderTransactionRepository.save(order); // THÊM DÒNG NÀY
+        orderTransactionRepository.save(order);
 
         // Tạo giao dịch trả hàng ghi vào lịch sử
         BigDecimal totalRefund = BigDecimal.ZERO;
@@ -202,7 +244,8 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
                 .createdBy(reviewerId)
                 .originalOrderId(order.getId())
                 .customer(order.getCustomer())
-                .code("RET-" + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")))
+                .code("RET-"
+                        + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")))
                 .totalAmount(totalRefund)
                 .finalAmount(totalRefund)
                 .paidAmount(totalRefund)
@@ -214,7 +257,7 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
                 .note("Giao dịch trả hàng từ mã đơn: " + order.getCode())
                 .build();
 
-        List<OrderTransactionDetail> detailList = new java.util.ArrayList<>();
+        List<OrderTransactionDetail> detailList = new ArrayList<>();
         for (ReturnRequestItem item : req.getItems()) {
             OrderTransactionDetail detail = OrderTransactionDetail.builder()
                     .orderTransaction(returnTx)
@@ -227,15 +270,18 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
             detailList.add(detail);
         }
         returnTx.setDetails(detailList);
-        
+
         orderTransactionRepository.save(returnTx);
     }
 
+    // Từ chối yêu cầu trả hàng
     @Override
     @Transactional
     public void rejectRequest(Long requestId, Long reviewerId, String reason) {
-        ReturnRequest req = returnRequestRepository.findById(requestId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu trả hàng"));
+        ReturnRequest req = returnRequestRepository.findById(requestId).orElse(null);
+        if (req == null) {
+            throw new RuntimeException("Không tìm thấy yêu cầu trả hàng");
+        }
 
         if (!"PENDING".equals(req.getStatus())) {
             throw new RuntimeException("Yêu cầu đã được xử lý trước đó");
@@ -245,6 +291,6 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         req.setReviewedBy(reviewerId);
         req.setReviewedAt(LocalDateTime.now());
         req.setRejectReason(reason);
-        returnRequestRepository.save(req); // THÊM DÒNG NÀY
+        returnRequestRepository.save(req);
     }
 }

@@ -105,7 +105,7 @@
                                     </thead>
                                     <tbody>
                                         <tr th:each="detail : ${successOrder.details}">
-                                            <td class="py-1 text-start" th:text="${detail.productUnit.product.name}"></td>
+                                            <td class="py-1 text-start" th:text="${detail.productUnit.product.name} + (${detail.productUnit.unit != null} ? ' (' + ${detail.productUnit.unit.name} + ')' : '')"></td>
                                             <td class="py-1 text-center" th:text="${detail.quantity}"></td>
                                             <td class="py-1 text-end"
                                                 th:text="${#numbers.formatDecimal(detail.salePrice, 0, 'COMMA', 0, 'POINT')} + 'đ'">
@@ -137,9 +137,9 @@
                                         th:text="'-' + ${#numbers.formatDecimal(successOrder.pointDiscount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-1">
-                                    <span>Thuế VAT (2%):</span>
+                                    <span>Thuế VAT (8%):</span>
                                     <span
-                                        th:text="${#numbers.formatDecimal(successOrder.totalAmount.multiply(T(java.math.BigDecimal).valueOf(0.02)), 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                        th:text="${#numbers.formatDecimal(successOrder.totalAmount.multiply(T(java.math.BigDecimal).valueOf(0.08)), 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-1 fw-bold text-primary receipt-total-highlight">
                                     <span>KHÁCH PHẢI TRẢ:</span>

@@ -22,6 +22,9 @@ import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import com.g4fpt.sms.auth.dto.SessionUser;
+import com.g4fpt.sms.auth.util.SessionConstants;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/report/inventory")
@@ -34,7 +37,18 @@ public class InventoryReportController {
     private final BrandRepository brandRepository;
 
     @GetMapping
-    public String viewReport(@ModelAttribute InventoryReportFilterRequest filter, Model model) {
+    public String viewReport(@ModelAttribute InventoryReportFilterRequest filter, HttpSession httpSession, Model model) {
+        SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
+        if (user == null || (!user.hasRole("OWNER") && !user.hasRole("BRANCH_MANAGER"))) {
+            return "redirect:/";
+        }
+
+        boolean isOwner = user.hasRole("OWNER");
+        model.addAttribute("isOwner", isOwner);
+        if (!isOwner) {
+            filter.setBranchId(user.getBranchId());
+        }
+
         // Defaults
         if (filter.getPage() == null || filter.getPage() < 1)
             filter.setPage(1);

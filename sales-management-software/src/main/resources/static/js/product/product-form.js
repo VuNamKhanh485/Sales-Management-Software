@@ -262,3 +262,16 @@
             });
     });
 
+
+function filterSuppliers() {
+    const searchVal = document.getElementById('supplierSearch').value.toLowerCase();
+    const items = document.querySelectorAll('.supplier-item');
+    items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        if (text.includes(searchVal)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}

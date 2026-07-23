@@ -75,7 +75,7 @@
                                     <input type="checkbox" class="form-check-input item-cb"
                                            name="detailIds" th:value="${detail.id}" checked>
                                     <div class="flex-grow-1">
-                                        <div class="fw-semibold small" th:text="${detail.productUnit.product.name}"></div>
+                                        <div class="fw-semibold small" th:text="${detail.productUnit.product.name} + (${detail.productUnit.unit != null} ? ' (' + ${detail.productUnit.unit.name} + ')' : '')"></div>
                                         <small class="text-muted">
                                             SL: <span th:text="${detail.quantity}"></span> |
                                             Giá: <span th:text="${#numbers.formatDecimal(detail.salePrice, 0, 'COMMA', 0, 'POINT')}"></span>đ
