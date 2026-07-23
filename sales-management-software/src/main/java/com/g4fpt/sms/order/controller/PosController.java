@@ -217,7 +217,9 @@ public class PosController {
             RedirectAttributes ra) {
         var cart = s.getActiveCart();
         try {
-            var discount = posService.calculateVoucherDiscount(code, cart.getTotalAmount(), cart.getCustomerId());
+            // Voucher áp dụng trên tổng tiền hàng + VAT
+            var totalWithVat = cart.getTotalAmount().add(cart.getVatAmount());
+            var discount = posService.calculateVoucherDiscount(code, totalWithVat, cart.getCustomerId());
             cart.setVoucherCode(code);
             cart.setVoucherDiscount(discount);
             ra.addFlashAttribute("voucherSuccess", "Áp dụng thành công! Giảm " + discount + "đ");

@@ -25,7 +25,7 @@ public class PosCart {
     private String voucherCode;
     private BigDecimal voucherDiscount = BigDecimal.ZERO;
 
-    private BigDecimal vatRate = new BigDecimal("0.02"); // 2%
+    private BigDecimal vatRate = new BigDecimal("0.08"); // 8%
     private Long paymentMethodId;
     private BigDecimal givenAmount = BigDecimal.ZERO;
 

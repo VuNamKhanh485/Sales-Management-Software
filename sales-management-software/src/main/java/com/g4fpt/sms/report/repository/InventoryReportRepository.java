@@ -19,7 +19,7 @@ public interface InventoryReportRepository extends JpaRepository<OrderTransactio
         FROM (
             SELECT ot.branch_id AS branch_id, otd.product_unit_id, otd.quantity, otd.total_amount
             FROM ordertransaction ot
-            JOIN ordertransactiondetail otd ON otd.order_transaction_id = ot.id
+            JOIN OrderTransactionDetail otd ON otd.order_transaction_id = ot.id
             WHERE ot.transaction_type = 'IMPORT'
               AND ot.status = 'RECEIVED'
               AND ot.created_at BETWEEN :fromDate AND :toDate
@@ -28,7 +28,7 @@ public interface InventoryReportRepository extends JpaRepository<OrderTransactio
 
             SELECT ot.branch_id AS branch_id, otd.product_unit_id, otd.quantity, otd.total_amount
             FROM ordertransaction ot
-            JOIN ordertransactiondetail otd ON otd.order_transaction_id = ot.id
+            JOIN OrderTransactionDetail otd ON otd.order_transaction_id = ot.id
             WHERE ot.transaction_type = 'RETURN'
               AND ot.status = 'COMPLETED'
               AND ot.created_at BETWEEN :fromDate AND :toDate
@@ -37,7 +37,7 @@ public interface InventoryReportRepository extends JpaRepository<OrderTransactio
 
             SELECT ot.to_branch_id AS branch_id, otd.product_unit_id, otd.quantity, otd.total_amount
             FROM ordertransaction ot
-            JOIN ordertransactiondetail otd ON otd.order_transaction_id = ot.id
+            JOIN OrderTransactionDetail otd ON otd.order_transaction_id = ot.id
             WHERE ot.transaction_type = 'TRANSFER'
               AND ot.status = 'COMPLETED'
               AND ot.created_at BETWEEN :fromDate AND :toDate
@@ -58,7 +58,7 @@ public interface InventoryReportRepository extends JpaRepository<OrderTransactio
         FROM (
             SELECT ot.branch_id AS branch_id, otd.product_unit_id, otd.quantity, otd.total_amount
             FROM ordertransaction ot
-            JOIN ordertransactiondetail otd ON otd.order_transaction_id = ot.id
+            JOIN OrderTransactionDetail otd ON otd.order_transaction_id = ot.id
             WHERE ot.transaction_type = 'SALE'
               AND ot.status = 'COMPLETED'
               AND ot.created_at BETWEEN :fromDate AND :toDate
@@ -67,7 +67,7 @@ public interface InventoryReportRepository extends JpaRepository<OrderTransactio
 
             SELECT ot.from_branch_id AS branch_id, otd.product_unit_id, otd.quantity, otd.total_amount
             FROM ordertransaction ot
-            JOIN ordertransactiondetail otd ON otd.order_transaction_id = ot.id
+            JOIN OrderTransactionDetail otd ON otd.order_transaction_id = ot.id
             WHERE ot.transaction_type = 'TRANSFER'
               AND ot.status = 'COMPLETED'
               AND ot.created_at BETWEEN :fromDate AND :toDate
@@ -84,7 +84,7 @@ public interface InventoryReportRepository extends JpaRepository<OrderTransactio
     // ===== Giá nhập GẦN NHẤT của mỗi SKU tính đến 1 thời điểm (dùng để định giá tồn đầu/cuối kỳ) =====
     @Query(value = """
         SELECT otd.product_unit_id AS productUnitId, otd.import_price AS importPrice
-        FROM ordertransactiondetail otd
+        FROM OrderTransactionDetail otd
         JOIN ordertransaction ot ON ot.id = otd.order_transaction_id
         WHERE ot.transaction_type = 'IMPORT'
           AND ot.status = 'RECEIVED'
@@ -92,7 +92,7 @@ public interface InventoryReportRepository extends JpaRepository<OrderTransactio
           AND (:branchId IS NULL OR ot.branch_id = :branchId)
           AND otd.id = (
               SELECT otd2.id
-              FROM ordertransactiondetail otd2
+              FROM OrderTransactionDetail otd2
               JOIN ordertransaction ot2 ON ot2.id = otd2.order_transaction_id
               WHERE otd2.product_unit_id = otd.product_unit_id
                 AND ot2.transaction_type = 'IMPORT'

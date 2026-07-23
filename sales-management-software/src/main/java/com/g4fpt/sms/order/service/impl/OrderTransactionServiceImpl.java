@@ -54,16 +54,17 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         // Tính VAT
         BigDecimal vatRate = request.getVatRate() != null
                 ? request.getVatRate()
-                : new BigDecimal("0.02");
+                : new BigDecimal("0.08");
         BigDecimal vatAmount = totalAmount.multiply(vatRate)
                 .setScale(0, RoundingMode.HALF_UP);
 
-        // Tính giảm giá từ voucher
+        // Tính giảm giá từ voucher (áp dụng sau VAT)
         BigDecimal discountAmount = BigDecimal.ZERO;
         Voucher voucher = null;
         if (request.getVoucherCode() != null && !request.getVoucherCode().isBlank()) {
-            voucher = validateVoucher(request.getVoucherCode(), totalAmount, request.getCustomerId());
-            discountAmount = calculateVoucherDiscount(voucher, totalAmount);
+            BigDecimal amountWithVat = totalAmount.add(vatAmount);
+            voucher = validateVoucher(request.getVoucherCode(), amountWithVat, request.getCustomerId());
+            discountAmount = calculateVoucherDiscount(voucher, amountWithVat);
         }
 
         // Tính tiền giảm từ điểm
