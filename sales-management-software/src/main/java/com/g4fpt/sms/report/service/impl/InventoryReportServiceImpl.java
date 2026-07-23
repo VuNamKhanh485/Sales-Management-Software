@@ -222,6 +222,11 @@ public class InventoryReportServiceImpl implements InventoryReportService {
                         filter.getBrandId(),
                         filter.getKeyword());
 
+        // Nếu không có snapshot -> dùng phương thức tính theo ngày
+        if (snapshots.isEmpty()) {
+            return generateDayReport(filter);
+        }
+
         return fromSnapshots(snapshots, filter.isGroupByBranch());
     }
 
@@ -246,6 +251,11 @@ public class InventoryReportServiceImpl implements InventoryReportService {
                         filter.getBrandId(),
                         filter.getKeyword());
 
+        // Nếu không có snapshot -> dùng phương thức tính theo ngày
+        if (snapshots.isEmpty()) {
+            return generateDayReport(filter);
+        }
+
         return fromSnapshots(snapshots, filter.isGroupByBranch());
     }
 
@@ -263,6 +273,11 @@ public class InventoryReportServiceImpl implements InventoryReportService {
                         filter.getCategoryId(),
                         filter.getBrandId(),
                         filter.getKeyword());
+
+        // Nếu không có snapshot -> dùng phương thức tính theo ngày
+        if (snapshots.isEmpty()) {
+            return generateDayReport(filter);
+        }
 
         return fromSnapshots(snapshots, filter.isGroupByBranch());
     }

@@ -1,127 +1,586 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
 <head>
     <meta charset="UTF-8">
-    <title>Tổng hợp Nhập Xuất Tồn</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tổng hợp Nhập Xuất Tồn — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/report/report.css}">
     <style>
-        table { border-collapse: collapse; width: 100%; font-size: 14px; }
-        th, td { border: 1px solid #ddd; padding: 6px 10px; text-align: right; }
-        th, td:nth-child(-n+5) { text-align: left; }
-        thead { background-color: #f2f2f2; }
-        .filter-bar { margin-bottom: 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    </style>
-</head>
-<body>
-
-<div th:if="${errors}">
-    <div class="alert alert-danger"
-         th:each="err : ${errors}"
-         th:text="${err.message}">
-    </div>
-</div>
-
-<h2>TỔNG HỢP NHẬP XUẤT TỒN KHO</h2>
-
-<form id="reportForm" th:action="@{/report/inventory}" method="get" class="filter-bar">
-
-    <select name="branchId">
-        <option value="">-- Tất cả kho --</option>
-        <option th:each="b : ${branches}"
-                th:value="${b.id}"
-                th:text="${b.name}"
-                th:selected="${filter.branchId != null and filter.branchId == b.id}"></option>
-    </select>
-
-    <select name="categoryId">
-        <option value="">-- Tất cả nhóm hàng --</option>
-        <option th:each="c : ${categories}"
-                th:value="${c.id}"
-                th:text="${c.name}"
-                th:selected="${filter.categoryId != null and filter.categoryId == c.id}"></option>
-    </select>
-
-    <select name="brandId">
-        <option value="">-- Tất cả thương hiệu --</option>
-        <option th:each="br : ${brands}"
-                th:value="${br.id}"
-                th:text="${br.name}"
-                th:selected="${filter.brandId != null and filter.brandId == br.id}"></option>
-    </select>
-
-    <input type="text" name="keyword" placeholder="Tìm theo SKU / tên hàng"
-           th:value="${filter.keyword}" />
-
-    <label>Từ ngày: <input type="date" name="fromDate" th:value="${filter.fromDate}"/></label>
-    <label>Đến ngày: <input type="date" name="toDate" th:value="${filter.toDate}"/></label>
-
-    <label>
-        <input type="checkbox" name="groupByBranch" value="true"
-               th:checked="${filter.groupByBranch}" />
-        Tách riêng theo từng kho
-    </label>
-
-    <button type="submit">Lấy dữ liệu</button>
-
-    <a th:href="@{/report/inventory/export(
-            fromDate=${filter.fromDate}, toDate=${filter.toDate},
-            branchId=${filter.branchId}, categoryId=${filter.categoryId},
-            brandId=${filter.brandId}, keyword=${filter.keyword},
-            groupByBranch=${filter.groupByBranch})}">
-        <button type="button">Xuất Excel</button>
-    </a>
-</form>
-
-<table>
-    <thead>
-    <tr>
-        <th th:if="${filter.groupByBranch}">Kho</th>
-        <th>Mã SKU</th>
-        <th>Tên hàng hóa</th>
-        <th>ĐVT</th>
-        <th>Nhóm hàng</th>
-        <th>Tồn đầu kỳ</th>
-        <th>Giá trị đầu kỳ</th>
-        <th>Nhập trong kỳ</th>
-        <th>Giá trị nhập</th>
-        <th>Xuất trong kỳ</th>
-        <th>Giá trị xuất</th>
-        <th>Tồn cuối kỳ</th>
-        <th>Giá trị cuối kỳ</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="row : ${data}">
-        <td th:if="${filter.groupByBranch}" th:text="${row.branchName}"></td>
-        <td th:text="${row.sku}"></td>
-        <td th:text="${row.productName}"></td>
-        <td th:text="${row.unitName}"></td>
-        <td th:text="${row.categoryName}"></td>
-        <td th:text="${row.openingStock}"></td>
-        <td th:text="${#numbers.formatDecimal(row.openingValue, 0, 'COMMA', 0, 'POINT')}"></td>
-        <td th:text="${row.stockIn}"></td>
-        <td th:text="${#numbers.formatDecimal(row.stockInValue, 0, 'COMMA', 0, 'POINT')}"></td>
-        <td th:text="${row.stockOut}"></td>
-        <td th:text="${#numbers.formatDecimal(row.stockOutValue, 0, 'COMMA', 0, 'POINT')}"></td>
-        <td th:text="${row.closingStock}"></td>
-        <td th:text="${#numbers.formatDecimal(row.closingValue, 0, 'COMMA', 0, 'POINT')}"></td>
-    </tr>
-    <tr th:if="${#lists.isEmpty(data)}">
-        <td colspan="12" style="text-align:center;">Không có dữ liệu</td>
-    </tr>
-    </tbody>
-</table>
-
-</body>
-<script>
-    document.getElementById("reportForm").addEventListener("submit", function (e) {
-        const from = document.querySelector("input[name='fromDate']").value;
-        const to = document.querySelector("input[name='toDate']").value;
-
-        if (new Date(from) > new Date(to)) {
-            alert("Từ ngày không được sau Đến ngày.");
-            e.preventDefault();
+        .page-wrap {
+            max-width: 100% !important;
+            padding: 20px 24px !important;
         }
 
-    });
-</script>
+        .inv-filter-section {
+            background: var(--canvas, #fff);
+            border: 1px solid var(--hairline, #e5e5ea);
+            border-radius: var(--r-lg, 16px);
+            padding: 16px 20px;
+            margin-bottom: 16px;
+        }
+
+        .inv-filter-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .inv-filter-row+.inv-filter-row {
+            margin-top: 12px;
+        }
+
+        .inv-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .inv-filter-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--ink-muted-48, #86868b);
+            white-space: nowrap;
+        }
+
+        .inv-filter-group select,
+        .inv-filter-group input[type="text"],
+        .inv-filter-group input[type="date"] {
+            height: 36px;
+            padding: 0 12px;
+            border: 1px solid var(--hairline, #e5e5ea);
+            border-radius: var(--r-pill, 20px);
+            font-size: 13px;
+            font-family: var(--font-text, -apple-system, BlinkMacSystemFont, sans-serif);
+            background: var(--canvas, #fff);
+            color: var(--ink, #1d1d1f);
+            outline: none;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .inv-filter-group select:focus,
+        .inv-filter-group input:focus {
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+        }
+
+        .inv-filter-group select {
+            min-width: 130px;
+            padding-right: 28px;
+        }
+
+        .inv-btn {
+            height: 36px;
+            padding: 0 18px;
+            border-radius: var(--r-pill, 20px);
+            font-size: 13px;
+            font-family: var(--font-text, -apple-system, sans-serif);
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .inv-btn--primary {
+            background: var(--primary, #0066cc);
+            color: #fff;
+        }
+
+        .inv-btn--primary:hover {
+            opacity: 0.88;
+        }
+
+        .inv-btn--danger {
+            background: transparent;
+            color: var(--danger, #dc3545);
+            border: 1px solid var(--danger, #dc3545) !important;
+        }
+
+        .inv-btn--danger:hover {
+            background: #fef2f2;
+        }
+
+        .inv-btn--excel {
+            background: #198754;
+            color: #fff;
+        }
+
+        .inv-btn--excel:hover {
+            opacity: 0.88;
+        }
+
+        .inv-chk-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--ink-muted-48, #86868b);
+            cursor: pointer;
+        }
+
+        /* Table */
+        .inv-table-wrap {
+            background: var(--canvas, #fff);
+            border: 1px solid var(--hairline, #e5e5ea);
+            border-radius: var(--r-lg, 16px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            overflow-x: auto;
+        }
+
+        .inv-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-text);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .inv-table thead th {
+            background: var(--canvas-parchment, #f5f5f7);
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--ink-muted-48, #86868b);
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--hairline, #e5e5ea);
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .inv-table thead th:nth-last-child(-n+8) {
+            text-align: right;
+        }
+
+        .inv-table tbody td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            text-align: left;
+            color: var(--ink, #1d1d1f);
+            transition: background 0.15s ease;
+        }
+
+        .inv-table tbody td:nth-last-child(-n+8) {
+            text-align: right;
+        }
+
+        .inv-table tbody tr:hover td {
+            background: rgba(0, 102, 204, 0.03);
+        }
+
+        .inv-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .inv-table .num-cell {
+            font-family: var(--font-display);
+            font-weight: 500;
+            letter-spacing: -0.01em;
+        }
+
+        .inv-table .val-green {
+            color: var(--success, #34c759);
+        }
+
+        .inv-table .val-muted {
+            color: var(--ink-muted-48, #86868b);
+        }
+
+        .inv-table .empty-row td {
+            text-align: center !important;
+            padding: 48px 16px;
+            color: var(--ink-muted-48, #86868b);
+            font-size: 14px;
+        }
+
+        .inv-table tfoot td {
+            padding: 10px 14px;
+            font-family: var(--font-text, -apple-system, BlinkMacSystemFont, sans-serif);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--ink, #1d1d1f);
+            text-align: right;
+            border-bottom: none;
+            border-top: 1px solid var(--hairline, #e5e5ea);
+            background: var(--canvas-parchment, #f5f5f7);
+            white-space: nowrap;
+        }
+
+        .inv-table tfoot td.num-cell {
+            font-family: var(--font-display, var(--font-text));
+            letter-spacing: -0.01em;
+        }
+
+        .inv-table tfoot td:first-child {
+            text-align: left;
+            font-weight: 700;
+        }
+
+        /* Pagination */
+        .inv-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            font-size: 13px;
+            color: var(--ink-muted-48, #86868b);
+        }
+
+        .inv-page-btns {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .inv-page-btn {
+            min-width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--hairline, #e5e5ea);
+            border-radius: 8px;
+            background: var(--canvas, #fff);
+            color: var(--ink, #1d1d1f);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            padding: 0 8px;
+        }
+
+        .inv-page-btn:hover {
+            background: var(--canvas-parchment, #f5f5f7);
+        }
+
+        .inv-page-btn.active {
+            background: var(--primary, #0066cc);
+            color: #fff;
+            border-color: var(--primary, #0066cc);
+        }
+
+        .inv-page-btn.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .inv-page-size-select {
+            height: 32px;
+            padding: 0 8px;
+            border: 1px solid var(--hairline, #e5e5ea);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: var(--font-text, -apple-system, sans-serif);
+            background: var(--canvas, #fff);
+            color: var(--ink, #1d1d1f);
+            outline: none;
+        }
+
+        .inv-error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div th:replace="~{component/navbar :: global-nav('report')}"></div>
+    <div class="sub-nav">
+        <h1 class="sub-nav__title">Tổng hợp Nhập Xuất Tồn kho</h1>
+    </div>
+    <main class="page-wrap">
+
+        <div th:if="${errors}" style="margin-bottom: 1rem;">
+            <div class="inv-error" th:each="err : ${errors}" th:text="${err.message}"></div>
+        </div>
+
+        <form id="reportForm" th:action="@{/report/inventory}" method="get" class="inv-filter-section">
+            <!-- Row 1: Period/Year/Dates/Search + Actions -->
+            <div class="inv-filter-row">
+                <div class="inv-filter-group">
+                    <label>Kỳ báo cáo</label>
+                    <select name="reportPeriod" id="reportPeriod">
+                        <option value="">-- Chọn kỳ --</option>
+                        <optgroup label="Tháng">
+                            <option value="1" th:selected="${filter.reportPeriod == '1'}">Tháng 1</option>
+                            <option value="2" th:selected="${filter.reportPeriod == '2'}">Tháng 2</option>
+                            <option value="3" th:selected="${filter.reportPeriod == '3'}">Tháng 3</option>
+                            <option value="4" th:selected="${filter.reportPeriod == '4'}">Tháng 4</option>
+                            <option value="5" th:selected="${filter.reportPeriod == '5'}">Tháng 5</option>
+                            <option value="6" th:selected="${filter.reportPeriod == '6'}">Tháng 6</option>
+                            <option value="7" th:selected="${filter.reportPeriod == '7'}">Tháng 7</option>
+                            <option value="8" th:selected="${filter.reportPeriod == '8'}">Tháng 8</option>
+                            <option value="9" th:selected="${filter.reportPeriod == '9'}">Tháng 9</option>
+                            <option value="10" th:selected="${filter.reportPeriod == '10'}">Tháng 10</option>
+                            <option value="11" th:selected="${filter.reportPeriod == '11'}">Tháng 11</option>
+                            <option value="12" th:selected="${filter.reportPeriod == '12'}">Tháng 12</option>
+                        </optgroup>
+                        <optgroup label="Quý">
+                            <option value="Q1" th:selected="${filter.reportPeriod == 'Q1'}">Quý 1</option>
+                            <option value="Q2" th:selected="${filter.reportPeriod == 'Q2'}">Quý 2</option>
+                            <option value="Q3" th:selected="${filter.reportPeriod == 'Q3'}">Quý 3</option>
+                            <option value="Q4" th:selected="${filter.reportPeriod == 'Q4'}">Quý 4</option>
+                        </optgroup>
+                        <optgroup label="6 tháng">
+                            <option value="H1" th:selected="${filter.reportPeriod == 'H1'}">6 tháng đầu năm</option>
+                            <option value="H2" th:selected="${filter.reportPeriod == 'H2'}">6 tháng cuối năm</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="inv-filter-group">
+                    <label>Năm</label>
+                    <select name="year" id="yearSelect" th:data-selected="${filter.year}">
+                        <option value="">-- Năm --</option>
+                        <!-- JavaScript will populate years dynamically -->
+                    </select>
+                </div>
+                <div class="inv-filter-group">
+                    <label>Từ ngày</label>
+                    <input type="date" name="fromDate" id="fromDate" th:value="${filter.fromDate}" />
+                </div>
+                <div class="inv-filter-group">
+                    <label>Đến ngày</label>
+                    <input type="date" name="toDate" id="toDate" th:value="${filter.toDate}" />
+                </div>
+                <div class="inv-filter-group">
+                    <input type="text" name="keyword" placeholder="Tìm theo SKU / tên hàng" th:value="${filter.keyword}"
+                        style="min-width:180px" />
+                </div>
+                <div style="flex:1"></div>
+                <button type="submit" class="inv-btn inv-btn--primary">Lấy dữ liệu</button>
+                <a th:href="@{/report/inventory/export(
+                    reportPeriod=${filter.reportPeriod}, year=${filter.year},
+                    fromDate=${filter.fromDate}, toDate=${filter.toDate},
+                    branchId=${filter.branchId}, categoryId=${filter.categoryId},
+                    brandId=${filter.brandId}, keyword=${filter.keyword},
+                    groupByBranch=${filter.groupByBranch})}" class="inv-btn inv-btn--excel">Xuất Excel</a>
+                <a th:href="@{/report/inventory}" class="inv-btn inv-btn--danger">Xóa lọc</a>
+            </div>
+
+            <!-- Row 2: Branch/Category/Brand + GroupBy -->
+            <div class="inv-filter-row">
+                <div class="inv-filter-group">
+                    <label>Kho</label>
+                    <select name="branchId">
+                        <option value="">Tất cả kho</option>
+                        <option th:each="b : ${branches}" th:value="${b.id}" th:text="${b.name}"
+                            th:selected="${filter.branchId != null and filter.branchId == b.id}"></option>
+                    </select>
+                </div>
+                <div class="inv-filter-group">
+                    <label>Nhóm hàng</label>
+                    <select name="categoryId">
+                        <option value="">Tất cả</option>
+                        <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"
+                            th:selected="${filter.categoryId != null and filter.categoryId == c.id}"></option>
+                    </select>
+                </div>
+                <div class="inv-filter-group">
+                    <label>Thương hiệu</label>
+                    <select name="brandId">
+                        <option value="">Tất cả</option>
+                        <option th:each="br : ${brands}" th:value="${br.id}" th:text="${br.name}"
+                            th:selected="${filter.brandId != null and filter.brandId == br.id}"></option>
+                    </select>
+                </div>
+                <label class="inv-chk-wrap">
+                    <input type="checkbox" name="groupByBranch" value="true" th:checked="${filter.groupByBranch}" />
+                    Tách riêng theo kho
+                </label>
+            </div>
+            <input type="hidden" name="page" th:value="${currentPage}" />
+            <input type="hidden" name="pageSize" th:value="${pageSize}" />
+        </form>
+
+        <!-- Page size selector — right above table -->
+        <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:8px; padding:0 4px;">
+            <label
+                style="font-size:13px; color:var(--ink-muted-48,#86868b); white-space:nowrap; display:flex; align-items:center; gap:6px;">
+                Hiển thị:
+                <select class="inv-page-size-select" onchange="changePageSize(this.value)">
+                    <option value="10" th:selected="${pageSize == 10}">10</option>
+                    <option value="20" th:selected="${pageSize == 20}">20</option>
+                    <option value="50" th:selected="${pageSize == 50}">50</option>
+                    <option value="100" th:selected="${pageSize == 100}">100</option>
+                </select>
+            </label>
+        </div>
+
+        <!-- Table -->
+        <div class="inv-table-wrap">
+            <table class="inv-table">
+                <thead>
+                    <tr>
+                        <th th:if="${filter.groupByBranch}">Kho</th>
+                        <th>Mã SKU</th>
+                        <th>Tên hàng hóa</th>
+                        <th>ĐVT</th>
+                        <th>Nhóm hàng</th>
+                        <th>Tồn đầu kỳ</th>
+                        <th>Giá trị đầu kỳ</th>
+                        <th>Nhập trong kỳ</th>
+                        <th>Giá trị nhập</th>
+                        <th>Xuất trong kỳ</th>
+                        <th>Giá trị xuất</th>
+                        <th>Tồn cuối kỳ</th>
+                        <th>Giá trị cuối kỳ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="row : ${data}">
+                        <td th:if="${filter.groupByBranch}" th:text="${row.branchName}"></td>
+                        <td><strong th:text="${row.sku}"></strong></td>
+                        <td th:text="${row.productName}"></td>
+                        <td th:text="${row.unitName}"></td>
+                        <td th:text="${row.categoryName}"></td>
+                        <td class="num-cell" th:text="${row.openingStock}"></td>
+                        <td class="num-cell val-muted"
+                            th:text="${#numbers.formatDecimal(row.openingValue, 0, 'COMMA', 0, 'POINT')}"></td>
+                        <td class="num-cell val-green" th:text="${row.stockIn}"></td>
+                        <td class="num-cell val-green"
+                            th:text="${#numbers.formatDecimal(row.stockInValue, 0, 'COMMA', 0, 'POINT')}"></td>
+                        <td class="num-cell" th:text="${row.stockOut}"></td>
+                        <td class="num-cell val-muted"
+                            th:text="${#numbers.formatDecimal(row.stockOutValue, 0, 'COMMA', 0, 'POINT')}"></td>
+                        <td class="num-cell" th:text="${row.closingStock}"></td>
+                        <td class="num-cell"
+                            th:text="${#numbers.formatDecimal(row.closingValue, 0, 'COMMA', 0, 'POINT')}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(data)}" class="empty-row">
+                        <td colspan="13">Không có dữ liệu trong khoảng thời gian đã chọn</td>
+                    </tr>
+                </tbody>
+                <tfoot th:if="${not #lists.isEmpty(data)}">
+                <tr>
+                    <td th:colspan="${filter.groupByBranch ? 5 : 4}">Tổng cộng</td>
+                    <td class="num-cell" id="totalOpeningStock">0</td>
+                    <td class="num-cell" id="totalOpeningValue">0</td>
+                    <td class="num-cell" id="totalStockIn">0</td>
+                    <td class="num-cell" id="totalStockInValue">0</td>
+                    <td class="num-cell" id="totalStockOut">0</td>
+                    <td class="num-cell" id="totalStockOutValue">0</td>
+                    <td class="num-cell" id="totalClosingStock">0</td>
+                    <td class="num-cell" id="totalClosingValue">0</td>
+                </tr>
+            </tfoot>
+            </table>
+        </div>
+
+        <script th:inline="javascript">
+            // Calculate totals on client side for all data
+            (function () {
+                var data = /*[[${allData}]]*/[];
+                if (data && data.length > 0) {
+                    var sums = data.reduce(function (acc, row) {
+                        return {
+                            os: acc.os + (row.openingStock || 0),
+                            ov: acc.ov + (row.openingValue || 0),
+                            si: acc.si + (row.stockIn || 0),
+                            siv: acc.siv + (row.stockInValue || 0),
+                            so: acc.so + (row.stockOut || 0),
+                            sov: acc.sov + (row.stockOutValue || 0),
+                            cs: acc.cs + (row.closingStock || 0),
+                            cv: acc.cv + (row.closingValue || 0)
+                        };
+                    }, { os: 0, ov: 0, si: 0, siv: 0, so: 0, sov: 0, cs: 0, cv: 0 });
+
+                    document.getElementById('totalOpeningStock').textContent = sums.os;
+                    document.getElementById('totalOpeningValue').textContent = sums.ov.toLocaleString('vi-VN');
+                    document.getElementById('totalStockIn').textContent = sums.si;
+                    document.getElementById('totalStockInValue').textContent = sums.siv.toLocaleString('vi-VN');
+                    document.getElementById('totalStockOut').textContent = sums.so;
+                    document.getElementById('totalStockOutValue').textContent = sums.sov.toLocaleString('vi-VN');
+                    document.getElementById('totalClosingStock').textContent = sums.cs;
+                    document.getElementById('totalClosingValue').textContent = sums.cv.toLocaleString('vi-VN');
+                }
+            })();
+        </script>
+
+        <!-- Pagination -->
+        <div class="inv-pagination" th:if="${totalItems > 0}">
+            <div style="font-size:13px;">
+                <span>Hiển thị <span th:text="${(currentPage - 1) * pageSize + 1}"></span>–<span
+                        th:text="${#lists.size(data) + (currentPage - 1) * pageSize}"></span> trong <span
+                        th:text="${#numbers.formatInteger(totalItems, 1, 'COMMA')}"></span> kết quả</span>
+            </div>
+            <div class="inv-page-btns">
+                <a class="inv-page-btn disabled" th:if="${currentPage <= 1}">‹</a>
+                <a class="inv-page-btn" th:if="${currentPage > 1}"
+                    th:href="|@{/report/inventory(reportPeriod=${filter.reportPeriod},year=${filter.year},fromDate=${filter.fromDate},toDate=${filter.toDate},branchId=${filter.branchId},categoryId=${filter.categoryId},brandId=${filter.brandId},keyword=${filter.keyword},groupByBranch=${filter.groupByBranch},page=${currentPage - 1},pageSize=${pageSize})}|">‹</a>
+                <th:block th:each="p : ${#numbers.sequence(1, totalPages)}">
+                    <a class="inv-page-btn" th:classappend="${p == currentPage ? 'active' : ''}"
+                        th:if="${p == 1 or p == totalPages or (p >= currentPage - 1 and p <= currentPage + 1)}"
+                        th:href="|@{/report/inventory(reportPeriod=${filter.reportPeriod},year=${filter.year},fromDate=${filter.fromDate},toDate=${filter.toDate},branchId=${filter.branchId},categoryId=${filter.categoryId},brandId=${filter.brandId},keyword=${filter.keyword},groupByBranch=${filter.groupByBranch},page=${p},pageSize=${pageSize})}|"
+                        th:text="${p}"></a>
+                </th:block>
+                <a class="inv-page-btn disabled" th:if="${currentPage >= totalPages}">›</a>
+                <a class="inv-page-btn" th:if="${currentPage < totalPages}"
+                    th:href="|@{/report/inventory(reportPeriod=${filter.reportPeriod},year=${filter.year},fromDate=${filter.fromDate},toDate=${filter.toDate},branchId=${filter.branchId},categoryId=${filter.categoryId},brandId=${filter.brandId},keyword=${filter.keyword},groupByBranch=${filter.groupByBranch},page=${currentPage + 1},pageSize=${pageSize})}|">›</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('reportPeriod').addEventListener('change', function () {
+            var fd = document.getElementById('fromDate');
+            var td = document.getElementById('toDate');
+            var ys = document.getElementById('yearSelect');
+            if (this.value) {
+                fd.disabled = true; td.disabled = true;
+                if (!ys.value) ys.value = new Date().getFullYear();
+            } else {
+                fd.disabled = false; td.disabled = false;
+            }
+        });
+        (function () {
+            var rp = document.getElementById('reportPeriod');
+            if (rp && rp.value) {
+                document.getElementById('fromDate').disabled = true;
+                document.getElementById('toDate').disabled = true;
+            }
+        })();
+        (function () {
+            var yearSelect = document.getElementById('yearSelect');
+            if (yearSelect) {
+                var selectedYear = yearSelect.getAttribute('data-selected');
+                var currentYear = new Date().getFullYear();
+                // Sinh danh sách từ năm hiện tại + 1 xuống năm hiện tại - 10
+                for (var y = currentYear + 1; y >= currentYear - 10; y--) {
+                    var opt = document.createElement('option');
+                    opt.value = y;
+                    opt.textContent = y;
+                    if (selectedYear && y == selectedYear) {
+                        opt.selected = true;
+                    }
+                    yearSelect.appendChild(opt);
+                }
+            }
+        })();
+        function changePageSize(val) {
+            var form = document.getElementById('reportForm');
+            var existing = form.querySelector('input[name="pageSize"][type="hidden"]');
+            if (existing) existing.remove();
+            var input = document.createElement('input');
+            input.type = 'hidden'; input.name = 'pageSize'; input.value = val;
+            form.appendChild(input);
+            var pageInput = form.querySelector('input[name="page"][type="hidden"]');
+            if (pageInput) pageInput.value = '1';
+            form.submit();
+        }
+    </script>
+</body>
+
 </html>
