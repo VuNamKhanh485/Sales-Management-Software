@@ -3,7 +3,7 @@
 <nav class="global-nav" th:fragment="global-nav(page)">
     <a href="/dashboard" class="global-nav__brand">SMS</a>
     <ul style="display:flex; gap:0; list-style:none; margin:0; padding:0; align-items:center; flex:1;">
-        <li><a th:href="@{/dashboard}" th:classappend="${page == 'dashboard' ? 'active' : ''}">Dashboard</a></li>
+        <li><a th:href="@{/dashboard}" th:classappend="${page == 'dashboard' ? 'active' : ''}">Home</a></li>
         <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF')}">
             <a th:href="@{/pos}" th:classappend="${page == 'pos' ? 'active' : ''}">Bán hàng</a>
         </li>

@@ -6,6 +6,9 @@ import com.g4fpt.sms.order.service.ImportService;
 import com.g4fpt.sms.order.dto.ImportResponse;
 import com.g4fpt.sms.order.entity.ReturnRequest;
 import com.g4fpt.sms.order.service.ReturnRequestService;
+import com.g4fpt.sms.order.service.TransferService;
+import com.g4fpt.sms.order.dto.TransferResponse;
+import org.springframework.data.domain.PageRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -21,6 +24,7 @@ public class DashboardController {
 
     private final ReturnRequestService returnRequestService;
     private final ImportService importService;
+    private final TransferService transferService;
 
     public record ApprovalRequest(String code, String type, String info, String creator, java.time.LocalDateTime createdAt, String url) {}
 
@@ -57,7 +61,7 @@ public class DashboardController {
         
         // Chỉ OWNER mới thấy yêu cầu nhập hàng
         if (sessionUser.hasRole("OWNER")) {
-            List<ImportResponse> pendingImports = importService.getAllImports("PENDING", null);
+            List<ImportResponse> pendingImports = importService.getAllImports("PENDING", null, null);
             for (ImportResponse req : pendingImports) {
                 pendingApprovals.add(new ApprovalRequest(
                     req.getCode(),
@@ -68,6 +72,20 @@ public class DashboardController {
                     "/imports/" + req.getId()
                 ));
             }
+        }
+        
+        // Yêu cầu chuyển kho: Phân quyền theo userBranchId
+        Long userBranchId = sessionUser.hasRole("OWNER") ? null : sessionUser.getBranchId();
+        List<TransferResponse> pendingTransfers = transferService.getTransfers(null, null, "PENDING", userBranchId, PageRequest.of(0, 50)).getContent();
+        for (TransferResponse req : pendingTransfers) {
+            pendingApprovals.add(new ApprovalRequest(
+                req.getCode(),
+                "Chuyển kho",
+                req.getFromBranchName() + " ➔ " + req.getToBranchName(),
+                req.getCreatorName(),
+                req.getCreatedAt(),
+                "/transfer/" + req.getId()
+            ));
         }
         
         pendingApprovals.sort((a, b) -> b.createdAt().compareTo(a.createdAt())); // mới nhất lên đầu

@@ -80,6 +80,11 @@
             background: rgba(255, 159, 10, 0.1);
             color: var(--warning);
         }
+        
+        .badge-type-transfer {
+            background: rgba(88, 86, 214, 0.1);
+            color: #5856D6;
+        }
     </style>
 </head>
 
@@ -122,6 +127,7 @@
                                 <td>
                                     <span th:if="${req.type == 'Nhập hàng'}" class="badge badge-type-import">Nhập hàng</span>
                                     <span th:if="${req.type == 'Trả hàng'}" class="badge badge-type-return">Trả hàng</span>
+                                    <span th:if="${req.type == 'Chuyển kho'}" class="badge badge-type-transfer">Chuyển kho</span>
                                 </td>
                                 <td style="font-weight: 600; color: var(--primary);" th:text="${req.code}">IMP-123</td>
                                 <td th:text="${req.info}">Thông tin</td>
