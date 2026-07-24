@@ -9,6 +9,8 @@ import com.g4fpt.sms.order.service.ReturnRequestService;
 import com.g4fpt.sms.order.service.TransferService;
 import com.g4fpt.sms.order.dto.TransferResponse;
 import jakarta.persistence.EntityNotFoundException;
+import com.g4fpt.sms.payment.service.CashbookService;
+import com.g4fpt.sms.payment.entity.CashbookTransaction;
 import org.springframework.data.domain.PageRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ public class DashboardController {
     private final ReturnRequestService returnRequestService;
     private final ImportService importService;
     private final TransferService transferService;
+    private final CashbookService cashbookService;
 
     public record ApprovalRequest(String code, String type, String info, String creator, java.time.LocalDateTime createdAt, String url) {}
 
@@ -92,8 +95,23 @@ public class DashboardController {
                 "/transfer/" + req.getId()
             ));
         }
-        
         pendingApprovals.sort((a, b) -> b.createdAt().compareTo(a.createdAt())); // mới nhất lên đầu
+        
+        // 4. Fetch Pending Cashbook Transactions
+        List<CashbookTransaction> pendingCashbookList = cashbookService.getPendingTransactions(userBranchId);
+        for (CashbookTransaction tx : pendingCashbookList) {
+            pendingApprovals.add(new ApprovalRequest(
+                tx.getReferenceCode() != null ? tx.getReferenceCode() : "CB-" + tx.getId(),
+                "Sổ quỹ",
+                tx.getBranch().getName(),
+                tx.getCreator() != null ? tx.getCreator().getFullName() : "N/A",
+                tx.getCreatedAt(),
+                "/cashbook"
+            ));
+        }
+        
+        // Sort again after adding cashbook
+        pendingApprovals.sort((a, b) -> b.createdAt().compareTo(a.createdAt()));
         
         model.addAttribute("pendingApprovals", pendingApprovals);
         return "dashboard/index";

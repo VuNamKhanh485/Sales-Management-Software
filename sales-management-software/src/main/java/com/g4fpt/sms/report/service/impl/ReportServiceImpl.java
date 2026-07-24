@@ -141,6 +141,8 @@ public class ReportServiceImpl implements ReportService {
             com.g4fpt.sms.report.dto.CashflowDetailDTO dto = new com.g4fpt.sms.report.dto.CashflowDetailDTO();
             dto.setCreatedAt(tx.getCreatedAt());
             dto.setCode(tx.getCode());
+            dto.setReferenceId(tx.getId());
+            dto.setTransactionUrl("/orders/" + tx.getId());
             
             if ("SALE".equals(tx.getTransactionType())) {
                 dto.setType("Bán hàng");
@@ -160,6 +162,8 @@ public class ReportServiceImpl implements ReportService {
                     com.g4fpt.sms.report.dto.CashflowDetailDTO dtoOut = new com.g4fpt.sms.report.dto.CashflowDetailDTO();
                     dtoOut.setCreatedAt(tx.getCreatedAt());
                     dtoOut.setCode(tx.getCode());
+                    dtoOut.setReferenceId(tx.getId());
+                    dtoOut.setTransactionUrl("/orders/" + tx.getId());
                     dtoOut.setType("Chuyển kho (Xuất)");
                     dtoOut.setAmountIn(tx.getFinalAmount());
                     dtoOut.setAmountOut(BigDecimal.ZERO);
@@ -169,6 +173,8 @@ public class ReportServiceImpl implements ReportService {
                     com.g4fpt.sms.report.dto.CashflowDetailDTO dtoIn = new com.g4fpt.sms.report.dto.CashflowDetailDTO();
                     dtoIn.setCreatedAt(tx.getCreatedAt());
                     dtoIn.setCode(tx.getCode());
+                    dtoIn.setReferenceId(tx.getId());
+                    dtoIn.setTransactionUrl("/orders/" + tx.getId());
                     dtoIn.setType("Chuyển kho (Nhập)");
                     dtoIn.setAmountIn(BigDecimal.ZERO);
                     dtoIn.setAmountOut(tx.getFinalAmount());
@@ -201,6 +207,7 @@ public class ReportServiceImpl implements ReportService {
             com.g4fpt.sms.report.dto.CashflowDetailDTO dto = new com.g4fpt.sms.report.dto.CashflowDetailDTO();
             dto.setCreatedAt(ctx.getCreatedAt());
             dto.setCode(ctx.getReferenceCode() != null ? ctx.getReferenceCode() : "CB-" + ctx.getId());
+            dto.setReferenceId(ctx.getId());
             
             if ("IN".equals(ctx.getTransactionType())) {
                 dto.setType("Sổ quỹ - Thu");

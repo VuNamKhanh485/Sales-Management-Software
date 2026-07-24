@@ -166,6 +166,8 @@ public class ReportController {
             @RequestParam(value = "branchId", required = false) Long branchId,
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             Model model,
             HttpSession session) {
 
@@ -184,7 +186,7 @@ public class ReportController {
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
 
-        List<com.g4fpt.sms.report.dto.CashflowDetailDTO> cashflowData = reportService.getDetailedCashflow(branchId, startDateTime, endDateTime);
+        List<com.g4fpt.sms.report.dto.CashflowDetailDTO> allCashflowData = reportService.getDetailedCashflow(branchId, startDateTime, endDateTime);
         List<Branch> branches = branchService.getAll();
 
         boolean isManager = user != null && user.hasAnyRole("OWNER", "BRANCH_MANAGER");
@@ -200,7 +202,7 @@ public class ReportController {
         java.math.BigDecimal totalCashbookOut = java.math.BigDecimal.ZERO;
         java.math.BigDecimal totalTransferOut = java.math.BigDecimal.ZERO;
 
-        for (com.g4fpt.sms.report.dto.CashflowDetailDTO dto : cashflowData) {
+        for (com.g4fpt.sms.report.dto.CashflowDetailDTO dto : allCashflowData) {
             java.math.BigDecimal amountIn = dto.getAmountIn() != null ? dto.getAmountIn() : java.math.BigDecimal.ZERO;
             java.math.BigDecimal amountOut = dto.getAmountOut() != null ? dto.getAmountOut() : java.math.BigDecimal.ZERO;
             
@@ -224,7 +226,20 @@ public class ReportController {
             }
         }
 
-        model.addAttribute("cashflowData", cashflowData);
+        int totalItems = allCashflowData.size();
+        int totalPages = (int) Math.ceil((double) totalItems / size);
+        if (page < 1) page = 1;
+        if (page > totalPages && totalPages > 0) page = totalPages;
+
+        int fromIndex = (page - 1) * size;
+        int toIndex = Math.min(fromIndex + size, totalItems);
+        List<com.g4fpt.sms.report.dto.CashflowDetailDTO> pagedData = totalItems > 0 ? allCashflowData.subList(fromIndex, toIndex) : new java.util.ArrayList<>();
+
+        model.addAttribute("cashflowData", pagedData);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("size", size);
+        model.addAttribute("totalItems", totalItems);
         model.addAttribute("totalIn", totalIn);
         model.addAttribute("totalOut", totalOut);
         model.addAttribute("netProfit", totalIn.subtract(totalOut));
@@ -286,10 +301,11 @@ public class ReportController {
     public String showDetailedSales(
             @RequestParam(value = "branchId", required = false) Long branchId,
             @RequestParam(value = "employeeId", required = false) Long employeeId,
+            @RequestParam(value = "period", required = false, defaultValue = "custom") String period,
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "20") int size,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             Model model,
             HttpSession session) {
 
@@ -319,7 +335,19 @@ public class ReportController {
         org.springframework.data.domain.Page<com.g4fpt.sms.report.dto.EmployeeOrderSalesDTO> reportPage = reportService.getDetailedOrderSalesPage(branchId, employeeId, startDateTime, endDateTime, pageable);
 
         List<Branch> branches = branchService.getAll();
-        List<com.g4fpt.sms.employee.entity.Employee> employees = employeeRepository.findAll();
+        List<com.g4fpt.sms.employee.entity.Employee> allEmployees = employeeRepository.findAll();
+        List<com.g4fpt.sms.employee.entity.Employee> employees = new java.util.ArrayList<>();
+        for (com.g4fpt.sms.employee.entity.Employee e : allEmployees) {
+            if (branchId == null) {
+                employees.add(e);
+            } else {
+                if (e.getBranch() != null && e.getBranch().getId().equals(branchId)) {
+                    employees.add(e);
+                } else if (e.getRole() != null && "OWNER".equals(e.getRole().getCode())) {
+                    employees.add(e);
+                }
+            }
+        }
 
         model.addAttribute("reportData", reportPage.getContent());
         model.addAttribute("currentPage", page);
@@ -333,6 +361,7 @@ public class ReportController {
         model.addAttribute("selectedEmployeeId", employeeId);
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
+        model.addAttribute("period", period);
         model.addAttribute("isManager", isManager);
         model.addAttribute("isOwner", isOwner);
 
@@ -347,8 +376,16 @@ public class ReportController {
             if (totals[1] != null) totalRevenue = (java.math.BigDecimal) totals[1];
         }
 
+        // Get Best Salesperson
+        List<EmployeeSalesDTO> employeeSales = reportService.getEmployeeSalesReport(branchId, startDateTime, endDateTime);
+        EmployeeSalesDTO bestSalesperson = null;
+        if (employeeSales != null && !employeeSales.isEmpty()) {
+            bestSalesperson = employeeSales.get(0); // Top 1 based on ORDER BY SUM(finalAmount) DESC
+        }
+
         model.addAttribute("totalOrders", totalOrders);
         model.addAttribute("totalRevenue", totalRevenue);
+        model.addAttribute("bestSalesperson", bestSalesperson);
 
         return "report/detailed-sales";
     }

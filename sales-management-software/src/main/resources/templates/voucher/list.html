@@ -60,7 +60,8 @@
 
         <!-- Table card -->
         <div class="card-panel">
-            <table>
+            <div class="table-container" style="overflow-x: auto; width: 100%;">
+            <table style="width: 100%;">
                 <thead>
                     <tr>
                         <th style="width:44px">#</th>
@@ -70,7 +71,7 @@
                         <th>Giá trị</th>
                         <th>Thời hạn</th>
                         <th>Trạng thái</th>
-                        <th style="width:120px">Thao tác</th>
+                        <th style="width:160px; text-align: center;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -97,9 +98,9 @@
                             </span>
                         </td>
                         <td>
-                            <div class="actions">
+                            <div class="actions" style="display: flex; gap: 8px; justify-content: center; align-items: center; flex-direction: row;">
                                 <a th:href="@{/vouchers/edit/{id}(id=${v.id})}" class="action-edit"
-                                    th:id="'btn-edit-' + ${v.id}">
+                                    th:id="'btn-edit-' + ${v.id}" style="display: inline-flex; align-items: center; gap: 4px; flex-direction: row; min-width: 55px; justify-content: center;">
                                     <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
                                         <path d="M9.5 1.5L11.5 3.5L4.5 10.5H2.5V8.5L9.5 1.5Z" stroke="currentColor"
                                             stroke-width="1.4" stroke-linejoin="round" />
@@ -107,7 +108,7 @@
                                     Sửa
                                 </a>
                                 <a th:href="@{/vouchers/delete/{id}(id=${v.id})}" class="action-delete"
-                                    th:id="'btn-delete-' + ${v.id}">
+                                    th:id="'btn-delete-' + ${v.id}" style="display: inline-flex; align-items: center; gap: 4px; flex-direction: row; min-width: 55px; justify-content: center;">
                                     <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
                                         <path d="M2 3.5H11M5 3.5V2H8V3.5M4 3.5L4.5 11H8.5L9 3.5H4Z"
                                             stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
@@ -133,6 +134,27 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
+
+            <!-- Pagination -->
+            <div th:if="${totalPages > 0}" class="apple-pagination" style="margin-top: 16px; padding-top: 16px;">
+                <a th:if="${currentPage > 1}" 
+                   th:href="@{/vouchers(page=${currentPage - 1}, size=${size}, keyword=${keyword}, status=${status})}" 
+                   class="apple-pagination-btn">Trước</a>
+                <span class="apple-pagination-btn disabled" th:unless="${currentPage > 1}">Trước</span>
+
+                <div class="apple-pagination-numbers">
+                    <a th:each="pageNumber : ${#numbers.sequence(1, totalPages)}" 
+                       th:href="@{/vouchers(page=${pageNumber}, size=${size}, keyword=${keyword}, status=${status})}"
+                       th:class="${pageNumber == currentPage} ? 'active' : ''"
+                       th:text="${pageNumber}">1</a>
+                </div>
+
+                <a th:if="${currentPage < totalPages}" 
+                   th:href="@{/vouchers(page=${currentPage + 1}, size=${size}, keyword=${keyword}, status=${status})}" 
+                   class="apple-pagination-btn">Sau</a>
+                <span class="apple-pagination-btn disabled" th:unless="${currentPage < totalPages}">Sau</span>
+            </div>
         </div>
 
     </main>

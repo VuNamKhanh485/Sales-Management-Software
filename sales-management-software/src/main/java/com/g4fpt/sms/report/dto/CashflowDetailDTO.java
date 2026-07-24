@@ -19,4 +19,6 @@ public class CashflowDetailDTO {
     private String description;
     private BigDecimal amountIn;
     private BigDecimal amountOut;
+    private Long referenceId;
+    private String transactionUrl;
 }

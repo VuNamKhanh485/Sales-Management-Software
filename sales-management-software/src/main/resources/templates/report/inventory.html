@@ -514,26 +514,25 @@
         </script>
 
         <!-- Pagination -->
-        <div class="inv-pagination" th:if="${totalItems > 0}">
-            <div style="font-size:13px;">
-                <span>Hiển thị <span th:text="${(currentPage - 1) * pageSize + 1}"></span>–<span
-                        th:text="${#lists.size(data) + (currentPage - 1) * pageSize}"></span> trong <span
-                        th:text="${#numbers.formatInteger(totalItems, 1, 'COMMA')}"></span> kết quả</span>
-            </div>
-            <div class="inv-page-btns">
-                <a class="inv-page-btn disabled" th:if="${currentPage <= 1}">‹</a>
-                <a class="inv-page-btn" th:if="${currentPage > 1}"
-                    th:href="|@{/report/inventory(reportPeriod=${filter.reportPeriod},year=${filter.year},fromDate=${filter.fromDate},toDate=${filter.toDate},branchId=${filter.branchId},categoryId=${filter.categoryId},brandId=${filter.brandId},keyword=${filter.keyword},groupByBranch=${filter.groupByBranch},page=${currentPage - 1},pageSize=${pageSize})}|">‹</a>
+        <div class="apple-pagination" th:if="${totalPages > 0}" style="border-top: 1px solid var(--hairline, #e5e5ea); padding: 16px;">
+            <a th:if="${currentPage > 1}" 
+               th:href="|@{/report/inventory(reportPeriod=${filter.reportPeriod},year=${filter.year},fromDate=${filter.fromDate},toDate=${filter.toDate},branchId=${filter.branchId},categoryId=${filter.categoryId},brandId=${filter.brandId},keyword=${filter.keyword},groupByBranch=${filter.groupByBranch},page=${currentPage - 1},pageSize=${pageSize})}|"
+               class="apple-pagination-btn">Trước</a>
+            <span th:if="${currentPage <= 1}" class="apple-pagination-btn disabled">Trước</span>
+
+            <div class="apple-pagination-numbers">
                 <th:block th:each="p : ${#numbers.sequence(1, totalPages)}">
-                    <a class="inv-page-btn" th:classappend="${p == currentPage ? 'active' : ''}"
-                        th:if="${p == 1 or p == totalPages or (p >= currentPage - 1 and p <= currentPage + 1)}"
-                        th:href="|@{/report/inventory(reportPeriod=${filter.reportPeriod},year=${filter.year},fromDate=${filter.fromDate},toDate=${filter.toDate},branchId=${filter.branchId},categoryId=${filter.categoryId},brandId=${filter.brandId},keyword=${filter.keyword},groupByBranch=${filter.groupByBranch},page=${p},pageSize=${pageSize})}|"
-                        th:text="${p}"></a>
+                    <a th:classappend="${p == currentPage ? 'active' : ''}"
+                       th:href="|@{/report/inventory(reportPeriod=${filter.reportPeriod},year=${filter.year},fromDate=${filter.fromDate},toDate=${filter.toDate},branchId=${filter.branchId},categoryId=${filter.categoryId},brandId=${filter.brandId},keyword=${filter.keyword},groupByBranch=${filter.groupByBranch},page=${p},pageSize=${pageSize})}|"
+                       th:text="${p}">1</a>
                 </th:block>
-                <a class="inv-page-btn disabled" th:if="${currentPage >= totalPages}">›</a>
-                <a class="inv-page-btn" th:if="${currentPage < totalPages}"
-                    th:href="|@{/report/inventory(reportPeriod=${filter.reportPeriod},year=${filter.year},fromDate=${filter.fromDate},toDate=${filter.toDate},branchId=${filter.branchId},categoryId=${filter.categoryId},brandId=${filter.brandId},keyword=${filter.keyword},groupByBranch=${filter.groupByBranch},page=${currentPage + 1},pageSize=${pageSize})}|">›</a>
             </div>
+
+            <a th:if="${currentPage < totalPages}" 
+               th:href="|@{/report/inventory(reportPeriod=${filter.reportPeriod},year=${filter.year},fromDate=${filter.fromDate},toDate=${filter.toDate},branchId=${filter.branchId},categoryId=${filter.categoryId},brandId=${filter.brandId},keyword=${filter.keyword},groupByBranch=${filter.groupByBranch},page=${currentPage + 1},pageSize=${pageSize})}|"
+               class="apple-pagination-btn">Sau</a>
+            <span th:if="${currentPage >= totalPages}" class="apple-pagination-btn disabled">Sau</span>
+        </div>
         </div>
     </main>
 

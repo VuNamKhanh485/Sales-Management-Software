@@ -13,7 +13,15 @@ public interface CashbookService {
                                               LocalDateTime startDate, LocalDateTime endDate, 
                                               int page, int size);
 
+    CashbookTransaction getTransactionById(Long id);
+
     CashbookTransaction createTransaction(CashbookDTO dto, Long createdBy);
+
+    void approveTransaction(Long id);
+
+    void rejectTransaction(Long id);
+
+    java.util.List<CashbookTransaction> getPendingTransactions(Long branchId);
 
     BigDecimal getBalance(Long branchId, String method);
 

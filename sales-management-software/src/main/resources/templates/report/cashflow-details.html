@@ -61,46 +61,55 @@
             <div class="stat-card">
                 <div class="stat-card__label">Tổng Tiền Vào</div>
                 <div class="stat-card__value value-revenue" th:text="${#numbers.formatDecimal(totalIn, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
-                <div style="margin-top: 10px; font-size: 13px; color: var(--ink-muted-80);">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                        <span>Bán hàng:</span>
-                        <span th:text="${#numbers.formatDecimal(totalSalesIn, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                        <span>Chuyển kho (Xuất):</span>
-                        <span th:text="${#numbers.formatDecimal(totalTransferIn, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>Sổ quỹ (Thu):</span>
-                        <span th:text="${#numbers.formatDecimal(totalCashbookIn, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
-                    </div>
-                </div>
             </div>
             <div class="stat-card">
                 <div class="stat-card__label">Tổng Tiền Ra</div>
                 <div class="stat-card__value value-expense" th:text="${#numbers.formatDecimal(totalOut, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
-                <div style="margin-top: 10px; font-size: 13px; color: var(--ink-muted-80);">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                        <span>Nhập hàng:</span>
-                        <span th:text="${#numbers.formatDecimal(totalImportOut, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                        <span>Trả hàng:</span>
-                        <span th:text="${#numbers.formatDecimal(totalReturnOut, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                        <span>Chuyển kho (Nhập):</span>
-                        <span th:text="${#numbers.formatDecimal(totalTransferOut, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>Sổ quỹ (Chi):</span>
-                        <span th:text="${#numbers.formatDecimal(totalCashbookOut, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
-                    </div>
-                </div>
             </div>
             <div class="stat-card">
                 <div class="stat-card__label">Lợi Nhuận Ròng</div>
                 <div class="stat-card__value value-profit" th:text="${#numbers.formatDecimal(netProfit, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+            </div>
+        </div>
+
+        <div class="details-row" style="display: flex; gap: var(--sp-xl); margin-bottom: var(--sp-xl);">
+            <div class="details-card" style="flex: 1; background: var(--canvas); border-radius: var(--r-lg); border: 1px solid var(--hairline); padding: var(--sp-lg); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 15px; color: var(--ink); border-bottom: 1px solid var(--hairline); padding-bottom: 10px;">Chi tiết Tiền Vào</h3>
+                <div style="font-size: 14px; color: var(--ink-muted);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span>Bán hàng:</span>
+                        <span style="font-weight: 500; color: var(--ink);" th:text="${#numbers.formatDecimal(totalSalesIn, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span>Chuyển kho (Xuất):</span>
+                        <span style="font-weight: 500; color: var(--ink);" th:text="${#numbers.formatDecimal(totalTransferIn, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Sổ quỹ (Thu):</span>
+                        <span style="font-weight: 500; color: var(--ink);" th:text="${#numbers.formatDecimal(totalCashbookIn, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                    </div>
+                </div>
+            </div>
+            <div class="details-card" style="flex: 1; background: var(--canvas); border-radius: var(--r-lg); border: 1px solid var(--hairline); padding: var(--sp-lg); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 15px; color: var(--ink); border-bottom: 1px solid var(--hairline); padding-bottom: 10px;">Chi tiết Tiền Ra</h3>
+                <div style="font-size: 14px; color: var(--ink-muted);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span>Nhập hàng:</span>
+                        <span style="font-weight: 500; color: var(--ink);" th:text="${#numbers.formatDecimal(totalImportOut, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span>Trả hàng:</span>
+                        <span style="font-weight: 500; color: var(--ink);" th:text="${#numbers.formatDecimal(totalReturnOut, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span>Chuyển kho (Nhập):</span>
+                        <span style="font-weight: 500; color: var(--ink);" th:text="${#numbers.formatDecimal(totalTransferOut, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Sổ quỹ (Chi):</span>
+                        <span style="font-weight: 500; color: var(--ink);" th:text="${#numbers.formatDecimal(totalCashbookOut, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -115,11 +124,12 @@
                         <th>Diễn giải</th>
                         <th style="text-align: right;">Tiền vào</th>
                         <th style="text-align: right;">Tiền ra</th>
+                        <th style="text-align: center; width: 100px;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:if="${#lists.isEmpty(cashflowData)}">
-                        <td colspan="7" class="empty-state">
+                        <td colspan="8" class="empty-state">
                             <div class="empty-state__icon">📄</div>
                             <h3 class="empty-state__title">Không có giao dịch</h3>
                             <p class="empty-state__sub">Không tìm thấy giao dịch dòng tiền nào trong khoảng thời gian này.</p>
@@ -135,9 +145,33 @@
                         <td th:text="${row.description}">Ghi chú</td>
                         <td style="text-align: right;" class="text-in" th:text="${row.amountIn > 0 ? '+' + #numbers.formatDecimal(row.amountIn, 0, 'COMMA', 0, 'POINT') + ' đ' : '-'}">0 đ</td>
                         <td style="text-align: right;" class="text-out" th:text="${row.amountOut > 0 ? '-' + #numbers.formatDecimal(row.amountOut, 0, 'COMMA', 0, 'POINT') + ' đ' : '-'}">0 đ</td>
+                        <td style="text-align: center;">
+                            <a th:if="${row.transactionUrl != null}" th:href="${row.transactionUrl}" class="btn-primary" style="padding: 4px 8px; font-size: 12px; text-decoration: none; display: inline-block;">Chi tiết</a>
+                        </td>
                     </tr>
                 </tbody>
             </table>
+
+            <!-- Pagination -->
+            <div th:if="${totalPages > 0}" class="apple-pagination" style="margin-top: 16px; padding-top: 16px;">
+                <a th:if="${currentPage > 1}" 
+                   th:href="@{/reports/cashflow(branchId=${selectedBranchId},startDate=${startDate},endDate=${endDate},page=${currentPage - 1},size=${size})}"
+                   class="apple-pagination-btn">Trước</a>
+                <span th:if="${currentPage <= 1}" class="apple-pagination-btn disabled">Trước</span>
+
+                <div class="apple-pagination-numbers">
+                    <th:block th:each="pageIdx : ${#numbers.sequence(1, totalPages)}">
+                        <a th:href="@{/reports/cashflow(branchId=${selectedBranchId},startDate=${startDate},endDate=${endDate},page=${pageIdx},size=${size})}"
+                           th:classappend="${pageIdx == currentPage} ? 'active' : ''"
+                           th:text="${pageIdx}">1</a>
+                    </th:block>
+                </div>
+
+                <a th:if="${currentPage < totalPages}" 
+                   th:href="@{/reports/cashflow(branchId=${selectedBranchId},startDate=${startDate},endDate=${endDate},page=${currentPage + 1},size=${size})}"
+                   class="apple-pagination-btn">Sau</a>
+                <span th:if="${currentPage >= totalPages}" class="apple-pagination-btn disabled">Sau</span>
+            </div>
         </div>
 
     </main>

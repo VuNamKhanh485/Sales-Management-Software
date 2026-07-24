@@ -6,16 +6,6 @@
     <title>Báo cáo Chi tiết Bán hàng — SMS</title>
     <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
     <link rel="stylesheet" th:href="@{/css/report/report.css}">
-    <style>
-        .filter-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: center;
-            margin-bottom: 24px;
-            width: 100%;
-        }
-    </style>
 </head>
 <body>
 
@@ -31,9 +21,8 @@
 
     <main class="page-wrap">
 
-        <form action="/reports/detailed-sales" method="get" class="search-bar">
-            <div class="filter-row">
-                <select name="branchId" id="branchSelect" class="filter-select" th:if="${isOwner}">
+        <form action="/reports/detailed-sales" method="get" class="search-bar mb-4">
+            <select name="branchId" id="branchSelect" class="filter-select" th:if="${isOwner}">
                     <option value="">Tất cả chi nhánh</option>
                     <option th:each="b : ${branches}" th:value="${b.id}" th:text="${b.name}" th:selected="${b.id == selectedBranchId}"></option>
                 </select>
@@ -44,7 +33,7 @@
 
                 <th:block th:if="${isManager}">
                     <select id="employeeSelect" name="employeeId" class="filter-select">
-                        <option value="">-- Tất cả nhân viên --</option>
+                        <option value="">Tất cả nhân viên</option>
                         <option th:each="e : ${employees}" 
                                 th:if="${selectedBranchId == null || (e.branch != null && e.branch.id == selectedBranchId)}"
                                 th:attr="data-branch-id=${e.branch != null ? e.branch.id : ''}"
@@ -55,15 +44,21 @@
                     <input type="hidden" name="employeeId" id="employeeSelect" th:value="${selectedEmployeeId}" />
                     <span class="badge" th:each="e : ${employees}" th:if="${e.id == selectedEmployeeId}" th:text="${e.fullName}">Nhân viên</span>
                 </th:block>
+                <select id="quickDateSelect" name="period" class="filter-select" style="max-width: 150px;" onchange="handlePeriodChange(this.value)">
+                    <option value="custom" th:selected="${period == 'custom' || period == null}">Thời gian cụ thể</option>
+                    <option value="this_week" th:selected="${period == 'this_week'}">Tuần này</option>
+                    <option value="this_month" th:selected="${period == 'this_month'}">Tháng này</option>
+                    <option value="this_quarter" th:selected="${period == 'this_quarter'}">Quý này</option>
+                    <option value="this_year" th:selected="${period == 'this_year'}">Năm này</option>
+                </select>
                 
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <input type="date" name="startDate" class="form-input" style="width: auto;" th:value="${startDate}">
-                    <span style="color: var(--ink-muted-48); font-size: 14px;">đến</span>
-                    <input type="date" name="endDate" class="form-input" style="width: auto;" th:value="${endDate}">
-                </div>
+                <span id="customDateWrap" th:style="${period == 'custom' || period == null ? 'display: inline-flex; align-items: center; gap: 8px;' : 'display: none; align-items: center; gap: 8px;'}">
+                    <input type="date" name="startDate" class="filter-date" th:value="${startDate}">
+                    <span class="date-separator">đến</span>
+                    <input type="date" name="endDate" class="filter-date" th:value="${endDate}">
+                </span>
                 
                 <button type="submit" class="btn-primary btn-primary--sm">Lọc</button>
-            </div>
         </form>
 
         <div class="stats-row">
@@ -75,7 +70,77 @@
                 <div class="stat-card__label">Tổng Doanh Thu</div>
                 <div class="stat-card__value" style="color: var(--success);" th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
             </div>
+            <div class="stat-card" th:if="${bestSalesperson != null}" style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.02)); border-color: rgba(255, 215, 0, 0.3); align-items: center; text-align: center;">
+                <div class="stat-card__label" style="color: #b8860b; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    NHÂN VIÊN XUẤT SẮC NHẤT
+                </div>
+                
+                <div class="stat-card__value" style="font-size: 24px; color: var(--ink); margin-top: 4px; margin-bottom: 4px; text-align: center; width: 100%;" th:text="${bestSalesperson.employeeName}">Nguyễn Văn A</div>
+                
+                <div style="font-size: 13px; color: var(--ink-muted); margin-bottom: 12px; min-height: 19px; text-align: center; width: 100%;">
+                    <span th:if="${bestSalesperson.branchName != null}" th:text="${bestSalesperson.branchName}"></span>
+                    <span th:if="${bestSalesperson.branchName == null}">Tất cả chi nhánh</span>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 215, 0, 0.2); padding-top: 12px; margin-top: auto; width: 100%;">
+                    <div style="flex: 1; text-align: center;">
+                        <div style="font-size: 11px; color: var(--ink-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 2px;">Số Đơn</div>
+                        <div style="font-weight: 600; font-size: 16px; color: var(--primary);" th:text="${bestSalesperson.totalOrders}">0</div>
+                    </div>
+                    <div style="width: 1px; height: 32px; background: rgba(255, 215, 0, 0.3);"></div>
+                    <div style="flex: 1; text-align: center;">
+                        <div style="font-size: 11px; color: var(--ink-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 2px;">Doanh Thu</div>
+                        <div style="font-weight: 600; font-size: 16px; color: var(--success);" th:text="${#numbers.formatDecimal(bestSalesperson.totalSales, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <script>
+            function handlePeriodChange(period) {
+                const wrap = document.getElementById('customDateWrap');
+                if (period === 'custom') {
+                    wrap.style.display = 'inline-flex';
+                    return; 
+                } else {
+                    wrap.style.display = 'none';
+                }
+                
+                const now = new Date();
+                let start, end;
+                
+                if (period === 'this_week') {
+                    const day = now.getDay() || 7; 
+                    if (day !== 1) now.setHours(-24 * (day - 1));
+                    start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    end = new Date();
+                } else if (period === 'this_month') {
+                    start = new Date(now.getFullYear(), now.getMonth(), 1);
+                    end = new Date();
+                } else if (period === 'this_quarter') {
+                    const quarter = Math.floor(now.getMonth() / 3);
+                    start = new Date(now.getFullYear(), quarter * 3, 1);
+                    end = new Date();
+                } else if (period === 'this_year') {
+                    start = new Date(now.getFullYear(), 0, 1);
+                    end = new Date();
+                }
+                
+                const formatDate = (d) => {
+                    let month = '' + (d.getMonth() + 1);
+                    let day = '' + d.getDate();
+                    if (month.length < 2) month = '0' + month;
+                    if (day.length < 2) day = '0' + day;
+                    return [d.getFullYear(), month, day].join('-');
+                };
+                
+                document.querySelector('input[name="startDate"]').value = formatDate(start);
+                document.querySelector('input[name="endDate"]').value = formatDate(end);
+                
+                document.querySelector('.search-bar').submit();
+            }
+        </script>
 
         <div class="card-panel">
             <table>
@@ -104,10 +169,7 @@
                         <td th:text="${order.orderCode}" style="font-weight: 500; color: #0f172a;"></td>
                         <td class="amount-col text-right" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
                         <td class="text-center">
-                            <a th:href="@{'/orders/' + ${order.orderId}}" 
-                               class="btn-secondary btn-secondary--sm" style="text-decoration: none;">
-                                Xem chi tiết
-                            </a>
+                            <a th:href="@{/orders/{id}(id=${order.orderId})}" class="btn-secondary btn-secondary--sm" style="white-space: nowrap;">Chi tiết</a>
                         </td>
                     </tr>
                 </tbody>
@@ -115,30 +177,23 @@
         </div>
 
         <!-- Pagination -->
-        <div th:if="${totalPages > 1}" style="display: flex; justify-content: center; margin-top: var(--sp-lg);">
-            <ul class="pagination">
-                <li th:class="${currentPage == 1 ? 'disabled' : ''}">
-                    <a th:href="@{/reports/detailed-sales(branchId=${selectedBranchId},employeeId=${selectedEmployeeId},startDate=${startDate},endDate=${endDate},page=${currentPage > 1 ? currentPage - 1 : 1},size=${size})}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
-                        </svg>
-                    </a>
-                </li>
-                
-                <li>
-                    <strong>
-                        <span th:text="${currentPage}"></span> / <span th:text="${totalPages}"></span>
-                    </strong>
-                </li>
+        <div th:if="${totalPages > 0}" class="apple-pagination" style="padding: 16px;">
+            <a th:if="${currentPage > 1}" 
+               th:href="@{/reports/detailed-sales(branchId=${selectedBranchId},employeeId=${selectedEmployeeId},startDate=${startDate},endDate=${endDate},page=${currentPage - 1},size=${size})}"
+               class="apple-pagination-btn">Trước</a>
+            <span th:if="${currentPage <= 1}" class="apple-pagination-btn disabled">Trước</span>
 
-                <li th:class="${currentPage == totalPages ? 'disabled' : ''}">
-                    <a th:href="@{/reports/detailed-sales(branchId=${selectedBranchId},employeeId=${selectedEmployeeId},startDate=${startDate},endDate=${endDate},page=${currentPage < totalPages ? currentPage + 1 : totalPages},size=${size})}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
-                        </svg>
-                    </a>
-                </li>
-            </ul>
+            <div class="apple-pagination-numbers">
+                <a th:each="pageIdx : ${#numbers.sequence(1, totalPages)}"
+                   th:href="@{/reports/detailed-sales(branchId=${selectedBranchId},employeeId=${selectedEmployeeId},startDate=${startDate},endDate=${endDate},page=${pageIdx},size=${size})}"
+                   th:classappend="${pageIdx == currentPage} ? 'active' : ''"
+                   th:text="${pageIdx}">1</a>
+            </div>
+
+            <a th:if="${currentPage < totalPages}" 
+               th:href="@{/reports/detailed-sales(branchId=${selectedBranchId},employeeId=${selectedEmployeeId},startDate=${startDate},endDate=${endDate},page=${currentPage + 1},size=${size})}"
+               class="apple-pagination-btn">Sau</a>
+            <span th:if="${currentPage >= totalPages}" class="apple-pagination-btn disabled">Sau</span>
         </div>
 
     </main>

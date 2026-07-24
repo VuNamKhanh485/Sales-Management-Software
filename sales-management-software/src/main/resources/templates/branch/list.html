@@ -37,7 +37,7 @@
                     <input type="text" name="keyword" class="search-input" th:value="${keyword}" placeholder="Nhập từ khóa...">
                 </div>
                 <button type="submit" class="btn-secondary btn-secondary--sm">Tìm kiếm</button>
-                <a th:href="@{/branch}" class="btn-clear-link">Làm mới</a>
+                <a th:href="@{/branch}" class="btn-clear-link">Xóa lọc</a>
             </form>
             
             <a th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}" th:href="@{/branch/create}" class="btn-primary btn-primary--sm">+ Thêm chi nhánh</a>
