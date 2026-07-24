@@ -164,6 +164,7 @@ public class ReportController {
     @GetMapping("/cashflow")
     public String showCashflowDetails(
             @RequestParam(value = "branchId", required = false) Long branchId,
+            @RequestParam(value = "type", required = false) String type,
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(value = "page", defaultValue = "1") int page,
@@ -187,6 +188,13 @@ public class ReportController {
         LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
 
         List<com.g4fpt.sms.report.dto.CashflowDetailDTO> allCashflowData = reportService.getDetailedCashflow(branchId, startDateTime, endDateTime);
+
+        if (type != null && !type.isEmpty()) {
+            allCashflowData = allCashflowData.stream()
+                    .filter(d -> type.equals(d.getType()))
+                    .collect(java.util.stream.Collectors.toList());
+        }
+
         List<Branch> branches = branchService.getAll();
 
         boolean isManager = user != null && user.hasAnyRole("OWNER", "BRANCH_MANAGER");
@@ -254,6 +262,7 @@ public class ReportController {
         
         model.addAttribute("branches", branches);
         model.addAttribute("selectedBranchId", branchId);
+        model.addAttribute("selectedType", type);
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
         model.addAttribute("isManager", isManager);

@@ -50,6 +50,17 @@
                       th:each="b : ${branches}" th:if="${b.id == selectedBranchId}" th:text="${b.name}">Chi nhánh</span>
             </th:block>
             
+            <select name="type" class="filter-select">
+                <option value="">Tất cả loại</option>
+                <option value="Bán hàng" th:selected="${selectedType == 'Bán hàng'}">Bán hàng</option>
+                <option value="Nhập hàng" th:selected="${selectedType == 'Nhập hàng'}">Nhập hàng</option>
+                <option value="Trả hàng" th:selected="${selectedType == 'Trả hàng'}">Trả hàng</option>
+                <option value="Chuyển kho (Xuất)" th:selected="${selectedType == 'Chuyển kho (Xuất)'}">Chuyển kho (Xuất)</option>
+                <option value="Chuyển kho (Nhập)" th:selected="${selectedType == 'Chuyển kho (Nhập)'}">Chuyển kho (Nhập)</option>
+                <option value="Sổ quỹ - Thu" th:selected="${selectedType == 'Sổ quỹ - Thu'}">Sổ quỹ (Thu)</option>
+                <option value="Sổ quỹ - Chi" th:selected="${selectedType == 'Sổ quỹ - Chi'}">Sổ quỹ (Chi)</option>
+            </select>
+            
             <input type="date" name="startDate" class="filter-date" th:value="${startDate}">
             <span class="date-separator">đến</span>
             <input type="date" name="endDate" class="filter-date" th:value="${endDate}">
