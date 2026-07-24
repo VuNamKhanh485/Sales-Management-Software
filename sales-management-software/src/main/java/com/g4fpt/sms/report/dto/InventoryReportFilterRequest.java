@@ -21,4 +21,12 @@ public class InventoryReportFilterRequest {
     private String keyword;
     private boolean groupByBranch;
     private SnapshotType snapshotType;
+
+    // Period selector: "1"-"12" months, "Q1"-"Q4" quarters, "H1"/"H2" half-year, "" all
+    private String reportPeriod;
+    private Integer year;
+
+    // Pagination
+    private Integer page = 1;
+    private Integer pageSize = 10;
 }

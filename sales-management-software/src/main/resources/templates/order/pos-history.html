@@ -44,8 +44,9 @@
                         <span th:if="${order.transactionType == 'IMPORT'}" class="badge bg-info text-dark">Nhập hàng</span>
                         <span th:if="${order.transactionType == 'SALE' and order.status == 'COMPLETED'}" class="badge bg-success">Hoàn thành</span>
                         <span th:if="${order.transactionType == 'SALE' and order.status == 'RETURNED'}" class="badge bg-secondary">Đã bị hoàn</span>
+                        <span th:if="${order.transactionType == 'SALE' and order.status == 'REFUNDED'}" class="badge bg-secondary">Đã hoàn tiền</span>
                         <span th:if="${order.status == 'CANCELLED'}" class="badge bg-danger">Đã hủy</span>
-                        <span th:if="${order.transactionType == 'SALE' and order.status != 'COMPLETED' and order.status != 'CANCELLED' and order.status != 'RETURNED'}" class="badge bg-secondary" th:text="${order.status == 'PENDING' ? 'Chờ xử lý' : order.status}"></span>
+                        <span th:if="${order.transactionType == 'SALE' and order.status != 'COMPLETED' and order.status != 'CANCELLED' and order.status != 'RETURNED' and order.status != 'REFUNDED'}" class="badge bg-secondary" th:text="${order.status == 'PENDING' ? 'Chờ xử lý' : order.status}"></span>
                     </td>
                     <td class="text-center">
                         <a th:href="@{/pos/sales-history/{id}(id=${order.id})}" class="btn btn-sm btn-outline-primary py-0" style="font-size: 11px;">

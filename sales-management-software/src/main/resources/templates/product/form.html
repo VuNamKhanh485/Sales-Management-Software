@@ -90,8 +90,11 @@
                     </div>
 
                     <div class="form-group form-group--full">
-                        <label class="form-label">Nhà cung cấp</label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background-color: #fff; max-height: 200px; overflow-y: auto;">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 8px;">
+                            <label class="form-label" style="margin: 0; white-space: nowrap;">Nhà cung cấp</label>
+                            <input type="text" id="supplierSearch" placeholder="Tìm kiếm..." style="border: 1px solid #ccc; border-radius: 4px; padding: 4px 10px; width: 200px; height: 32px; font-size: 13px; outline: none;" oninput="filterSuppliers()">
+                        </div>
+                        <div id="supplierListContainer" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background-color: #fff; max-height: 200px; overflow-y: auto;">
                             <div th:each="sup : ${supplierList}" style="display: flex; align-items: center; gap: 8px;">
                                 <input type="checkbox"
                                        th:id="${'sup_' + sup.id}"

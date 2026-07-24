@@ -18,8 +18,8 @@ public interface InventoryReportRepository extends JpaRepository<OrderTransactio
                SUM(quantity) AS qty, SUM(total_amount) AS value
         FROM (
             SELECT ot.branch_id AS branch_id, otd.product_unit_id, otd.quantity, otd.total_amount
-            FROM ordertransaction ot
-            JOIN ordertransactiondetail otd ON otd.order_transaction_id = ot.id
+            FROM OrderTransaction ot
+            JOIN OrderTransactionDetail otd ON otd.order_transaction_id = ot.id
             WHERE ot.transaction_type = 'IMPORT'
               AND ot.status = 'RECEIVED'
               AND ot.created_at BETWEEN :fromDate AND :toDate
@@ -27,8 +27,8 @@ public interface InventoryReportRepository extends JpaRepository<OrderTransactio
             UNION ALL
 
             SELECT ot.branch_id AS branch_id, otd.product_unit_id, otd.quantity, otd.total_amount
-            FROM ordertransaction ot
-            JOIN ordertransactiondetail otd ON otd.order_transaction_id = ot.id
+            FROM OrderTransaction ot
+            JOIN OrderTransactionDetail otd ON otd.order_transaction_id = ot.id
             WHERE ot.transaction_type = 'RETURN'
               AND ot.status = 'COMPLETED'
               AND ot.created_at BETWEEN :fromDate AND :toDate
@@ -36,8 +36,8 @@ public interface InventoryReportRepository extends JpaRepository<OrderTransactio
             UNION ALL
 
             SELECT ot.to_branch_id AS branch_id, otd.product_unit_id, otd.quantity, otd.total_amount
-            FROM ordertransaction ot
-            JOIN ordertransactiondetail otd ON otd.order_transaction_id = ot.id
+            FROM OrderTransaction ot
+            JOIN OrderTransactionDetail otd ON otd.order_transaction_id = ot.id
             WHERE ot.transaction_type = 'TRANSFER'
               AND ot.status = 'COMPLETED'
               AND ot.created_at BETWEEN :fromDate AND :toDate
@@ -57,8 +57,8 @@ public interface InventoryReportRepository extends JpaRepository<OrderTransactio
                SUM(quantity) AS qty, SUM(total_amount) AS value
         FROM (
             SELECT ot.branch_id AS branch_id, otd.product_unit_id, otd.quantity, otd.total_amount
-            FROM ordertransaction ot
-            JOIN ordertransactiondetail otd ON otd.order_transaction_id = ot.id
+            FROM OrderTransaction ot
+            JOIN OrderTransactionDetail otd ON otd.order_transaction_id = ot.id
             WHERE ot.transaction_type = 'SALE'
               AND ot.status = 'COMPLETED'
               AND ot.created_at BETWEEN :fromDate AND :toDate
@@ -66,8 +66,8 @@ public interface InventoryReportRepository extends JpaRepository<OrderTransactio
             UNION ALL
 
             SELECT ot.from_branch_id AS branch_id, otd.product_unit_id, otd.quantity, otd.total_amount
-            FROM ordertransaction ot
-            JOIN ordertransactiondetail otd ON otd.order_transaction_id = ot.id
+            FROM OrderTransaction ot
+            JOIN OrderTransactionDetail otd ON otd.order_transaction_id = ot.id
             WHERE ot.transaction_type = 'TRANSFER'
               AND ot.status = 'COMPLETED'
               AND ot.created_at BETWEEN :fromDate AND :toDate
@@ -84,16 +84,16 @@ public interface InventoryReportRepository extends JpaRepository<OrderTransactio
     // ===== Giá nhập GẦN NHẤT của mỗi SKU tính đến 1 thời điểm (dùng để định giá tồn đầu/cuối kỳ) =====
     @Query(value = """
         SELECT otd.product_unit_id AS productUnitId, otd.import_price AS importPrice
-        FROM ordertransactiondetail otd
-        JOIN ordertransaction ot ON ot.id = otd.order_transaction_id
+        FROM OrderTransactionDetail otd
+        JOIN OrderTransaction ot ON ot.id = otd.order_transaction_id
         WHERE ot.transaction_type = 'IMPORT'
           AND ot.status = 'RECEIVED'
           AND ot.created_at <= :atDate
           AND (:branchId IS NULL OR ot.branch_id = :branchId)
           AND otd.id = (
               SELECT otd2.id
-              FROM ordertransactiondetail otd2
-              JOIN ordertransaction ot2 ON ot2.id = otd2.order_transaction_id
+              FROM OrderTransactionDetail otd2
+              JOIN OrderTransaction ot2 ON ot2.id = otd2.order_transaction_id
               WHERE otd2.product_unit_id = otd.product_unit_id
                 AND ot2.transaction_type = 'IMPORT'
                 AND ot2.status = 'RECEIVED'

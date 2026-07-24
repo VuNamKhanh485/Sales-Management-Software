@@ -134,8 +134,8 @@
                             </td>
                             <td>
                                 <span class="badge" th:classappend="${order.status == 'COMPLETED'} ? 'badge-active' :
-                                                     (${order.status == 'CANCELLED'} ? 'badge-inactive' : '')"
-                                    th:text="${order.status == 'COMPLETED' ? 'Hoàn thành' : (order.status == 'PENDING' ? 'Chờ xử lý' : (order.status == 'CANCELLED' ? 'Đã hủy' : (order.status == 'RETURNED' ? 'Đã trả hàng' : order.status)))}">
+                                                     (${order.status == 'CANCELLED' or order.status == 'REFUNDED'} ? 'badge-inactive' : '')"
+                                    th:text="${order.status == 'COMPLETED' ? 'Hoàn thành' : (order.status == 'PENDING' ? 'Chờ xử lý' : (order.status == 'CANCELLED' ? 'Đã hủy' : (order.status == 'RETURNED' ? 'Đã trả hàng' : (order.status == 'REFUNDED' ? 'Đã hoàn tiền' : order.status))))}">
                                 </span>
                             </td>
                             <td>

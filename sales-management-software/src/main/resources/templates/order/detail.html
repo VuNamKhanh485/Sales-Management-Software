@@ -72,7 +72,7 @@
                     </div>
                     <div class="text-muted small">
                         Trạng thái: 
-                        <span class="badge" th:classappend="${order.status == 'COMPLETED'} ? 'bg-success' : 'bg-secondary'" th:text="${order.status == 'COMPLETED' ? 'Hoàn thành' : (order.status == 'PENDING' ? 'Chờ xử lý' : (order.status == 'CANCELLED' ? 'Đã hủy' : (order.status == 'RETURNED' ? 'Đã trả hàng' : order.status)))}"></span>
+                        <span class="badge" th:classappend="${order.status == 'COMPLETED'} ? 'bg-success' : 'bg-secondary'" th:text="${order.status == 'COMPLETED' ? 'Hoàn thành' : (order.status == 'PENDING' ? 'Chờ xử lý' : (order.status == 'CANCELLED' ? 'Đã hủy' : (order.status == 'RETURNED' ? 'Đã trả hàng' : (order.status == 'REFUNDED' ? 'Đã hoàn tiền' : order.status))))}"></span>
                     </div>
                 </div>
             </div>
@@ -102,7 +102,7 @@
                     <tr th:each="detail, stat : ${order.details}">
                         <td class="text-center text-muted" th:text="${stat.count}"></td>
                         <td>
-                            <div class="fw-semibold text-dark" th:text="${detail.productUnit.product.name}"></div>
+                            <div class="fw-semibold text-dark" th:text="${detail.productUnit.product.name} + (${detail.productUnit.unit != null} ? ' (' + ${detail.productUnit.unit.name} + ')' : '')"></div>
                             <div class="text-muted small" style="font-size: 11px;" th:text="'SKU: ' + ${detail.productUnit.sku}"></div>
                         </td>
                         <td class="text-center" th:text="${detail.productUnit.unit.name}"></td>

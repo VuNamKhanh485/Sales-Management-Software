@@ -2,17 +2,22 @@ package com.g4fpt.sms.order.controller;
 
 import com.g4fpt.sms.auth.dto.SessionUser;
 import com.g4fpt.sms.auth.util.SessionConstants;
+import com.g4fpt.sms.branch.entity.Branch;
 import com.g4fpt.sms.order.dto.*;
 import com.g4fpt.sms.order.entity.OrderTransaction;
 import com.g4fpt.sms.order.repository.OrderTransactionRepository;
 import com.g4fpt.sms.order.service.OrderTransactionService;
+import com.g4fpt.sms.product.entity.Category;
 import com.g4fpt.sms.product.entity.ProductUnit;
 import com.g4fpt.sms.product.repository.ProductUnitRepository;
+import com.g4fpt.sms.voucher.entity.Voucher;
 import com.g4fpt.sms.voucher.repository.VoucherRepository;
 import com.g4fpt.sms.inventory.repository.InventoryRepository;
 import com.g4fpt.sms.customer.repository.CustomerRepository;
 import com.g4fpt.sms.branch.repository.BranchRepository;
 import com.g4fpt.sms.product.enums.ProductStatus;
+import com.g4fpt.sms.inventory.entity.Inventory;
+import com.g4fpt.sms.customer.entity.Customer;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -21,8 +26,16 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import com.g4fpt.sms.product.repository.CategoryRepository;
+import com.g4fpt.sms.branch.entity.BranchStatus;
+import com.g4fpt.sms.product.enums.CategoryStatus;
+import com.g4fpt.sms.voucher.enums.VoucherStatus;
+import com.g4fpt.sms.customer.enums.CustomerStatus;
+import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
-import java.util.stream.Collectors;
+import org.springframework.data.domain.PageRequest;
 
 @Controller
 @RequestMapping("/pos")
@@ -32,11 +45,11 @@ public class PosController {
 
     private final OrderTransactionService posService;
     private final ProductUnitRepository productUnitRepo;
-    private final com.g4fpt.sms.product.repository.CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
     private final CustomerRepository customerRepository;
     private final OrderTransactionRepository orderRepo;
     private final BranchRepository branchRepo;
-    private final com.g4fpt.sms.voucher.repository.VoucherRepository voucherRepository;
+    private final VoucherRepository voucherRepository;
     private final InventoryRepository inventoryRepository;
 
     @ModelAttribute("posSession")
@@ -46,28 +59,43 @@ public class PosController {
 
     // Hiển thị màn hình POS chính
     @GetMapping
-    public String showPosScreen(@ModelAttribute("posSession") PosSessionData session,
+    public String showPosScreen(
+            @ModelAttribute("posSession") PosSessionData session,
             @RequestParam(required = false) Long successOrderId,
-            HttpSession httpSession, Model model) {
+            HttpSession httpSession, 
+            Model model) {
+            
         SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
+        
         initSessionBranch(session, user);
         buildPosModel(session, user, model);
-        if (successOrderId != null)
-            orderRepo.findById(successOrderId).ifPresent(order -> {
+        
+        if (successOrderId != null) {
+            OrderTransaction order = orderRepo.findById(successOrderId).orElse(null);
+            
+            if (order != null) {
                 model.addAttribute("successOrder", order);
-                if (order.getBranchId() != null)
-                    branchRepo.findById(order.getBranchId()).ifPresent(b -> model.addAttribute("successBranch", b));
-            });
+                
+                if (order.getBranchId() != null) {
+                    var branch = branchRepo.findById(order.getBranchId()).orElse(null);
+                    if (branch != null) {
+                        model.addAttribute("successBranch", branch);
+                    }
+                }
+            }
+        }
+        
         return "order/pos";
     }
 
     // Quản lý các tab đơn hàng
     @GetMapping("/new-order")
     public String newOrder(@ModelAttribute("posSession") PosSessionData s, RedirectAttributes ra) {
-        if (!s.canAddOrder())
+        if (!s.canAddOrder()) {
             ra.addFlashAttribute("error", "Tối đa 5 đơn hàng cùng lúc!");
-        else
+        } else {
             s.addNewOrder();
+        }
         return "redirect:/pos";
     }
 
@@ -103,12 +131,17 @@ public class PosController {
     public String addToCart(@RequestParam("keyword") String keyword, @ModelAttribute("posSession") PosSessionData s,
             RedirectAttributes ra) {
         String kw = keyword.trim();
-        ProductUnit pu = productUnitRepo.findBySku(kw)
-                .orElseGet(() -> productUnitRepo.findByBarcodeUnit(kw).orElse(null));
-        if (pu != null && pu.getProduct() != null && pu.getProduct().getStatus() == ProductStatus.ACTIVE)
+        
+        ProductUnit pu = productUnitRepo.findBySku(kw).orElse(null);
+        if (pu == null) {
+            pu = productUnitRepo.findByBarcodeUnit(kw).orElse(null);
+        }
+        
+        if (pu != null && pu.getProduct() != null && pu.getProduct().getStatus() == ProductStatus.ACTIVE) {
             addProductToCart(s.getActiveCart(), pu);
-        else
+        } else {
             ra.addFlashAttribute("error", "Không tìm thấy sản phẩm hoặc sản phẩm đã ngưng hoạt động: " + kw);
+        }
         return "redirect:/pos";
     }
 
@@ -118,9 +151,10 @@ public class PosController {
         ProductUnit pu = productUnitRepo.findById(productUnitId).orElse(null);
         if (pu != null && pu.getProduct() != null && pu.getProduct().getStatus() == ProductStatus.ACTIVE) {
             addProductToCart(s.getActiveCart(), pu);
-            ra.addFlashAttribute("success", "Đã thêm sản phẩm \"" + pu.getProduct().getName() + "\" vào giỏ hàng!");
-        } else
+            ra.addFlashAttribute("success", "Đã thêm sản phẩm: " + pu.getProduct().getName());
+        } else {
             ra.addFlashAttribute("error", "Không tìm thấy sản phẩm hoặc sản phẩm đã ngưng hoạt động!");
+        }
         return "redirect:/pos";
     }
 
@@ -129,10 +163,11 @@ public class PosController {
             @ModelAttribute("posSession") PosSessionData s) {
         var items = s.getActiveCart().getItems();
         if (index >= 0 && index < items.size()) {
-            if (quantity <= 0)
+            if (quantity <= 0) {
                 items.remove(index);
-            else
+            } else {
                 items.get(index).setQuantity(quantity);
+            }
         }
         return "redirect:/pos";
     }
@@ -141,22 +176,29 @@ public class PosController {
     public String updateUnit(@RequestParam int index, @RequestParam Long productUnitId,
             @ModelAttribute("posSession") PosSessionData s) {
         var items = s.getActiveCart().getItems();
-        if (index >= 0 && index < items.size())
-            productUnitRepo.findById(productUnitId).ifPresent(pu -> {
+        if (index >= 0 && index < items.size()) {
+            ProductUnit pu = productUnitRepo.findById(productUnitId).orElse(null);
+            if (pu != null) {
                 var item = items.get(index);
                 item.setProductUnitId(pu.getId());
                 item.setSku(pu.getSku());
                 item.setPrice(pu.getPrice());
-                item.setUnitName(pu.getUnit() != null ? pu.getUnit().getName() : "");
-            });
+                if (pu.getUnit() != null) {
+                    item.setUnitName(pu.getUnit().getName());
+                } else {
+                    item.setUnitName("");
+                }
+            }
+        }
         return "redirect:/pos";
     }
 
     @GetMapping("/remove")
     public String removeCartItem(@RequestParam int index, @ModelAttribute("posSession") PosSessionData s) {
         var items = s.getActiveCart().getItems();
-        if (index >= 0 && index < items.size())
+        if (index >= 0 && index < items.size()) {
             items.remove(index);
+        }
         return "redirect:/pos";
     }
 
@@ -167,12 +209,12 @@ public class PosController {
         SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
         String kw = phone.trim().replaceAll("\\s+", " ");
         if (!kw.isEmpty()) {
-            var result = customerRepository
-                    .searchActiveByPhoneOrName(kw, org.springframework.data.domain.PageRequest.of(0, 5)).getContent();
-            if (result.isEmpty())
+            var result = customerRepository.searchActiveByPhoneOrName(kw, PageRequest.of(0, 5)).getContent();
+            if (result.isEmpty()) {
                 model.addAttribute("customerSearchError", "Không tìm thấy khách hàng");
-            else
+            } else {
                 model.addAttribute("customerSearchResults", result);
+            }
         }
         model.addAttribute("searchedPhone", phone);
         initSessionBranch(session, user);
@@ -185,7 +227,7 @@ public class PosController {
             @RequestParam String customerPhone, @ModelAttribute("posSession") PosSessionData s,
             RedirectAttributes ra) {
         var c = customerRepository.findById(customerId).orElse(null);
-        if (c == null || c.getStatus() != com.g4fpt.sms.customer.enums.CustomerStatus.ACTIVE) {
+        if (c == null || c.getStatus() != CustomerStatus.ACTIVE) {
             ra.addFlashAttribute("error", "Khách hàng này hiện đang ngừng hoạt động hoặc không tồn tại!");
             return "redirect:/pos";
         }
@@ -193,7 +235,7 @@ public class PosController {
         cart.setCustomerId(customerId);
         cart.setCustomerName(customerName);
         cart.setCustomerPhone(customerPhone);
-        // Điểm tích lũy khả dụng = tổng điểm - điểm đã dùng
+        
         int availablePoints = c.getTotalPoint() - c.getUsedPoint();
         cart.setCustomerAvailablePoints(Math.max(0, availablePoints));
         cart.setUsePoints(false);
@@ -217,7 +259,8 @@ public class PosController {
             RedirectAttributes ra) {
         var cart = s.getActiveCart();
         try {
-            var discount = posService.calculateVoucherDiscount(code, cart.getTotalAmount(), cart.getCustomerId());
+            var totalWithVat = cart.getTotalAmount().add(cart.getVatAmount());
+            var discount = posService.calculateVoucherDiscount(code, totalWithVat, cart.getCustomerId());
             cart.setVoucherCode(code);
             cart.setVoucherDiscount(discount);
             ra.addFlashAttribute("voucherSuccess", "Áp dụng thành công! Giảm " + discount + "đ");
@@ -252,87 +295,132 @@ public class PosController {
         return "redirect:/pos";
     }
 
-    // Đổi chi nhánh làm việc (chỉ Owner)
+    // Đổi chi nhánh làm việc
     @GetMapping("/change-branch")
     public String changeBranch(@RequestParam Long branchId, @ModelAttribute("posSession") PosSessionData s,
             HttpSession httpSession) {
         SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
-        if (user != null && user.hasRole("OWNER"))
+        if (user != null && user.hasRole("OWNER")) {
             s.setActiveBranchId(branchId);
+        }
         return "redirect:/pos";
     }
 
-    // Danh sách sản phẩm hiển thị trong iframe modal
+    // Danh sách sản phẩm
     @GetMapping("/product-list")
     public String getProductList(@ModelAttribute("posSession") PosSessionData s,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String keyword, Model model) {
         String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
         var products = productUnitRepo.searchActiveProductUnits(categoryId, kw);
+        
         Long branchId = s.getActiveBranchId();
         if (branchId == null) {
-            branchId = branchRepo.findAll().stream()
-                    .filter(b -> b.getStatus() == com.g4fpt.sms.branch.entity.BranchStatus.ACTIVE)
-                    .findFirst()
-                    .map(com.g4fpt.sms.branch.entity.Branch::getId).orElse(null);
+            List<Branch> branches = branchRepo.findAll();
+            for (Branch b : branches) {
+                if (b.getStatus() == BranchStatus.ACTIVE) {
+                    branchId = b.getId();
+                    break;
+                }
+            }
             s.setActiveBranchId(branchId);
         }
+        
         Map<Long, Integer> stockMap = new HashMap<>();
         if (branchId != null) {
             final Long bId = branchId;
-            products.forEach(pu -> stockMap.put(pu.getId(),
-                    inventoryRepository.findByBranchIdAndProductUnitId(bId, pu.getId())
-                            .map(inv -> inv.getStock()).orElse(0)));
+            for (var pu : products) {
+                Inventory inv = inventoryRepository.findByBranchIdAndProductUnitId(bId, pu.getId()).orElse(null);
+                if (inv != null) {
+                    stockMap.put(pu.getId(), inv.getStock());
+                } else {
+                    stockMap.put(pu.getId(), 0);
+                }
+            }
         }
+        
         model.addAttribute("products", products);
         model.addAttribute("stockMap", stockMap);
-        model.addAttribute("categories", categoryRepository.findAll().stream()
-                .filter(c -> c.getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE).toList());
+        
+        List<Category> allCategories = categoryRepository.findAll();
+        List<Category> activeCategories = new ArrayList<>();
+        for (Category c : allCategories) {
+            if (c.getStatus() == CategoryStatus.ACTIVE) {
+                activeCategories.add(c);
+            }
+        }
+        
+        model.addAttribute("categories", activeCategories);
         model.addAttribute("keyword", keyword);
         model.addAttribute("categoryId", categoryId);
         return "order/pos-product-list";
     }
 
-    // Danh sách voucher khả dụng hiển thị trong iframe modal
+    // Danh sách voucher
     @GetMapping("/voucher-list")
     public String getAvailableVouchers(@ModelAttribute("posSession") PosSessionData s, Model model) {
         Long customerId = s.getActiveCart().getCustomerId();
         if (customerId == null) {
-            model.addAttribute("vouchers", List.of());
+            model.addAttribute("vouchers", new ArrayList<>());
             return "order/pos-voucher-list";
         }
-        var now = java.time.LocalDateTime.now();
-        var customer = customerRepository.findById(customerId).orElse(null);
-        var vouchers = voucherRepository.findAll().stream()
-                .filter(v -> v.getStatus() == com.g4fpt.sms.voucher.enums.VoucherStatus.ACTIVE
-                        && v.getStartAt().isBefore(now) && v.getEndAt().isAfter(now))
-                .filter(v -> v.getCustomerRank() == null
-                        || (customer != null && customer.getCustomerRank() != null
-                                && customer.getCustomerRank().getConditionTotalRevenue()
-                                        .compareTo(v.getCustomerRank().getConditionTotalRevenue()) >= 0))
-                .toList();
-        model.addAttribute("vouchers", vouchers);
+        
+        var now = LocalDateTime.now();
+        Customer customer = customerRepository.findById(customerId).orElse(null);
+        List<Voucher> allVouchers = voucherRepository.findAll();
+        List<Voucher> activeVouchers = new ArrayList<>();
+        
+        for (Voucher v : allVouchers) {
+            if (v.getStatus() == VoucherStatus.ACTIVE
+                    && v.getStartAt().isBefore(now) && v.getEndAt().isAfter(now)) {
+                
+                if (v.getCustomerRank() == null) {
+                    activeVouchers.add(v);
+                } else if (customer != null && customer.getCustomerRank() != null) {
+                    if (customer.getCustomerRank().getConditionTotalRevenue().compareTo(v.getCustomerRank().getConditionTotalRevenue()) >= 0) {
+                        activeVouchers.add(v);
+                    }
+                }
+            }
+        }
+        
+        model.addAttribute("vouchers", activeVouchers);
         return "order/pos-voucher-list";
     }
 
-    // Xem lịch sử bán hàng theo ngày
+    // Xem lịch sử bán hàng
     @GetMapping("/sales-history")
     public String getSalesHistory(HttpSession httpSession,
             @RequestParam(required = false) String date, Model model) {
         SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
-        if (user == null)
+        if (user == null) {
             return "redirect:/login";
+        }
+            
         boolean isOwner = user.hasRole("OWNER");
-        var ld = (date != null && !date.isBlank()) ? java.time.LocalDate.parse(date) : java.time.LocalDate.now();
-        var orders = isOwner
-                ? orderRepo.findByDateRange(ld.atStartOfDay(), ld.atTime(java.time.LocalTime.MAX))
-                : orderRepo.findByCreatedByAndDateRange(
-                        user.getId(), ld.atStartOfDay(), ld.atTime(java.time.LocalTime.MAX));
-        var branchIds = orders.stream().map(com.g4fpt.sms.order.entity.OrderTransaction::getBranchId)
-                .filter(Objects::nonNull).collect(Collectors.toSet());
-        var branchNames = branchRepo.findAllById(branchIds).stream()
-                .collect(Collectors.toMap(com.g4fpt.sms.branch.entity.Branch::getId,
-                        com.g4fpt.sms.branch.entity.Branch::getName));
+        var ld = (date != null && !date.isBlank()) ? LocalDate.parse(date) : LocalDate.now();
+        
+        List<OrderTransaction> orders;
+        if (isOwner) {
+            orders = orderRepo.findByDateRange(ld.atStartOfDay(), ld.atTime(LocalTime.MAX));
+        } else {
+            orders = orderRepo.findByCreatedByAndDateRange(
+                    user.getId(), ld.atStartOfDay(), ld.atTime(LocalTime.MAX));
+        }
+        
+        Set<Long> branchIds = new HashSet<>();
+        for (OrderTransaction order : orders) {
+            if (order.getBranchId() != null) {
+                branchIds.add(order.getBranchId());
+            }
+        }
+        
+        List<Branch> branches = branchRepo.findAllById(branchIds);
+        Map<Long, String> branchNames = new HashMap<>();
+        for (Branch b : branches) {
+            branchNames.put(b.getId(), b.getName());
+        }
+        
         model.addAttribute("isOwner", isOwner);
         model.addAttribute("orders", orders);
         model.addAttribute("branchNames", branchNames);
@@ -342,19 +430,31 @@ public class PosController {
 
     @GetMapping("/sales-history/{id}")
     public String getOrderDetail(@PathVariable Long id, Model model) {
-        var order = orderRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+        OrderTransaction order = orderRepo.findById(id).orElse(null);
+        if (order == null) {
+            throw new RuntimeException("Không tìm thấy đơn hàng");
+        }
+        
         model.addAttribute("order", order);
-        var branch = order.getBranchId() != null
-                ? branchRepo.findById(order.getBranchId()).orElse(null)
-                : null;
-        model.addAttribute("branchName", branch != null ? branch.getName() : "");
-        model.addAttribute("branchAddress", branch != null ? branch.getAddress() : "");
-        model.addAttribute("branchPhone", branch != null ? branch.getPhone() : "");
+        
+        Branch branch = null;
+        if (order.getBranchId() != null) {
+            branch = branchRepo.findById(order.getBranchId()).orElse(null);
+        }
+        
+        if (branch != null) {
+            model.addAttribute("branchName", branch.getName());
+            model.addAttribute("branchAddress", branch.getAddress());
+            model.addAttribute("branchPhone", branch.getPhone());
+        } else {
+            model.addAttribute("branchName", "");
+            model.addAttribute("branchAddress", "");
+            model.addAttribute("branchPhone", "");
+        }
         return "order/pos-history-detail";
     }
 
-    // Xử lý thanh toán: validate, trừ kho, lưu đơn hàng
+    // Xử lý thanh toán
     @PostMapping("/checkout")
     public String checkout(@ModelAttribute("posSession") PosSessionData s,
             @RequestParam(required = false) String note,
@@ -364,10 +464,12 @@ public class PosController {
             RedirectAttributes ra) {
         SessionUser user = (SessionUser) httpSession.getAttribute(SessionConstants.LOGGED_IN_USER);
         var cart = s.getActiveCart();
+        
         if (cart.getItems().isEmpty()) {
             ra.addFlashAttribute("error", "Giỏ hàng trống!");
             return "redirect:/pos";
         }
+        
         try {
             var req = buildCheckoutRequest(s, paymentMethodId, givenAmount, note, user);
             var saved = posService.processCheckout(req);
@@ -380,70 +482,119 @@ public class PosController {
         }
     }
     
+    // Khởi tạo chi nhánh
     private void initSessionBranch(PosSessionData s, SessionUser user) {
         if (s.getActiveBranchId() == null) {
-            if (user != null && user.getBranchId() != null)
+            if (user != null && user.getBranchId() != null) {
                 s.setActiveBranchId(user.getBranchId());
-            else
-                branchRepo.findAll().stream()
-                        .filter(b -> b.getStatus() == com.g4fpt.sms.branch.entity.BranchStatus.ACTIVE)
-                        .findFirst().ifPresent(b -> s.setActiveBranchId(b.getId()));
+            } else {
+                List<Branch> branches = branchRepo.findAll();
+                for (Branch b : branches) {
+                    if (b.getStatus() == BranchStatus.ACTIVE) {
+                        s.setActiveBranchId(b.getId());
+                        break;
+                    }
+                }
+            }
         }
     }
 
+    // Load dữ liệu POS
     private void buildPosModel(PosSessionData s, SessionUser user, Model model) {
-        if (s.getActiveBranchId() != null)
-            branchRepo.findById(s.getActiveBranchId()).ifPresent(b -> model.addAttribute("activeBranch", b));
-        boolean isOwner = user != null && user.hasRole("OWNER");
+        if (s.getActiveBranchId() != null) {
+            Branch b = branchRepo.findById(s.getActiveBranchId()).orElse(null);
+            if (b != null) {
+                model.addAttribute("activeBranch", b);
+            }
+        }
+        
+        boolean isOwner = (user != null && user.hasRole("OWNER"));
         model.addAttribute("isOwner", isOwner);
-        if (isOwner)
-            model.addAttribute("branches", branchRepo.findAll().stream()
-                    .filter(b -> b.getStatus() == com.g4fpt.sms.branch.entity.BranchStatus.ACTIVE).toList());
+        
+        if (isOwner) {
+            List<Branch> allBranches = branchRepo.findAll();
+            List<Branch> activeBranches = new ArrayList<>();
+            for (Branch b : allBranches) {
+                if (b.getStatus() == BranchStatus.ACTIVE) {
+                    activeBranches.add(b);
+                }
+            }
+            model.addAttribute("branches", activeBranches);
+        }
+        
         model.addAttribute("posData", s);
         model.addAttribute("cart", s.getActiveCart());
-        model.addAttribute("categories", categoryRepository.findAll().stream()
-                .filter(c -> c.getStatus() == com.g4fpt.sms.product.enums.CategoryStatus.ACTIVE).toList());
+        
+        List<Category> allCategories = categoryRepository.findAll();
+        List<Category> activeCategories = new ArrayList<>();
+        for (Category c : allCategories) {
+            if (c.getStatus() == CategoryStatus.ACTIVE) {
+                activeCategories.add(c);
+            }
+        }
+        model.addAttribute("categories", activeCategories);
+        
         populateDropdownUnits(s, model);
     }
 
+    // Thêm sản phẩm
     private void addProductToCart(PosCart cart, ProductUnit pu) {
-        cart.getItems().stream()
-                .filter(i -> i.getProductUnitId().equals(pu.getId()))
-                .findFirst()
-                .ifPresentOrElse(
-                        existing -> existing.setQuantity(existing.getQuantity() + 1),
-                        () -> {
-                            PosCartItem item = new PosCartItem();
-                            item.setProductUnitId(pu.getId());
-                            item.setSku(pu.getSku());
-                            item.setName(pu.getProduct().getName());
-                            item.setPrice(pu.getPrice());
-                            item.setQuantity(1);
-                            item.setUnitName(pu.getUnit() != null ? pu.getUnit().getName() : "");
-                            item.setImageUrl(pu.getProduct().getImageName());
-                            cart.getItems().add(item);
-                        });
+        PosCartItem existingItem = null;
+        for (PosCartItem item : cart.getItems()) {
+            if (item.getProductUnitId().equals(pu.getId())) {
+                existingItem = item;
+                break;
+            }
+        }
+        
+        if (existingItem != null) {
+            existingItem.setQuantity(existingItem.getQuantity() + 1);
+        } else {
+            PosCartItem item = new PosCartItem();
+            item.setProductUnitId(pu.getId());
+            item.setSku(pu.getSku());
+            item.setName(pu.getProduct().getName());
+            item.setPrice(pu.getPrice());
+            item.setQuantity(1);
+            if (pu.getUnit() != null) {
+                item.setUnitName(pu.getUnit().getName());
+            } else {
+                item.setUnitName("");
+            }
+            item.setImageUrl(pu.getProduct().getImageName());
+            cart.getItems().add(item);
+        }
     }
 
+    // Load các đơn vị
     private void populateDropdownUnits(PosSessionData s, Model model) {
         Map<Long, List<ProductUnit>> map = new HashMap<>();
-        s.getActiveCart().getItems().forEach(item -> productUnitRepo.findById(item.getProductUnitId()).ifPresent(pu -> {
-            if (pu.getProduct() != null)
-                map.put(item.getProductUnitId(), productUnitRepo.findByProductIdWithUnit(pu.getProduct().getId()));
-        }));
+        for (PosCartItem item : s.getActiveCart().getItems()) {
+            ProductUnit pu = productUnitRepo.findById(item.getProductUnitId()).orElse(null);
+            if (pu != null && pu.getProduct() != null) {
+                List<ProductUnit> units = productUnitRepo.findByProductIdWithUnit(pu.getProduct().getId());
+                map.put(item.getProductUnitId(), units);
+            }
+        }
         model.addAttribute("cartItemUnitsMap", map);
     }
 
+    // Chuẩn bị thanh toán
     private POSCheckoutRequest buildCheckoutRequest(PosSessionData s, Long paymentMethodId,
             BigDecimal givenAmount, String note,
             SessionUser user) {
         var cart = s.getActiveCart();
         var req = new POSCheckoutRequest();
-        if (user == null)
+        
+        if (user == null) {
             throw new RuntimeException("Không tìm thấy thông tin nhân viên!");
+        }
         req.setEmployeeId(user.getId());
-        if (s.getActiveBranchId() == null)
+        
+        if (s.getActiveBranchId() == null) {
             throw new RuntimeException("Vui lòng chọn chi nhánh trước khi thanh toán!");
+        }
+        
         req.setBranchId(s.getActiveBranchId());
         req.setCustomerId(cart.getCustomerId());
         req.setVoucherCode(cart.getVoucherCode());
@@ -452,12 +603,16 @@ public class PosController {
         req.setVatRate(cart.getVatRate());
         req.setNote(note);
         req.setUsePoints(cart.isUsePoints());
-        req.setItems(cart.getItems().stream().map(item -> {
-            var r = new POSCartItemRequest();
+        
+        List<POSCartItemRequest> items = new ArrayList<>();
+        for (PosCartItem item : cart.getItems()) {
+            POSCartItemRequest r = new POSCartItemRequest();
             r.setProductUnitId(item.getProductUnitId());
             r.setQuantity(item.getQuantity());
-            return r;
-        }).toList());
+            items.add(r);
+        }
+        req.setItems(items);
+        
         return req;
     }
 }

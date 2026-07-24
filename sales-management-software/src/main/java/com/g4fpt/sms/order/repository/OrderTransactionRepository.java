@@ -1,6 +1,8 @@
 package com.g4fpt.sms.order.repository;
  
 import com.g4fpt.sms.order.entity.OrderTransaction;
+import com.g4fpt.sms.report.dto.EmployeeSalesDTO;
+import com.g4fpt.sms.report.dto.EmployeeOrderSalesDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
 @Repository
 public interface OrderTransactionRepository extends JpaRepository<OrderTransaction, Long> {
  
@@ -19,7 +22,6 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
     long countByCustomerId(Long customerId);
 
     boolean existsByVoucherId(Long voucherId);
-
 
     @Query("SELECT o FROM OrderTransaction o WHERE o.createdBy = :createdBy AND o.createdAt BETWEEN :start AND :end ORDER BY o.createdAt DESC")
     List<OrderTransaction> findByCreatedByAndDateRange(
@@ -57,6 +59,7 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
 
+    // Lưu ý: Spring Data JPA (Hibernate) bắt buộc phải truyền đường dẫn file DTO tuyệt đối (fully qualified) vào trong @Query("SELECT new ...")
     @Query("SELECT new com.g4fpt.sms.report.dto.EmployeeSalesDTO(e.id, e.employeeCode, e.fullName, COUNT(o), SUM(o.finalAmount), b.name) " +
            "FROM OrderTransaction o JOIN Employee e ON o.createdBy = e.id " +
            "LEFT JOIN e.branch b " +
@@ -65,7 +68,7 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
            "o.createdAt >= :startDate AND o.createdAt <= :endDate " +
            "GROUP BY e.id, e.employeeCode, e.fullName, b.name " +
            "ORDER BY SUM(o.finalAmount) DESC")
-    List<com.g4fpt.sms.report.dto.EmployeeSalesDTO> getEmployeeSalesReport(
+    List<EmployeeSalesDTO> getEmployeeSalesReport(
             @Param("branchId") Long branchId,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
@@ -82,6 +85,7 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
 
+    // Lưu ý: Bắt buộc dùng đường dẫn tuyệt đối cho DTO trong @Query String
     @Query("SELECT new com.g4fpt.sms.report.dto.EmployeeOrderSalesDTO(" +
            "o.id, o.code, o.createdAt, b.name, e.fullName, o.finalAmount) " +
            "FROM OrderTransaction o " +
@@ -92,7 +96,7 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
            "o.transactionType = 'SALE' AND o.status = 'COMPLETED' AND " +
            "o.createdAt >= :startDate AND o.createdAt <= :endDate " +
            "ORDER BY o.createdAt DESC")
-    Page<com.g4fpt.sms.report.dto.EmployeeOrderSalesDTO> getDetailedOrderSalesPage(
+    Page<EmployeeOrderSalesDTO> getDetailedOrderSalesPage(
             @Param("branchId") Long branchId,
             @Param("employeeId") Long employeeId,
             @Param("startDate") LocalDateTime startDate,
@@ -109,7 +113,7 @@ public interface OrderTransactionRepository extends JpaRepository<OrderTransacti
            "o.transactionType = 'SALE' AND o.status = 'COMPLETED' AND " +
            "o.createdAt >= :startDate AND o.createdAt <= :endDate " +
            "ORDER BY o.createdAt DESC")
-    List<com.g4fpt.sms.report.dto.EmployeeOrderSalesDTO> getDetailedOrderSalesList(
+    List<EmployeeOrderSalesDTO> getDetailedOrderSalesList(
             @Param("branchId") Long branchId,
             @Param("employeeId") Long employeeId,
             @Param("startDate") LocalDateTime startDate,

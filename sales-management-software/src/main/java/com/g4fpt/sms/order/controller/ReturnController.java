@@ -31,14 +31,19 @@ public class ReturnController {
     @Value("${upload.path}")
     private String uploadDir;
 
+    // Lấy thông tin nhân viên đang đăng nhập từ session
     private SessionUser getCurrentUser(HttpSession session) {
         return (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
     }
 
-    // Hiển thị trang tạo yêu cầu trả hàng & Tìm kiếm đơn hàng
+    // Hiển thị trang tạo yêu cầu trả hàng và tìm kiếm đơn hàng
     @GetMapping
     public String returnPage(@RequestParam(required = false) String orderCode, Model model) {
-        model.addAttribute("autoOrderCode", orderCode != null && !orderCode.isBlank() ? orderCode : "");
+        if (orderCode != null && !orderCode.isBlank()) {
+            model.addAttribute("autoOrderCode", orderCode);
+        } else {
+            model.addAttribute("autoOrderCode", "");
+        }
 
         if (orderCode != null && !orderCode.trim().isEmpty()) {
             try {
@@ -52,7 +57,7 @@ public class ReturnController {
         return "order/return-request";
     }
 
-    // Xử lý Form gửi yêu cầu trả hàng
+    // Xử lý gửi yêu cầu trả hàng từ giao diện
     @PostMapping("/create")
     public String createReturnRequest(
             @RequestParam("orderId") Long orderId,
@@ -70,7 +75,8 @@ public class ReturnController {
             List<ReturnRequestService.ReturnItemInput> items = new ArrayList<>();
             if (detailIds != null && quantities != null && detailIds.size() == quantities.size()) {
                 for (int i = 0; i < detailIds.size(); i++) {
-                    items.add(new ReturnRequestService.ReturnItemInput(detailIds.get(i), quantities.get(i)));
+                    ReturnRequestService.ReturnItemInput input = new ReturnRequestService.ReturnItemInput(detailIds.get(i), quantities.get(i));
+                    items.add(input);
                 }
             }
 
@@ -79,8 +85,11 @@ public class ReturnController {
                 return "redirect:/return";
             }
 
-            OrderTransaction order = orderTransactionRepository.findByIdWithDetails(orderId)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+            OrderTransaction order = orderTransactionRepository.findByIdWithDetails(orderId).orElse(null);
+            if (order == null) {
+                throw new RuntimeException("Không tìm thấy đơn hàng");
+            }
+            
             Long branchId = order.getBranchId();
 
             ReturnRequest request = returnRequestService.createReturnRequest(
@@ -95,16 +104,23 @@ public class ReturnController {
         }
     }
 
-    // Hiển thị trang quản lý yêu cầu trả hàng
+    // Hiển thị trang quản lý các yêu cầu trả hàng
     @GetMapping("/manage")
-    public String managePage(Model model) {
+    public String managePage(HttpSession session, Model model) {
+        SessionUser user = getCurrentUser(session);
+        if (user == null || (!user.hasRole("OWNER") && !user.hasRole("BRANCH_MANAGER"))) {
+            return "redirect:/";
+        }
         List<ReturnRequest> requests = returnRequestService.getAllRequests();
         model.addAttribute("requests", requests);
-        model.addAttribute("pendingCount", returnRequestService.countPendingRequests());
+        
+        long pendingCount = returnRequestService.countPendingRequests();
+        model.addAttribute("pendingCount", pendingCount);
+        
         return "order/return-manage";
     }
 
-    // Hiển thị trang chi tiết yêu cầu trả hàng
+    // Hiển thị trang chi tiết của một yêu cầu trả hàng
     @GetMapping("/{id}")
     public String detailPage(@PathVariable Long id, Model model) {
         try {
@@ -117,7 +133,7 @@ public class ReturnController {
         }
     }
 
-    // Xử lý Form duyệt yêu cầu trả hàng
+    // Duyệt (chấp nhận) yêu cầu trả hàng
     @PostMapping("/{id}/approve")
     public String approveRequest(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
         try {
@@ -131,7 +147,7 @@ public class ReturnController {
         return "redirect:/return/" + id;
     }
 
-    // Xử lý Form từ chối yêu cầu trả hàng
+    // Từ chối yêu cầu trả hàng
     @PostMapping("/{id}/reject")
     public String rejectRequest(@PathVariable Long id,
             @RequestParam("reason") String reason,

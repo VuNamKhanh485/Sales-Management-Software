@@ -49,14 +49,18 @@ public class DashboardController {
         // Cả OWNER và BRANCH_MANAGER đều thấy yêu cầu trả hàng
         List<ReturnRequest> pendingReturns = returnRequestService.getPendingRequests();
         for (ReturnRequest req : pendingReturns) {
-            pendingApprovals.add(new ApprovalRequest(
-                "#" + req.getId(),
-                "Trả hàng",
-                req.getOrder().getCode(),
-                String.valueOf(req.getRequestedBy()),
-                req.getCreatedAt(),
-                "/return/" + req.getId()
-            ));
+            try {
+                pendingApprovals.add(new ApprovalRequest(
+                    "#" + req.getId(),
+                    "Trả hàng",
+                    req.getOrder().getCode(),
+                    String.valueOf(req.getRequestedBy()),
+                    req.getCreatedAt(),
+                    "/return/" + req.getId()
+                ));
+            } catch (jakarta.persistence.EntityNotFoundException e) {
+                // Skip return requests with missing order
+            }
         }
         
         // Chỉ OWNER mới thấy yêu cầu nhập hàng

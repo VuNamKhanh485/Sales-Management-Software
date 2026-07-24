@@ -8,6 +8,17 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link th:href="@{/css/core/apple-design.css}" rel="stylesheet">
     <link th:href="@{/css/order/pos.css}" rel="stylesheet">
+    <style>
+        /* Ẩn mũi tên tăng giảm của thẻ input number */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield; /* Firefox */
+        }
+    </style>
 </head>
 
 <body>
@@ -105,11 +116,13 @@
                                           th:text="${item.unitName}"></span>
                                 </td>
                                 <td>
-                                    <div class="qty-control">
+                                    <div class="qty-control d-flex align-items-center">
                                         <a th:href="@{/pos/update-qty(index=${stat.index}, quantity=${item.quantity - 1})}"
                                             class="btn btn-outline-secondary btn-sm qty-btn">−</a>
-                                        <span class="fw-bold" style="min-width:28px;text-align:center"
-                                            th:text="${item.quantity}"></span>
+                                        <input type="number" class="form-control form-control-sm text-center fw-bold px-1 mx-1"
+                                            style="width: 45px; height: 28px; -moz-appearance: textfield;"
+                                            th:value="${item.quantity}" min="1"
+                                            th:onchange="'window.location.href=\'/pos/update-qty?index=' + ${stat.index} + '&quantity=\' + this.value'">
                                         <a th:href="@{/pos/update-qty(index=${stat.index}, quantity=${item.quantity + 1})}"
                                             class="btn btn-outline-primary btn-sm qty-btn">+</a>
                                     </div>
@@ -302,6 +315,11 @@
                             <span
                                 th:text="${#numbers.formatDecimal(cart.totalAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
                         </div>
+                        <div class="summary-row">
+                            <span>Thuế VAT (8%)</span>
+                            <span
+                                th:text="${#numbers.formatDecimal(cart.vatAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        </div>
                         <div class="summary-row text-danger" th:if="${cart.voucherDiscount.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
                             <span>Giảm giá voucher</span>
                             <span
@@ -311,11 +329,6 @@
                             <span>Khấu trừ điểm</span>
                             <span
                                 th:text="'- ' + ${#numbers.formatDecimal(cart.pointDiscount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Thuế VAT (2%)</span>
-                            <span
-                                th:text="${#numbers.formatDecimal(cart.totalAmount.multiply(T(java.math.BigDecimal).valueOf(0.02)), 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
                         </div>
                         <div class="summary-row total">
                             <span>Khách phải trả</span>
