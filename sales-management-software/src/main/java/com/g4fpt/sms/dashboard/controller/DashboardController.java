@@ -8,6 +8,7 @@ import com.g4fpt.sms.order.entity.ReturnRequest;
 import com.g4fpt.sms.order.service.ReturnRequestService;
 import com.g4fpt.sms.order.service.TransferService;
 import com.g4fpt.sms.order.dto.TransferResponse;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.PageRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +59,7 @@ public class DashboardController {
                     req.getCreatedAt(),
                     "/return/" + req.getId()
                 ));
-            } catch (jakarta.persistence.EntityNotFoundException e) {
+            } catch (EntityNotFoundException e) {
                 // Skip return requests with missing order
             }
         }

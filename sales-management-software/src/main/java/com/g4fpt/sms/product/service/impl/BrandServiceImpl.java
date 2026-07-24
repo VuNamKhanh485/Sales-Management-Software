@@ -33,7 +33,7 @@ public class BrandServiceImpl implements BrandService {
     @Override
     public BrandResponse create(BrandRequest brandRequest) {
         if(brandRepository.existsByNameIgnoreCase(brandRequest.getBrandName())){
-            throw new DuplicateException("This name is already in use");
+            throw new DuplicateException("Tên đã được dùng");
         }
         Brand brand = brandMapper.toEntity(new Brand(),brandRequest);
         Brand savedBrand = brandRepository.save(brand);
@@ -95,7 +95,7 @@ public class BrandServiceImpl implements BrandService {
     public void update(long id, BrandRequest brandRequest) {
         Brand brand = getBrandById(id);
         if(brandRepository.existsByNameIgnoreCaseAndIdNot(brandRequest.getBrandName(), id)){
-            throw new DuplicateException("This name is already in use");
+            throw new DuplicateException("Tên đã được dùng");
         }
         brandMapper.toEntity(brand,brandRequest);
         brandRepository.save(brand);
@@ -103,7 +103,7 @@ public class BrandServiceImpl implements BrandService {
 
     private Brand getBrandById(long id) {
         return brandRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Brand not found"));
+                .orElseThrow(() -> new NotFoundException("Không thấy nhãn hàng"));
     }
 
 }
