@@ -24,6 +24,8 @@ public class VoucherController {
     public String list(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
             Model model) {
         
         VoucherStatus voucherStatus = null;
@@ -37,11 +39,15 @@ public class VoucherController {
         var pageResponse = voucherService.search(
                 keyword != null && !keyword.trim().isEmpty() ? keyword.trim() : null,
                 voucherStatus,
-                0,
-                1000
+                page - 1,
+                size
         );
         
         model.addAttribute("vouchers", pageResponse.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", pageResponse.getTotalPages());
+        model.addAttribute("totalItems", pageResponse.getTotalElements());
+        model.addAttribute("size", size);
         model.addAttribute("keyword", keyword);
         model.addAttribute("status", status);
         return "voucher/list";

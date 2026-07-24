@@ -157,8 +157,8 @@
                                 <span th:if="${req.status == 'REJECTED'}" class="badge" style="background: #fee2e2; color: #991b1b;">Đã từ chối</span>
                             </td>
                             <td style="text-align: right; padding-right: 24px;">
-                                <a th:href="@{/return/{id}(id=${req.id})}" class="btn" style="padding: 6px 12px; font-size: 13px; background: var(--surface-pearl); border: 1px solid var(--hairline);">
-                                    Xem chi tiết
+                                <a th:href="@{/return/{id}(id=${req.id})}" class="btn-secondary btn-secondary--sm" style="white-space: nowrap;">
+                                    Chi tiết
                                 </a>
                             </td>
                         </tr>

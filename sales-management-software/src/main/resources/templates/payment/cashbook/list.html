@@ -62,12 +62,15 @@
                             <th>Loại phiếu</th>
                             <th>Phương thức</th>
                             <th>Giá trị</th>
+                            <th>Ghi chú</th>
                             <th>Người tạo</th>
+                            <th>Trạng thái</th>
+                            <th style="text-align: right; padding-right: 24px;">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:if="${transactionPage.totalElements == 0}">
-                            <td colspan="7">
+                            <td colspan="10">
                                 <div class="empty-state">
                                     <h3 class="empty-state__title">Không có giao dịch</h3>
                                 </div>
@@ -82,7 +85,27 @@
                             </td>
                             <td th:text="${t.paymentMethod == 'CASH' ? 'Tiền mặt' : 'Chuyển khoản'}"></td>
                             <td class="amount-cell" th:text="${#numbers.formatDecimal(t.amount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                            <td th:text="${t.description}"></td>
                             <td th:text="${t.creator != null ? t.creator.fullName : ''}"></td>
+                            <td>
+                                <span class="badge" 
+                                      th:classappend="${t.status == 'COMPLETED'} ? 'badge-active' : (${t.status == 'REJECTED'} ? 'badge-inactive' : 'badge-warning')" 
+                                      th:text="${t.status == 'COMPLETED' ? 'Đã duyệt' : (t.status == 'REJECTED' ? 'Từ chối' : 'Chờ duyệt')}"
+                                      th:style="${t.status == 'PENDING'} ? 'background-color: #fef08a; color: #854d0e;' : ''"></span>
+                            </td>
+                            <td style="text-align: right; padding-right: 24px;">
+                                <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                                    <a th:href="@{'/cashbook/' + ${t.id}}" class="btn-secondary btn-secondary--sm" style="white-space: nowrap;">Chi tiết</a>
+                                    <div th:if="${isOwner and t.status == 'PENDING'}" style="display: flex; gap: 4px;">
+                                        <form th:action="@{'/cashbook/' + ${t.id} + '/approve'}" method="post" style="display: inline;" onsubmit="event.preventDefault(); showConfirmModal('Bạn có chắc chắn duyệt phiếu này?', this, 'Duyệt phiếu');">
+                                            <button type="submit" class="btn btn-primary btn-primary--sm">Duyệt</button>
+                                        </form>
+                                        <form th:action="@{'/cashbook/' + ${t.id} + '/reject'}" method="post" style="display: inline;" onsubmit="event.preventDefault(); showConfirmModal('Bạn có chắc chắn từ chối phiếu này?', this, 'Từ chối phiếu');">
+                                            <button type="submit" class="btn btn-secondary btn-secondary--sm" style="color: #ef4444; border-color: #fca5a5;">Từ chối</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -100,6 +123,36 @@
         </div>
     </main>
 
+    <!-- Custom Confirm Modal -->
+    <div id="customConfirmModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+        <div style="background: var(--canvas, #ffffff); padding: 24px; border-radius: var(--r-lg, 16px); max-width: 400px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <h3 id="customConfirmTitle" style="margin-top: 0; font-size: 18px; font-weight: 600; color: var(--ink, #111827);">Xác nhận</h3>
+            <p id="customConfirmMessage" style="color: var(--ink-muted, #4b5563); font-size: 15px; margin-bottom: 24px; line-height: 1.5;">Bạn có chắc chắn?</p>
+            <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()" style="border-radius: var(--r-md, 8px); padding: 8px 16px; font-weight: 500;">Hủy</button>
+                <button type="button" id="customConfirmBtn" class="btn btn-primary" style="border-radius: var(--r-md, 8px); padding: 8px 16px; font-weight: 500;">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let formToSubmit = null;
+        function showConfirmModal(message, formElement, title = 'Xác nhận') {
+            document.getElementById('customConfirmTitle').innerText = title;
+            document.getElementById('customConfirmMessage').innerText = message;
+            document.getElementById('customConfirmModal').style.display = 'flex';
+            formToSubmit = formElement;
+        }
+        function closeConfirmModal() {
+            document.getElementById('customConfirmModal').style.display = 'none';
+            formToSubmit = null;
+        }
+        document.getElementById('customConfirmBtn').addEventListener('click', function() {
+            if (formToSubmit) {
+                formToSubmit.submit();
+            }
+        });
+    </script>
     <script th:src="@{/js/payment/cashbook-list.js}"></script>
 </body>
 </html>

@@ -281,6 +281,51 @@ a:hover {
     letter-spacing: -0.02em;
 }
 
+/* ─── Dropdown Navigation ─── */
+.nav-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.nav-dropbtn {
+    display: inline-block;
+}
+
+.nav-dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: var(--surface-pearl);
+    min-width: 180px;
+    box-shadow: 0px 8px 24px rgba(0,0,0,0.15);
+    z-index: 10000;
+    border-radius: var(--r-md);
+    padding: 8px 0;
+    top: 100%;
+    left: 0;
+    border: 1px solid var(--hairline);
+}
+
+.nav-dropdown:hover .nav-dropdown-content {
+    display: block;
+    animation: fadeIn 0.2s ease;
+}
+
+.nav-dropdown-content a {
+    color: var(--ink) !important;
+    padding: 10px 16px;
+    text-decoration: none;
+    display: block;
+    opacity: 0.85;
+    font-size: 13px;
+    transition: background-color 0.2s, opacity 0.2s;
+}
+
+.nav-dropdown-content a:hover, .nav-dropdown-content a.active {
+    background-color: rgba(0, 102, 204, 0.08);
+    opacity: 1;
+    color: var(--primary) !important;
+}
+
 /* ─── Sub-nav (Frosted glass) ─── */
 .sub-nav {
     background: rgba(245, 245, 247, 0.8);
@@ -418,16 +463,25 @@ a:hover {
 
 /* ─── Clear link button ─── */
 .btn-clear-link {
-    color: var(--ink-muted-48);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
     font-size: 14px;
+    font-weight: 500;
     text-decoration: none;
-    padding: 8px 4px;
+    padding: 7px 17px;
+    border: 1px solid var(--primary);
+    border-radius: var(--r-pill);
     white-space: nowrap;
+    background: transparent;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
 }
 
 .btn-clear-link:hover {
-    color: var(--primary);
-    text-decoration: underline;
+    background: rgba(0, 102, 204, 0.08);
+    text-decoration: none;
 }
 
 /* ─── Button dark utility ─── */
@@ -546,26 +600,91 @@ a:hover {
     color: var(--ink-muted-48);
 }
 
-/* ─── Filter select (for toolbars) ─── */
-.filter-select {
-    height: 44px;
-    padding: 8px 36px 8px 14px;
-    border: 1px solid var(--hairline);
+/* ─── Global Custom Select Boxes ─── */
+.custom-select-container {
+    position: relative;
+    display: inline-block;
+    min-width: 180px;
+    text-align: left;
+    background: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+.custom-select-container.form-select {
+    display: block;
+    width: 100%;
+}
+.custom-select-trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: #fff;
+    border: 1px solid #e2e8f0;
     border-radius: var(--r-pill);
-    background: var(--canvas);
     font-family: var(--font-text);
     font-size: 14px;
-    color: var(--ink);
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' fill='none'%3E%3Cpath d='M1 1l4.5 5L10 1' stroke='%237a7a7a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
+    font-weight: 500;
+    color: #1e293b;
     cursor: pointer;
-    outline: none;
+    user-select: none;
+    transition: all 0.2s;
+    height: 38px;
 }
-
-.filter-select:focus {
+.custom-select-trigger:hover {
+    border-color: #cbd5e1;
+}
+.custom-select-container.focused .custom-select-trigger {
     border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
+}
+.custom-select-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.custom-select-icon {
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+}
+.custom-select-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 100%;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border: 1px solid #f1f5f9;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    padding: 4px;
+    max-height: 250px;
+    overflow-y: auto;
+}
+.custom-select-menu.show {
+    display: flex;
+}
+.custom-select-item {
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #475569;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+.custom-select-item:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+.custom-select-item.active {
+    background-color: #eff6ff;
+    color: #2563eb;
+    font-weight: 500;
 }
 
 /* ─── Card panel (data tables, lists) ─── */
@@ -624,6 +743,7 @@ table tbody tr:hover td {
     letter-spacing: -0.12px;
     background: var(--surface-pearl);
     color: var(--ink-muted-80);
+    white-space: nowrap;
 }
 
 .badge-active {
@@ -1247,4 +1367,63 @@ table tbody tr:hover td {
     border-color: var(--primary);
     outline: 2px solid var(--primary-focus);
     outline-offset: -1px;
+}
+
+/* ─── Apple Pagination Style ─── */
+.apple-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    border-top: 1px solid var(--hairline, #e5e5ea);
+}
+
+.apple-pagination-numbers {
+    display: flex;
+    gap: 8px;
+}
+
+.apple-pagination-btn {
+    padding: 6px 12px;
+    border-radius: var(--r-sm, 8px);
+    color: var(--primary, #0066cc);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid var(--primary, #0066cc);
+    background: transparent;
+    transition: all 0.2s;
+}
+
+.apple-pagination-btn:hover:not(.disabled) {
+    background: var(--primary-light, #e6f0fa);
+}
+
+.apple-pagination-btn.disabled {
+    color: var(--ink-muted-48, #86868b);
+    border-color: var(--ink-muted-48, #86868b);
+    cursor: not-allowed;
+    background: var(--surface-hover, #f5f5f7);
+}
+
+.apple-pagination-numbers a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    border-radius: var(--r-sm, 8px);
+    color: var(--ink, #1d1d1f);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.apple-pagination-numbers a:hover {
+    background: var(--surface-hover, #f5f5f7);
+}
+
+.apple-pagination-numbers a.active {
+    background: var(--primary, #0066cc);
+    color: white;
 }

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết Phiếu Thu/Chi — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/payment/cashbook.css}">
+    <style>
+        .detail-card {
+            background: var(--canvas, #ffffff);
+            border-radius: var(--r-xl, 24px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            padding: 32px;
+            max-width: 800px;
+            margin: 40px auto;
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--hairline, #e5e5ea);
+            padding-bottom: 24px;
+            margin-bottom: 24px;
+        }
+
+        .detail-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--ink, #1d1d1f);
+            margin: 0 0 8px 0;
+            letter-spacing: -0.02em;
+        }
+
+        .detail-subtitle {
+            font-size: 15px;
+            color: var(--ink-muted-48, #86868b);
+            margin: 0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .info-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .info-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink-muted-48, #86868b);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .info-value {
+            font-size: 15px;
+            color: var(--ink, #1d1d1f);
+            font-weight: 500;
+        }
+
+        .amount-highlight {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--primary, #0066cc);
+            margin-top: 16px;
+            padding-top: 24px;
+            border-top: 1px solid var(--hairline, #e5e5ea);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: var(--r-pill, 100px);
+            white-space: nowrap;
+        }
+        .badge-active { background: #d1fae5; color: #065f46; }
+        .badge-inactive { background: #fee2e2; color: #991b1b; }
+        .badge-warning { background: #fef08a; color: #854d0e; }
+    </style>
+</head>
+<body>
+
+    <div th:replace="~{component/navbar :: global-nav('cashbook')}"></div>
+
+    <div class="sub-nav">
+        <h1 class="sub-nav__title">Sổ quỹ</h1>
+        <div class="sub-nav__actions">
+            <a th:href="@{/cashbook}" class="btn-clear-link">Quay lại danh sách</a>
+        </div>
+    </div>
+
+    <main class="page-content" style="padding-top: 20px;">
+        <div class="detail-card">
+            <div class="detail-header">
+                <div>
+                    <h1 class="detail-title" th:text="${transaction.transactionType == 'IN' ? 'Phiếu Thu' : 'Phiếu Chi'}">Phiếu Thu</h1>
+                    <p class="detail-subtitle">
+                        Mã phiếu: <strong th:text="${transaction.referenceCode != null ? transaction.referenceCode : 'CB-' + transaction.id}">CB-1</strong>
+                    </p>
+                </div>
+                <div>
+                    <span class="badge" 
+                          th:classappend="${transaction.status == 'COMPLETED'} ? 'badge-active' : (${transaction.status == 'REJECTED'} ? 'badge-inactive' : 'badge-warning')" 
+                          th:text="${transaction.status == 'COMPLETED' ? 'Đã duyệt' : (transaction.status == 'REJECTED' ? 'Từ chối' : 'Chờ duyệt')}">Đã duyệt</span>
+                </div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-group">
+                    <span class="info-label">Ngày tạo</span>
+                    <span class="info-value" th:text="${#temporals.format(transaction.createdAt, 'dd/MM/yyyy HH:mm')}">20/07/2026 10:30</span>
+                </div>
+                <div class="info-group">
+                    <span class="info-label">Người tạo</span>
+                    <span class="info-value" th:text="${transaction.creator != null ? transaction.creator.fullName : ''}">Nguyễn Văn An</span>
+                </div>
+                <div class="info-group">
+                    <span class="info-label">Chi nhánh</span>
+                    <span class="info-value" th:text="${transaction.branch.name}">Chi nhánh Hà Nội</span>
+                </div>
+                <div class="info-group">
+                    <span class="info-label">Phương thức thanh toán</span>
+                    <span class="info-value" th:text="${transaction.paymentMethod == 'CASH' ? 'Tiền mặt' : 'Chuyển khoản'}">Tiền mặt</span>
+                </div>
+                <div class="info-group" style="grid-column: 1 / -1;">
+                    <span class="info-label">Ghi chú / Lý do</span>
+                    <span class="info-value" th:text="${transaction.description}">Thanh toán tiền điện</span>
+                </div>
+            </div>
+
+            <div class="amount-highlight">
+                <span style="font-size: 16px; color: var(--ink-muted-48, #86868b);">Số tiền</span>
+                <span th:text="${#numbers.formatDecimal(transaction.amount, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</span>
+            </div>
+            
+            <div style="margin-top: 32px; display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary btn-secondary--sm" onclick="window.print()" style="padding: 8px 20px;">In phiếu</button>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

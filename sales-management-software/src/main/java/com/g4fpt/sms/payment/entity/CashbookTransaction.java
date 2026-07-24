@@ -46,6 +46,9 @@ public class CashbookTransaction {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "status", nullable = false)
+    private String status = "PENDING"; // PENDING, COMPLETED, REJECTED
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

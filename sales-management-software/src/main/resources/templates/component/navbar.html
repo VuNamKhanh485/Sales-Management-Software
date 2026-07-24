@@ -3,51 +3,53 @@
 <nav class="global-nav" th:fragment="global-nav(page)">
     <a href="/dashboard" class="global-nav__brand">SMS</a>
     <ul style="display:flex; gap:0; list-style:none; margin:0; padding:0; align-items:center; flex:1;">
-        <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}"><a th:href="@{/dashboard}" th:classappend="${page == 'dashboard' ? 'active' : ''}">Home</a></li>
-        <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}"><a th:href="@{/return/manage}" th:classappend="${page == 'return-manage' ? 'active' : ''}">Xử lý yêu cầu</a></li>
-        <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF')}">
-            <a th:href="@{/pos}" th:classappend="${page == 'pos' ? 'active' : ''}">Bán hàng</a>
-        </li>
-        <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF')}">
-            <a th:href="@{/customers}" th:classappend="${page == 'customer' ? 'active' : ''}">Khách hàng</a>
-        </li>
-        <li><a th:href="@{/product}" th:classappend="${page == 'product' ? 'active' : ''}">Sản phẩm</a></li>
-        <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}">
-            <a th:href="@{/inventory}" th:classappend="${page == 'inventory' ? 'active' : ''}">Kho hàng</a>
-        </li>
-        <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}">
-            <a th:href="@{/imports}" th:classappend="${page == 'imports' ? 'active' : ''}">Nhập hàng</a>
-        </li>
-        <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}">
-            <a th:href="@{/transfer}" th:classappend="${page == 'transfer' ? 'active' : ''}">Chuyển kho</a>
-        </li>
-        <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}">
-            <a th:href="@{/supplier}" th:classappend="${page == 'supplier' ? 'active' : ''}">Nhà cung cấp</a>
-        </li>
         <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}">
-            <a th:href="@{/vouchers}" th:classappend="${page == 'voucher' ? 'active' : ''}">Voucher</a>
+            <a th:href="@{/dashboard}" th:classappend="${page == 'dashboard' ? 'active' : ''}">Home</a>
         </li>
-        <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}">
-            <a th:href="@{/cashbook}" th:classappend="${page == 'cashbook' ? 'active' : ''}">Sổ quỹ</a>
+        
+        <li class="nav-dropdown" th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF')}">
+            <a href="javascript:void(0)" class="nav-dropbtn">Giao dịch ▾</a>
+            <div class="nav-dropdown-content">
+                <a th:href="@{/pos}" th:classappend="${page == 'pos' ? 'active' : ''}">Bán hàng (POS)</a>
+                <a th:if="${sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}" th:href="@{/return/manage}" th:classappend="${page == 'return-manage' ? 'active' : ''}">Xử lý yêu cầu</a>
+                <a th:if="${sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}" th:href="@{/cashbook}" th:classappend="${page == 'cashbook' ? 'active' : ''}">Sổ quỹ</a>
+                <a th:if="${sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}" th:href="@{/vouchers}" th:classappend="${page == 'voucher' ? 'active' : ''}">Voucher</a>
+            </div>
         </li>
-        <li
-            th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF', 'CASHIER')}">
-            <a th:href="@{/reports/overview}" th:classappend="${page == 'report' ? 'active' : ''}">Báo cáo Tổng hợp</a>
+
+        <li class="nav-dropdown">
+            <a href="javascript:void(0)" class="nav-dropbtn">Hàng hóa ▾</a>
+            <div class="nav-dropdown-content">
+                <a th:href="@{/product}" th:classappend="${page == 'product' ? 'active' : ''}">Sản phẩm</a>
+                <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}" th:href="@{/inventory}" th:classappend="${page == 'inventory' ? 'active' : ''}">Kho hàng</a>
+                <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}" th:href="@{/imports}" th:classappend="${page == 'imports' ? 'active' : ''}">Nhập hàng</a>
+                <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}" th:href="@{/transfer}" th:classappend="${page == 'transfer' ? 'active' : ''}">Chuyển kho</a>
+            </div>
         </li>
-        <li
-            th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF', 'CASHIER')}">
-            <a th:href="@{/reports/detailed-sales}" th:classappend="${page == 'detailed-report' ? 'active' : ''}">Báo
-                cáo Chi tiết</a>
+
+        <li class="nav-dropdown" th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF', 'WAREHOUSE_STAFF')}">
+            <a href="javascript:void(0)" class="nav-dropbtn">Đối tác ▾</a>
+            <div class="nav-dropdown-content">
+                <a th:if="${sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF')}" th:href="@{/customers}" th:classappend="${page == 'customer' ? 'active' : ''}">Khách hàng</a>
+                <a th:if="${sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}" th:href="@{/supplier}" th:classappend="${page == 'supplier' ? 'active' : ''}">Nhà cung cấp</a>
+            </div>
         </li>
-        <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}">
-            <a th:href="@{/report/inventory}" th:classappend="${page == 'inventory-report' ? 'active' : ''}">Báo cáo
-                xuất nhập tồn</a>
+
+        <li class="nav-dropdown" th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF', 'CASHIER', 'WAREHOUSE_STAFF')}">
+            <a href="javascript:void(0)" class="nav-dropbtn">Báo cáo ▾</a>
+            <div class="nav-dropdown-content">
+                <a th:if="${sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF', 'CASHIER')}" th:href="@{/reports/overview}" th:classappend="${page == 'report' ? 'active' : ''}">Báo cáo Tổng hợp</a>
+                <a th:if="${sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF', 'CASHIER')}" th:href="@{/reports/detailed-sales}" th:classappend="${page == 'detailed-report' ? 'active' : ''}">Báo cáo Chi tiết</a>
+                <a th:if="${sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}" th:href="@{/report/inventory}" th:classappend="${page == 'inventory-report' ? 'active' : ''}">Báo cáo Xuất nhập tồn</a>
+            </div>
         </li>
-        <li th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}">
-            <a th:href="@{/employee}" th:classappend="${page == 'employee' ? 'active' : ''}">Nhân viên</a>
-        </li>
-        <li th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">
-            <a th:href="@{/branch}" th:classappend="${page == 'branch' ? 'active' : ''}">Chi nhánh</a>
+
+        <li class="nav-dropdown" th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}">
+            <a href="javascript:void(0)" class="nav-dropbtn">Hệ thống ▾</a>
+            <div class="nav-dropdown-content">
+                <a th:href="@{/employee}" th:classappend="${page == 'employee' ? 'active' : ''}">Nhân viên</a>
+                <a th:if="${sessionUser.hasRole('OWNER')}" th:href="@{/branch}" th:classappend="${page == 'branch' ? 'active' : ''}">Chi nhánh</a>
+            </div>
         </li>
     </ul>
     <div style="display:flex; align-items:center; gap:12px; margin-left:auto;" th:if="${sessionUser != null}">
@@ -58,7 +60,9 @@
             Đăng xuất
         </a>
     </div>
+    <script th:src="@{/js/core/custom-select.js}"></script>
 </nav>
+
 
 <aside class="d-flex flex-column flex-shrink-0 p-3 bg-light border-end"
     style="width: 250px; min-width: 250px; min-height: 100vh;" th:fragment="sidebar-component(page)">

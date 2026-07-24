@@ -58,6 +58,12 @@ public class CashbookServiceImpl implements CashbookService {
     }
 
     @Override
+    public CashbookTransaction getTransactionById(Long id) {
+        return cashbookTransactionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu thu/chi với ID: " + id));
+    }
+
+    @Override
     @Transactional
     public CashbookTransaction createTransaction(CashbookDTO dto, Long createdBy) {
         Branch branch = branchRepository.findById(dto.getBranchId())
@@ -78,9 +84,36 @@ public class CashbookServiceImpl implements CashbookService {
                 .referenceCode(dto.getReferenceCode())
                 .description(dto.getDescription())
                 .creator(creator)
+                .status("PENDING") // Default to PENDING
                 .build();
 
         return cashbookTransactionRepository.save(transaction);
+    }
+
+    @Override
+    @Transactional
+    public void approveTransaction(Long id) {
+        CashbookTransaction tx = cashbookTransactionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu"));
+        tx.setStatus("COMPLETED");
+        cashbookTransactionRepository.save(tx);
+    }
+
+    @Override
+    @Transactional
+    public void rejectTransaction(Long id) {
+        CashbookTransaction tx = cashbookTransactionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu"));
+        tx.setStatus("REJECTED");
+        cashbookTransactionRepository.save(tx);
+    }
+
+    @Override
+    public List<CashbookTransaction> getPendingTransactions(Long branchId) {
+        if (branchId == null) {
+            return cashbookTransactionRepository.findByStatusOrderByCreatedAtDesc("PENDING");
+        }
+        return cashbookTransactionRepository.findByBranchIdAndStatusOrderByCreatedAtDesc(branchId, "PENDING");
     }
 
     @Override
@@ -99,6 +132,7 @@ public class CashbookServiceImpl implements CashbookService {
             list = cashbookTransactionRepository.findByTransactionTypeAndPaymentMethod(type, method);
         }
         return list.stream()
+                .filter(t -> "COMPLETED".equals(t.getStatus()))
                 .map(CashbookTransaction::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }

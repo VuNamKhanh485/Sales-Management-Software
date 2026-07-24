@@ -85,6 +85,11 @@
             background: rgba(88, 86, 214, 0.1);
             color: #5856D6;
         }
+        
+        .badge-type-cashbook {
+            background: rgba(52, 199, 89, 0.1);
+            color: #34C759;
+        }
     </style>
 </head>
 
@@ -128,14 +133,14 @@
                                     <span th:if="${req.type == 'Nhập hàng'}" class="badge badge-type-import">Nhập hàng</span>
                                     <span th:if="${req.type == 'Trả hàng'}" class="badge badge-type-return">Trả hàng</span>
                                     <span th:if="${req.type == 'Chuyển kho'}" class="badge badge-type-transfer">Chuyển kho</span>
+                                    <span th:if="${req.type == 'Sổ quỹ'}" class="badge badge-type-cashbook">Sổ quỹ</span>
                                 </td>
                                 <td style="font-weight: 600; color: var(--primary);" th:text="${req.code}">IMP-123</td>
                                 <td th:text="${req.info}">Thông tin</td>
                                 <td th:text="${req.creator}">Người tạo</td>
                                 <td th:text="${#temporals.format(req.createdAt, 'dd-MM-yyyy HH:mm')}">20-07-2026</td>
                                 <td style="text-align: right; padding-right: 24px;">
-                                    <a th:href="@{${req.url}}" class="btn-primary"
-                                        style="padding: 6px 14px; font-size: 13px; font-weight: 500;">Xem chi tiết</a>
+                                        <a th:href="@{${req.url}}" class="btn-secondary btn-secondary--sm" style="white-space: nowrap;">Chi tiết</a>
                                 </td>
                             </tr>
                         </tbody>

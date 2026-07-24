@@ -53,6 +53,8 @@ public class CashbookController {
         BigDecimal cashBalance = cashbookService.getBalance(branchId, "CASH");
         BigDecimal bankBalance = cashbookService.getBalance(branchId, "BANK");
 
+        boolean isOwner = user != null && user.hasRole("OWNER");
+
         model.addAttribute("transactionPage", transactionPage);
         model.addAttribute("branches", branches);
         model.addAttribute("selectedBranchId", branchId);
@@ -62,8 +64,16 @@ public class CashbookController {
         model.addAttribute("totalPages", transactionPage.getTotalPages());
         model.addAttribute("cashBalance", cashBalance);
         model.addAttribute("bankBalance", bankBalance);
+        model.addAttribute("isOwner", isOwner);
 
         return "payment/cashbook/list";
+    }
+
+    @GetMapping("/{id}")
+    public String viewDetail(@PathVariable Long id, Model model) {
+        CashbookTransaction transaction = cashbookService.getTransactionById(id);
+        model.addAttribute("transaction", transaction);
+        return "payment/cashbook/detail";
     }
 
     @GetMapping("/export")
@@ -137,13 +147,50 @@ public class CashbookController {
         }
 
         try {
-            cashbookService.createTransaction(dto, currentUserId);
-            redirectAttributes.addFlashAttribute("successMessage", "Tạo phiếu thu/chi thành công!");
+            CashbookTransaction transaction = cashbookService.createTransaction(dto, currentUserId);
+            if (user.hasRole("OWNER")) {
+                cashbookService.approveTransaction(transaction.getId());
+                redirectAttributes.addFlashAttribute("successMessage", "Tạo và tự động duyệt phiếu thu/chi thành công!");
+            } else {
+                redirectAttributes.addFlashAttribute("successMessage", "Tạo phiếu thu/chi thành công! Chờ duyệt.");
+            }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/cashbook/create";
         }
 
+        return "redirect:/cashbook";
+    }
+
+    @PostMapping("/{id}/approve")
+    public String approveTransaction(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        SessionUser user = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
+        if (user == null || !user.hasRole("OWNER")) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Bạn không có quyền duyệt phiếu.");
+            return "redirect:/cashbook";
+        }
+        try {
+            cashbookService.approveTransaction(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Duyệt phiếu thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/cashbook";
+    }
+
+    @PostMapping("/{id}/reject")
+    public String rejectTransaction(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        SessionUser user = (SessionUser) session.getAttribute(SessionConstants.LOGGED_IN_USER);
+        if (user == null || !user.hasRole("OWNER")) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Bạn không có quyền từ chối phiếu.");
+            return "redirect:/cashbook";
+        }
+        try {
+            cashbookService.rejectTransaction(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã từ chối phiếu thu/chi!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return "redirect:/cashbook";
     }
 }

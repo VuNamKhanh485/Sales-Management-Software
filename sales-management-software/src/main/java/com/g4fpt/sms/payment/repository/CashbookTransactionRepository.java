@@ -25,4 +25,7 @@ public interface CashbookTransactionRepository extends JpaRepository<CashbookTra
     List<CashbookTransaction> findByBranchIdAndCreatedAtBetweenOrderByCreatedAtAsc(Long branchId, LocalDateTime startDate, LocalDateTime endDate);
     List<CashbookTransaction> findByCreatedAtBetweenOrderByCreatedAtAsc(LocalDateTime startDate, LocalDateTime endDate);
 
+    List<CashbookTransaction> findByStatusOrderByCreatedAtDesc(String status);
+    List<CashbookTransaction> findByBranchIdAndStatusOrderByCreatedAtDesc(Long branchId, String status);
+
 }
