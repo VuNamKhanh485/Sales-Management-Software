@@ -1,7 +1,15 @@
 document.addEventListener('DOMContentLoaded', function() {
     const selects = document.querySelectorAll('select:not(.no-custom)');
-    
+
+
     selects.forEach(select => {
+        if (
+            select.classList.contains('select2-init') ||
+            select.classList.contains('unit-select2') ||
+            select.classList.contains('no-custom')
+        ) {
+            return;
+        }
         if (select.dataset.customSelectProcessed === 'true') return;
         select.dataset.customSelectProcessed = 'true';
         
@@ -76,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     m.parentElement.classList.remove('focused');
                 }
             });
-            
+
             const isShowing = menu.classList.toggle('show');
             if (isShowing) {
                 container.classList.add('focused');

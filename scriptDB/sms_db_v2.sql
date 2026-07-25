@@ -569,3 +569,42 @@ CREATE TABLE CashbookTransaction (
     CONSTRAINT fk_cashbook_branch FOREIGN KEY (branch_id) REFERENCES Branch(id),
     CONSTRAINT fk_cashbook_employee FOREIGN KEY (created_by) REFERENCES Employee(id)
 );
+
+CREATE TABLE InventorySnapshot (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+    snapshot_type VARCHAR(20) NOT NULL,
+
+    snapshot_date DATE NOT NULL,
+
+    branch_id BIGINT NOT NULL,
+    product_unit_id BIGINT NOT NULL,
+
+    opening_stock INT NOT NULL DEFAULT 0,
+    opening_value DECIMAL(18,2) NOT NULL DEFAULT 0.00,
+
+    stock_in INT NOT NULL DEFAULT 0,
+    stock_in_value DECIMAL(18,2) NOT NULL DEFAULT 0.00,
+
+    stock_out INT NOT NULL DEFAULT 0,
+    stock_out_value DECIMAL(18,2) NOT NULL DEFAULT 0.00,
+
+    closing_stock INT NOT NULL DEFAULT 0,
+    closing_value DECIMAL(18,2) NOT NULL DEFAULT 0.00,
+
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_inventory_snapshot_branch
+        FOREIGN KEY (branch_id) REFERENCES Branch(id),
+
+    CONSTRAINT fk_inventory_snapshot_product_unit
+        FOREIGN KEY (product_unit_id) REFERENCES ProductUnit(id),
+
+    CONSTRAINT uq_inventory_snapshot
+        UNIQUE (
+            snapshot_type,
+            snapshot_date,
+            branch_id,
+            product_unit_id
+        )
+);
