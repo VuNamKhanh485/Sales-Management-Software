@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Popup Thêm Thương hiệu</title>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/core/popup.css}">
+</head>
+<body class="popup-body">
+    <form th:action="@{/brand/popup-form}" th:object="${brandRequest}" method="post">
+        <div class="form-grid">
+            <div class="form-group form-group--full">
+                <label class="form-label">Tên thương hiệu <span style="color:red">*</span>
+                    <input type="text" class="form-input" th:field="*{brandName}" placeholder="VD: Vinamilk, TH True Milk..." />
+                </label>
+                <div th:if="${#fields.hasErrors('brandName')}" th:errors="*{brandName}" style="color:var(--danger); font-size:13px; margin-top:4px;"></div>
+            </div>
+            <input type="hidden" name="brandStatus" value="ACTIVE">
+        </div>
+        <div class="form-actions" style="margin-top: 20px;">
+            <button type="button" class="btn-cancel" onclick="window.parent.closeModal('modalBrand')">Hủy</button>
+            <button type="submit" class="btn-primary">Tạo mới</button>
+        </div>
+    </form>
+</body>
+</html>

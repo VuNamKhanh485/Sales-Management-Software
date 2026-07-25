@@ -4,8 +4,11 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * version 1
@@ -13,7 +16,7 @@ import java.math.BigDecimal;
  * @author Nam Khanh
  */
 @Entity
-@Table(name = "productunit")
+@Table(name = "ProductUnit")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -35,12 +38,12 @@ public class ProductUnit {
     private Unit unit;
 
     @NotNull
-    @Column(name = "convention_value", nullable = false)
+    @Column(name = "conversion_value", nullable = false)
     @ToString.Include
     private Integer conventionValue;
 
     @NotNull
-    @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    @Column(name = "price", nullable = false, precision = 12, scale = 2)
     @ToString.Include
     private BigDecimal price;
 
@@ -57,7 +60,13 @@ public class ProductUnit {
     @Column(name = "sku", nullable = false)
     private String sku;
 
+    @Column(name = "created_at", nullable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }
 
 

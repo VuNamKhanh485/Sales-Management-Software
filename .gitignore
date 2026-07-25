@@ -1,0 +1,13 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### folder ###
+upload-image/product-image/*
+!upload-image/product-image/.gitkeep
+
+upload-image/return-image/*
+!upload-image/return-image/.gitkeep
+

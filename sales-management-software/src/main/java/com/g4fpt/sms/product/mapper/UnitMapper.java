@@ -1,0 +1,37 @@
+package com.g4fpt.sms.product.mapper;
+
+import com.g4fpt.sms.product.dto.request.UnitRequest;
+import com.g4fpt.sms.product.dto.response.UnitResponse;
+import com.g4fpt.sms.product.entity.Unit;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import org.springframework.stereotype.Component;
+
+@Component
+public class UnitMapper {
+
+    public Unit toEntity(Unit unit, UnitRequest request) {
+        if (request == null) {
+            return null;
+        }
+
+        unit.setName(request.getName().trim());
+        unit.setStatus(request.getStatus());
+
+        return unit;
+    }
+
+    public UnitResponse toResponse(Unit unit) {
+        if (unit == null) {
+            return null;
+        }
+
+        UnitResponse response = new UnitResponse();
+
+        response.setId(unit.getId());
+        response.setName(unit.getName());
+        response.setStatus(unit.getStatus());
+
+        return response;
+    }
+}

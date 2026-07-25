@@ -1,0 +1,26 @@
+/* Branch List Styles */
+.page-content {
+    max-width: 1000px;
+    margin: var(--sp-xl) auto;
+    padding: 0 var(--sp-md);
+}
+.header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: var(--sp-lg);
+    flex-wrap: wrap;
+    gap: var(--sp-sm);
+}
+.pagination {
+    display: flex; gap: 4px; list-style: none; padding: 0; margin: 0;
+}
+.pagination a, .pagination strong {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 32px; height: 32px; border-radius: var(--r-sm);
+    font-size: 14px; text-decoration: none;
+    transition: background 0.15s;
+}
+.pagination a { color: var(--ink-muted-80); }
+.pagination a:hover { background: var(--divider-soft); }
+.pagination strong { background: var(--primary); color: var(--on-primary); font-weight: 500; }

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEdit ? 'Sửa Chi nhánh — SMS' : 'Thêm Chi nhánh — SMS'}">Chi nhánh — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+</head>
+<body>
+
+    <div th:replace="~{component/navbar :: global-nav('branch')}"></div>
+
+    <div class="sub-nav">
+        <a href="/branch" style="color:var(--primary); text-decoration:none; font-size:14px; margin-right:8px;">Chi nhánh</a>
+        <span style="color:var(--ink-muted-48); font-size:12px; margin-right:8px;">›</span>
+        <h1 class="sub-nav__title" style="margin:0;" th:text="${isEdit ? 'Chỉnh sửa' : 'Thêm mới'}"></h1>
+    </div>
+
+    <main class="form-page">
+        <div class="form-card">
+            <div class="form-card__header">
+                <h1 class="form-card__title" th:text="${isEdit ? 'Chỉnh sửa Chi nhánh' : 'Thêm Chi nhánh'}"></h1>
+            </div>
+
+            <!-- Errors -->
+            <div th:if="${errors}" class="alert alert-danger" style="margin-bottom:17px;">
+                <ul style="margin:0; padding-left:20px;">
+                    <li th:each="error : ${errors}" th:text="${error}"></li>
+                </ul>
+            </div>
+
+            <form th:action="@{/branch/save}" th:object="${branch}" method="post">
+                <input type="hidden" name="id" th:if="${isEdit}" th:value="${id}">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Mã chi nhánh</label>
+                        <input type="text" class="form-input" th:field="*{branchCode}" th:readonly="${isEdit}">
+                        <p th:if="${#fields.hasErrors('branchCode')}" th:errors="*{branchCode}" style="color:var(--danger); font-size:13px; margin:0;"></p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tên chi nhánh</label>
+                        <input type="text" class="form-input" th:field="*{name}">
+                        <p th:if="${#fields.hasErrors('name')}" th:errors="*{name}" style="color:var(--danger); font-size:13px; margin:0;"></p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="text" class="form-input" th:field="*{phone}">
+                        <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" style="color:var(--danger); font-size:13px; margin:0;"></p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" th:field="*{email}">
+                        <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" style="color:var(--danger); font-size:13px; margin:0;"></p>
+                    </div>
+
+                    <div class="form-group form-group--full">
+                        <label class="form-label">Địa chỉ</label>
+                        <input type="text" class="form-input" th:field="*{address}">
+                        <p th:if="${#fields.hasErrors('address')}" th:errors="*{address}" style="color:var(--danger); font-size:13px; margin:0;"></p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Trạng thái</label>
+                        <div style="display:flex; gap:24px; padding-top:6px;">
+                            <label style="display:flex; align-items:center; gap:6px; font-size:15px; cursor:pointer;">
+                                <input type="radio" th:field="*{status}" value="ACTIVE"> Hoạt động
+                            </label>
+                            <label style="display:flex; align-items:center; gap:6px; font-size:15px; cursor:pointer;">
+                                <input type="radio" th:field="*{status}" value="INACTIVE"> Ngừng hoạt động
+                            </label>
+                        </div>
+                        <p th:if="${#fields.hasErrors('status')}" th:errors="*{status}" style="color:var(--danger); font-size:13px; margin:0;"></p>
+                    </div>
+
+                    <div class="form-group form-group--full">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea class="form-textarea" th:field="*{note}" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="/branch" class="btn-cancel" style="padding:10px 20px; font-size:15px;">Hủy</a>
+                    <button type="submit" class="btn-primary" style="padding:10px 24px; font-size:15px;" th:text="${isEdit ? 'Cập nhật' : 'Lưu'}">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+</body>
+</html>

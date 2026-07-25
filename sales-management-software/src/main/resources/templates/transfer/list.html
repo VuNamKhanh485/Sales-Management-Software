@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách chuyển kho — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/payment/cashbook.css}">
+</head>
+<body>
+
+    <div th:replace="~{component/navbar :: global-nav('transfer')}"></div>
+
+    <div class="sub-nav">
+        <h1 class="sub-nav__title">Quản lý Chuyển Kho</h1>
+        <div class="sub-nav__actions">
+            <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'WAREHOUSE_STAFF')}"
+               th:href="@{/transfer/create(reset=true)}" class="btn btn-primary btn-primary--sm">
+                Tạo yêu cầu chuyển kho
+            </a>
+        </div>
+    </div>
+
+    <main class="page-content">
+
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <form th:action="@{/transfer}" method="get" class="search-bar" style="align-items: center;">
+            <select id="fromBranchId" name="fromBranchId" class="filter-select">
+                <option value="">-- Kho xuất (Tất cả) --</option>
+                <option th:each="b : ${branches}" th:value="${b.id}" th:text="${b.name}" th:selected="${fromBranchId == b.id}"></option>
+            </select>
+
+            <select id="toBranchId" name="toBranchId" class="filter-select">
+                <option value="">-- Kho nhận (Tất cả) --</option>
+                <option th:each="b : ${branches}" th:value="${b.id}" th:text="${b.name}" th:selected="${toBranchId == b.id}"></option>
+            </select>
+
+            <select id="status" name="status" class="filter-select">
+                <option value="" th:selected="${filterStatus == null or filterStatus == ''}">Tất cả trạng thái</option>
+                <option value="PENDING" th:selected="${filterStatus == 'PENDING'}">Đang chờ duyệt</option>
+                <option value="COMPLETED" th:selected="${filterStatus == 'COMPLETED'}">Đã duyệt</option>
+                <option value="REJECTED" th:selected="${filterStatus == 'REJECTED'}">Từ chối</option>
+            </select>
+
+            <button type="submit" class="btn btn-primary btn-primary--sm">Tìm kiếm</button>
+            <a th:href="@{/transfer}" class="btn-clear-link">Xóa lọc</a>
+        </form>
+
+        <div class="card-panel">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                    <tr>
+                        <th style="width: 50px;">STT</th>
+                        <th>Mã phiếu</th>
+                        <th>Kho xuất</th>
+                        <th>Kho nhận</th>
+                        <th>Người tạo</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                        <th style="width: 120px;">Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${transferPage == null or transferPage.empty}">
+                        <td colspan="9">
+                            <div class="empty-state">
+                                <h3 class="empty-state__title">Không tìm thấy phiếu chuyển kho nào.</h3>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:each="tx, stat : ${transferPage.content}">
+                        <td th:text="${stat.count + (transferPage.number * transferPage.size)}">1</td>
+                        <td><span class="code-chip" th:text="${tx.code}">TRN-001</span></td>
+                        <td th:text="${tx.fromBranchName}">Kho A</td>
+                        <td th:text="${tx.toBranchName}">Kho B</td>
+                        <td th:text="${tx.creatorName}">Nguyễn Văn A</td>
+                        <td class="value-cash" th:text="${#numbers.formatDecimal(tx.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">10,000,000 đ</td>
+                        <td>
+                            <span th:if="${tx.status == 'PENDING'}" class="badge badge-inactive">Chờ duyệt</span>
+                            <span th:if="${tx.status == 'COMPLETED'}" class="badge badge-active">Hoàn thành</span>
+                            <span th:if="${tx.status == 'CANCELLED'}" class="badge" style="background: var(--danger-light); color: var(--danger);">Từ chối</span>
+                        </td>
+                        <td th:text="${#temporals.format(tx.createdAt, 'dd-MM-yyyy HH:mm')}">28-06-2026 10:00</td>
+                        <td>
+                            <div class="actions">
+                                <a th:href="@{/transfer/{id}(id=${tx.id})}" class="btn btn-secondary btn-secondary--sm">Chi tiết</a>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination -->
+            <div th:if="${transferPage != null and transferPage.totalPages > 1}" class="pagination">
+                <ul class="pagination-list" style="display: flex; list-style: none; gap: 8px; justify-content: center; padding: 16px 0;">
+                    <li th:if="${!transferPage.first}">
+                        <a th:href="@{/transfer(page=${transferPage.number - 1}, fromBranchId=${fromBranchId}, toBranchId=${toBranchId}, status=${filterStatus})}">Trước</a>
+                    </li>
+                    <li th:each="i : ${#numbers.sequence(0, transferPage.totalPages - 1)}">
+                        <a th:if="${i != transferPage.number}" th:text="${i + 1}" th:href="@{/transfer(page=${i}, fromBranchId=${fromBranchId}, toBranchId=${toBranchId}, status=${filterStatus})}"></a>
+                        <strong th:if="${i == transferPage.number}" th:text="${i + 1}"></strong>
+                    </li>
+                    <li th:if="${!transferPage.last}">
+                        <a th:href="@{/transfer(page=${transferPage.number + 1}, fromBranchId=${fromBranchId}, toBranchId=${toBranchId}, status=${filterStatus})}">Sau</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </main>
+
+</body>
+</html>

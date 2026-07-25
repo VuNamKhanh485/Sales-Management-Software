@@ -1,10 +1,15 @@
 package com.g4fpt.sms.product.entity;
 
 import com.g4fpt.sms.product.enums.ProductStatus;
+import com.g4fpt.sms.supplier.entity.Supplier;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -14,7 +19,7 @@ import java.util.List;
  */
 
 @Entity
-@Table(name = "product")
+@Table(name = "Product")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -39,6 +44,10 @@ public class Product {
     @ToString.Include
     private String name;
 
+    @Size(max = 1000)
+    @Column(name = "image_url", length = 1000)
+    private String imageName;
+
     private String description;
 
     @Enumerated(EnumType.STRING)
@@ -48,17 +57,22 @@ public class Product {
     private String note;
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedDate;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdDate;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "product",
                 cascade = CascadeType.ALL)
-    private List<ProductUnit> productunits;
+    private List<ProductUnit> productUnits = new ArrayList<>();
 
-    @PrePersist
-    public void prePersist() {
-        createdDate = LocalDateTime.now();
-    }
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "product_supplier",
+        joinColumns = @JoinColumn(name = "product_id"),
+        inverseJoinColumns = @JoinColumn(name = "supplier_id")
+    )
+    private List<Supplier> suppliers = new ArrayList<>();
 }

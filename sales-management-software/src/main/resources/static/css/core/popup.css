@@ -1,0 +1,10 @@
+/* Popup Shared Styles */
+body.popup-body {
+    background: transparent;
+    padding: 20px;
+    margin: 0;
+}
+
+.popup-container {
+    padding: 20px;
+}

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý kho theo chi nhánh — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/inventory/inventory-list.css}">
+</head>
+<body>
+
+    <div th:replace="~{component/navbar :: global-nav('inventory')}"></div>
+
+    <div class="sub-nav">
+        <h1 class="sub-nav__title">Quản lý kho chi nhánh</h1>
+        <div class="sub-nav__actions">
+            <a href="/inventory" class="btn-clear-link">
+                Xóa lọc
+            </a>
+        </div>
+    </div>
+
+    <main class="page-content">
+            
+        <div class="card-panel">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                    <tr>
+                        <th style="width: 50px; text-align: center;">STT</th>
+                        <th>Mã kho</th>
+                        <th>Tên kho</th>
+                        <th>Trạng thái</th>
+                        <th>Số mặt hàng</th>
+                        <th style="width: 130px; text-align: right;">Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${branches == null or branches.empty}">
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <h3 class="empty-state__title">Không có dữ liệu kho chi nhánh.</h3>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:each="branch, stat : ${branches}" th:if="${branches != null and !branches.empty}">
+                        <td style="text-align: center;" th:text="${(branchesPage.number * branchesPage.size) + stat.count}">1</td>
+                        <td><span class="code-chip" th:text="${branch.branchCode}">BR001</span></td>
+                        <td><div class="branch-name" th:text="${branch.branchName}">Chi nhánh trung tâm</div></td>
+                        <td>
+                            <span th:if="${branch.status != null and branch.status.name() == 'ACTIVE'}" class="badge badge-active">Hoạt động</span>
+                            <span th:if="${branch.status != null and branch.status.name() == 'INACTIVE'}" class="badge badge-inactive">Ngừng hoạt động</span>
+                            <span th:if="${branch.status == null}" class="badge badge-inactive">N/A</span>
+                        </td>
+                        <td class="product-count" th:text="${branch.totalProductCount}">150</td>
+                        <td style="text-align: right;">
+                            <div class="actions" style="justify-content: flex-end;">
+                                <a th:href="@{/inventory/{id}(id=${branch.branchId})}" class="btn-primary btn-primary--sm" style="padding: 6px 12px; font-size: 13px;">Xem kho</a>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div th:if="${branchesPage.totalPages > 0}" class="pagination">
+                <a th:if="${!branchesPage.first}" 
+                   th:href="@{/inventory(page=${branchesPage.number - 1}, size=${size})}"
+                   class="pagination-btn">Trước</a>
+                <span th:if="${branchesPage.first}" class="pagination-btn disabled">Trước</span>
+
+                <div class="pagination-numbers">
+                    <a th:each="pageIdx : ${#numbers.sequence(0, branchesPage.totalPages - 1)}"
+                       th:href="@{/inventory(page=${pageIdx}, size=${size})}"
+                       th:classappend="${pageIdx == branchesPage.number} ? 'active' : ''"
+                       th:text="${pageIdx + 1}">1</a>
+                </div>
+
+                <a th:if="${!branchesPage.last}" 
+                   th:href="@{/inventory(page=${branchesPage.number + 1}, size=${size})}"
+                   class="pagination-btn">Sau</a>
+                <span th:if="${branchesPage.last}" class="pagination-btn disabled">Sau</span>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

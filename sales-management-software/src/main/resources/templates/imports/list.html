@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách yêu cầu nhập hàng — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/payment/cashbook.css}">
+</head>
+<body>
+
+    <div th:replace="~{component/navbar :: global-nav('imports')}"></div>
+
+    <div class="sub-nav">
+        <h1 class="sub-nav__title">Quản lý nhập hàng</h1>
+        <div class="sub-nav__actions">
+            <a th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}"
+               th:href="@{/imports/create}" class="btn btn-primary btn-primary--sm">
+                Tạo yêu cầu nhập hàng
+            </a>
+        </div>
+    </div>
+
+    <main class="page-content">
+
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <form th:action="@{/imports}" method="get" class="search-bar" style="align-items: center;">
+            <div class="search-input-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                </svg>
+                <input type="text"
+                       id="keyword"
+                       name="keyword"
+                       class="search-input"
+                       placeholder="Nhập mã phiếu nhập..."
+                       th:value="${keyword}" />
+            </div>
+
+            <select id="status" name="status" class="filter-select">
+                <option value="" th:selected="${filter == ''}">Tất cả trạng thái</option>
+                <option value="PENDING" th:selected="${filter == 'PENDING'}">Đang chờ duyệt</option>
+                <option value="COMPLETED" th:selected="${filter == 'COMPLETED'}">Đã duyệt</option>
+                <option value="CANCELLED" th:selected="${filter == 'CANCELLED'}">Từ chối</option>
+            </select>
+
+            <button type="submit" class="btn btn-primary btn-primary--sm">Tìm kiếm</button>
+            <a th:href="@{/imports}" class="btn-clear-link">Xóa lọc</a>
+        </form>
+
+        <div class="card-panel">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                    <tr>
+                        <th style="width: 50px;">STT</th>
+                        <th>Mã phiếu</th>
+                        <th>Chi nhánh nhập</th>
+                        <th>Nhà cung cấp</th>
+                        <th>Người tạo</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                        <th style="width: 120px;">Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${imports == null or imports.empty}">
+                        <td colspan="9">
+                            <div class="empty-state">
+                                <h3 class="empty-state__title">Không tìm thấy phiếu yêu cầu nhập hàng nào.</h3>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:each="imp, stat : ${imports}" th:if="${imports != null and !imports.empty}">
+                        <td th:text="${stat.count}">1</td>
+                        <td><span class="code-chip" th:text="${imp.code}">IMP-001</span></td>
+                        <td th:text="${imp.branchName}">Chi nhánh Hà Nội</td>
+                        <td th:text="${imp.supplierName}">Nhà cung cấp A</td>
+                        <td th:text="${imp.creatorName}">Nguyễn Văn A</td>
+                        <td class="value-cash" th:text="${#numbers.formatDecimal(imp.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">10,000,000 đ</td>
+                        <td>
+                            <span th:if="${imp.status == 'PENDING'}" class="badge badge-inactive">Chờ duyệt</span>
+                            <span th:if="${imp.status == 'COMPLETED'}" class="badge badge-active">Hoàn thành</span>
+                            <span th:if="${imp.status == 'CANCELLED'}" class="badge" style="background: var(--danger-light); color: var(--danger);">Đã hủy</span>
+                        </td>
+                        <td th:text="${#temporals.format(imp.createdAt, 'dd-MM-yyyy HH:mm')}">28-06-2026 10:00</td>
+                        <td>
+                            <div class="actions">
+                                <a th:href="@{/imports/{id}(id=${imp.id})}" class="btn btn-secondary btn-secondary--sm">Chi tiết</a>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+</body>
+</html>

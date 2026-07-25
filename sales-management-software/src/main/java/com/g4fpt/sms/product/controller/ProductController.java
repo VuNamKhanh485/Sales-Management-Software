@@ -1,89 +1,172 @@
 package com.g4fpt.sms.product.controller;
 
-import com.g4fpt.sms.product.dto.ProductRequest;
-import com.g4fpt.sms.product.dto.ProductUnitRequest;
-import com.g4fpt.sms.product.entity.Product;
-import com.g4fpt.sms.product.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.g4fpt.sms.common.exception.FileStorageException;
+import com.g4fpt.sms.common.exception.NotFoundException;
+import com.g4fpt.sms.common.exception.ResourceInUseException;
+import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
+import com.g4fpt.sms.product.dto.request.ProductRequest;
+import com.g4fpt.sms.product.dto.response.BrandResponse;
+import com.g4fpt.sms.product.dto.response.CategoryResponse;
+import com.g4fpt.sms.product.dto.response.ProductResponse;
+import com.g4fpt.sms.product.enums.ProductStatus;
+import com.g4fpt.sms.common.exception.ValidationException;
+import com.g4fpt.sms.product.mapper.ProductMapper;
+import com.g4fpt.sms.product.service.*;
+import com.g4fpt.sms.supplier.service.SupplierService;
+import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
 import java.util.List;
+
 
 @Controller
 @RequestMapping("/product")
+@AllArgsConstructor
 public class ProductController {
 
-    @Autowired
     private final ProductService productService;
-
-    public ProductController(ProductService productService) {
-        this.productService = productService;
-    }
+    private final CategoryService categoryService;
+    private final BrandService brandService;
+    private final UnitService unitService;
+    private final ProductMapper productMapper;
+    private final SupplierService supplierService;
 
     @GetMapping
-    public String product(Model model) {
-        model.addAttribute("productList", productService.getAll());
+    public String list(Model model,
+                       @RequestParam(defaultValue = "") String keyword,
+                       @RequestParam(required = false) Long brandId,
+                       @RequestParam(required = false) Long categoryId,
+                       @RequestParam(required = false) ProductStatus status,
+                       @RequestParam(defaultValue = "0") int page,
+                       @RequestParam(defaultValue = "10") int size,
+                       @RequestParam(defaultValue = "name") String sortField,
+                       @RequestParam(defaultValue = "asc") String sortDir) {
+
+        ProductFilterRequest filter = new ProductFilterRequest();
+        filter.setKeyword(keyword);
+        filter.setBrandId(brandId);
+        filter.setCategoryId(categoryId);
+        filter.setStatus(status);
+
+        Page<ProductResponse> productPage = productService.findAll(filter, page, size, sortField, sortDir);
+
+        model.addAttribute("productPage", productPage);
+        model.addAttribute("filter", filter);
+        model.addAttribute("size", size);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", productPage.getTotalPages());
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+
+        // Cho dropdown filter
+        model.addAttribute("brandList", brandService.findAll());
+        model.addAttribute("categoryList", categoryService.findAll());
+        model.addAttribute("statuses", ProductStatus.values());
+
         return "product/list";
     }
 
-    @GetMapping("/create")
-    public String create(Model model) {
-        model.addAttribute("product", new Product());
-        return "create";
-    }
-
-    @PostMapping("/create")
-    public String create(@ModelAttribute ProductRequest productRequest) {
-        productService.create(productRequest);
-        return "redirect:/product";
-    }
-
-    /**
-     * Update all attribute
-     * @param id
-     * @param model
-     * @return
-     */
-    @GetMapping("/update/{id}")
-    public String update(@PathVariable Long id, Model model) {
-        Product product = productService.findById(id);
-
+    @GetMapping({"/form", "/form/{id}"})
+    public String form(Model model,
+                       @PathVariable(required = false) Long id,
+                       @RequestParam(required = false) String from,
+                       RedirectAttributes redirectAttributes) {
         ProductRequest productRequest = new ProductRequest();
+        if(id != null) {
+            try {
+                ProductResponse productResponse = productService.findById(id);
+                productRequest = productMapper.toRequest(productResponse);
+            }catch (NotFoundException e) {
+                redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+                return "redirect:/product";
+            }
+        }
 
-        productRequest.setCategory(product.getCategory());
-        productRequest.setBrand(product.getBrand());
-        productRequest.setName(product.getName());
-        productRequest.setDescription(product.getDescription());
-        productRequest.setStatus(product.getStatus());
-        productRequest.setNote(product.getNote());
-
-        List<ProductUnitRequest> productUnitRequest = product.getProductunits()
-                        .stream()
-                                .map(productUnit -> {
-                                    ProductUnitRequest pRequest = new ProductUnitRequest();
-
-                                    pRequest.setBarcodeUnit(productUnit.getBarcodeUnit());
-                                    pRequest.setSku(productUnit.getSku());
-                                    pRequest.setUnitPrice(productUnit.getPrice());
-                                    pRequest.setIsBaseUnit(productUnit.getIsBaseUnit());
-                                    pRequest.setConventionValue(productUnit.getConventionValue());
-
-                                    return pRequest;
-                                })
-                                        .toList();
-
-        productRequest.setProductUnitsRequest(productUnitRequest);
-        model.addAttribute("productRequest", productRequest);
-        return "product/update";
+        addAttributeToForm(model, id);
+        model.addAttribute("productRequest",  productRequest);
+        model.addAttribute("from", from);
+        return "product/form";
     }
 
-    @PostMapping("/update/{id}")
-    public String update(@PathVariable Long id, @ModelAttribute ProductRequest productRequest) {
-        productService.update(id, productRequest);
+    @PostMapping({"/form", "/form/{id}"})
+    public String form(@Valid @ModelAttribute ProductRequest productRequest,
+                       BindingResult result, Model model,
+                       @PathVariable(required = false) Long id,
+                       @RequestParam(required = false) String from,
+                       RedirectAttributes redirectAttributes) throws IOException {
+        if (result.hasErrors()) {
+            addAttributeToForm(model, id);
+            model.addAttribute("from", from);
+            return "product/form";
+        }
+        String action;
+        try {
+            if (id == null) {
+                action = "Tạo";
+                productService.create(productRequest);
+            } else {
+                action = "Sửa";
+                productService.update(id, productRequest);
+            }
+
+        } catch (ValidationException e) {
+            addAttributeToForm(model, id);
+            model.addAttribute("from", from);
+            e.getErrors().forEach(err ->
+                    result.rejectValue(err.getField(), "error", err.getMessage())
+            );
+            return "product/form";
+
+        }catch (NotFoundException | ResourceInUseException | FileStorageException e){
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/product";
+        }
+
+        redirectAttributes.addFlashAttribute(
+                "successMessage",
+                action + " sản phẩm thành công!");
+
+        if (from != null && !from.trim().isEmpty()) {
+            return "redirect:" + from;
+        }
         return "redirect:/product";
     }
 
+
+    
+    private void addAttributeToForm(Model model, Long id){
+        if(id != null) {
+            model.addAttribute("id", id);
+        }
+        
+        List<CategoryResponse> activeCategories = categoryService.findAllActive();
+        List<BrandResponse> activeBrands = brandService.findAllActive();
+                
+        model.addAttribute("categoryList", activeCategories);
+        model.addAttribute("brandList", activeBrands);
+        model.addAttribute("supplierList", supplierService.findAll());
+        model.addAttribute("unitList", unitService.findAll());
+    }
+
+    @PostMapping("/delete/{id}")
+    public String delete(@PathVariable Long id,
+                         RedirectAttributes redirectAttributes) {
+        try {
+            productService.deleteById(id);
+        }catch(NotFoundException | ResourceInUseException | FileStorageException e){
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/product";
+        }
+        redirectAttributes.addFlashAttribute("successMessage", "Xóa thành công");
+        return "redirect:/product";
+    }
 
 }

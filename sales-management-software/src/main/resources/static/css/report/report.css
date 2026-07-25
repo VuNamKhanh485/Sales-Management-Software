@@ -1,0 +1,121 @@
+/* Authentic Apple-style Custom Styles for Report */
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--sp-lg);
+    margin-bottom: var(--sp-xl);
+}
+
+.stat-card {
+    background: var(--canvas);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    padding: var(--sp-xl);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* Soft shadow typical of macOS cards */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.stat-card__label {
+    font-family: var(--font-text);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-muted-48);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: var(--sp-xs);
+}
+
+.stat-card__value {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+/* Colors for the values, aligned with Apple status colors */
+.value-revenue {
+    color: var(--success);
+}
+
+.value-expense {
+    color: var(--danger);
+}
+
+.value-profit {
+    color: var(--primary);
+}
+
+/* Filters bar styled like a macOS segmented control / toolbar */
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    flex-wrap: wrap;
+    background: var(--canvas-parchment);
+    padding: 10px;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--hairline);
+    width: fit-content;
+}
+
+.search-bar .filter-select,
+.search-bar .filter-date {
+    height: 36px;
+    padding: 0 16px;
+    border: none;
+    border-radius: var(--r-pill);
+    font-size: 14px;
+    font-family: var(--font-text);
+    background: var(--canvas);
+    color: var(--ink);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    transition: box-shadow 0.2s ease;
+    outline: none;
+    margin: 0;
+}
+
+.search-bar .filter-select {
+    padding-right: 32px; /* Space for the arrow */
+}
+
+.search-bar .filter-date:focus,
+.search-bar .filter-select:focus {
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+}
+
+.search-bar .btn-primary {
+    height: 36px;
+    padding: 0 16px;
+    border-radius: var(--r-pill);
+    font-size: 14px;
+    margin-left: var(--sp-xs);
+}
+
+/* Chart Container */
+.chart-container {
+    background: var(--canvas);
+    border-radius: var(--r-lg);
+    padding: var(--sp-xl);
+    border: 1px solid var(--hairline);
+    height: 450px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.date-separator {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-muted-48);
+    padding: 0 4px;
+}
+

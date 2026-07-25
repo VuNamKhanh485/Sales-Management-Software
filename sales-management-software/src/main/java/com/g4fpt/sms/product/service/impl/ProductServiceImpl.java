@@ -1,98 +1,202 @@
 package com.g4fpt.sms.product.service.impl;
 
-import com.g4fpt.sms.product.dto.ProductRequest;
-import com.g4fpt.sms.product.dto.ProductUnitRequest;
+import com.g4fpt.sms.common.enums.UploadFolder;
+import com.g4fpt.sms.common.exception.ResourceInUseException;
+import com.g4fpt.sms.inventory.repository.InventoryRepository;
+import com.g4fpt.sms.product.dto.request.ProductFilterRequest;
+import com.g4fpt.sms.product.dto.request.ProductRequest;
+import com.g4fpt.sms.product.dto.response.ProductResponse;
 import com.g4fpt.sms.product.entity.Product;
+import com.g4fpt.sms.common.exception.NotFoundException;
+import com.g4fpt.sms.common.exception.ValidationException;
 import com.g4fpt.sms.product.entity.ProductUnit;
-import com.g4fpt.sms.product.repository.ProductRepository;
+import com.g4fpt.sms.product.mapper.ProductMapper;
+import com.g4fpt.sms.product.repository.*;
+import com.g4fpt.sms.supplier.repository.SupplierRepository;
+import com.g4fpt.sms.product.service.FileStorageService;
 import com.g4fpt.sms.product.service.ProductService;
+import com.g4fpt.sms.product.service.ProductUnitService;
+import com.g4fpt.sms.product.util.ProductSpecification;
+import com.g4fpt.sms.product.util.ValidationError;
+import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final BrandRepository brandRepository;
+    private final CategoryRepository categoryRepository;
+    private final InventoryRepository inventoryRepository;
+    private final ProductMapper productMapper;
+    private final ProductUnitService productUnitService;
+    private final FileStorageService fileStorageService;
+    private final SupplierRepository supplierRepository;
 
-    public ProductServiceImpl(ProductRepository productRepository) {
-        this.productRepository = productRepository;
+    @Transactional
+    @Override
+    public void create(ProductRequest productRequest) throws IOException {
+        validate(productRequest, null);
+        Product product = new Product();
+        requestToProduct(productRequest, product);
+
+        MultipartFile imageFile = productRequest.getImageFile();
+        if (!imageFile.isEmpty()) {
+            String fileName = fileStorageService.saveFile(imageFile, UploadFolder.PRODUCT);
+            product.setImageName(fileName);
+        }else {
+            throw new ValidationException(
+                    List.of(new ValidationError("imageFile", "Chỉ chấp nhận JPG, JPEG, PNG hoặc WEBP"))
+            );
+        }
+
+        product.setProductUnits(
+                productUnitService.productUnitSync(productRequest.getProductUnitsRequest(),
+                        product));
+        productRepository.save(product);
+    }
+
+    @Transactional
+    @Override
+    public void update(long id, ProductRequest productRequest) throws IOException {
+        validate(productRequest, id);
+        Product product = getProductById(id);
+        requestToProduct(productRequest, product);
+        
+        MultipartFile imageFile = productRequest.getImageFile();
+        if (!imageFile.isEmpty()) {
+
+            fileStorageService.deleteFile(product.getImageName(), UploadFolder.PRODUCT);
+
+            String fileName = fileStorageService.saveFile(imageFile, UploadFolder.PRODUCT);
+
+            product.setImageName(fileName);
+        }else{
+            throw new ValidationException(
+                    List.of(new ValidationError("imageFile", "Chỉ chấp nhận Ảnh"))
+            );
+        }
+
+        product.setProductUnits(
+                productUnitService.productUnitSync(productRequest.getProductUnitsRequest(),
+                        product));
+        productRepository.save(product);
     }
 
     @Override
-    public Product create(ProductRequest productRequest) {
-        Product product = new Product();
+    public ProductResponse findById(long id) {
+        return productMapper.toResponse(getProductById(id));
+    }
 
-        for(ProductUnitRequest productUnitRequest : productRequest.getProductUnitsRequest()){
-            ProductUnit productUnit = new ProductUnit();
+    @Override
+    public void deleteById(long id){
+        Product product = getProductById(id); // kiểm tra tồn tại
 
-            productUnit.setConventionValue(productUnitRequest.getConventionValue());
-            productUnit.setPrice(productUnitRequest.getUnitPrice());
-            productUnit.setBarcodeUnit(productUnitRequest.getBarcodeUnit());
-            productUnit.setIsBaseUnit(productUnitRequest.getIsBaseUnit());
-            productUnit.setSku(productUnitRequest.getSku());
-
-            product.getProductunits().add(productUnit);
+        if(productRepository.existInOrderTransaction(id)){
+            throw new ResourceInUseException("Sản phẩm đã nằm trong giao dịch");
         }
 
-        product.setCategory(productRequest.getCategory());
-        product.setBrand(productRequest.getBrand());
+        for (ProductUnit unit : product.getProductUnits()) {
+            if (inventoryRepository.existsByProductUnitId(unit.getId())) {
+                throw new ResourceInUseException(
+                        "Không thể xóa sản phẩm vì đã có dữ liệu tồn kho."
+                );
+            }
+        }
+        String image = product.getImageName();
+        if(image!=null && !image.isBlank()){
+            fileStorageService.deleteFile(image, UploadFolder.PRODUCT);
+        }
+        productRepository.delete(product);
+    }
+
+    @Override
+    public Page<ProductResponse> findAll(ProductFilterRequest filter, int page, int size,
+                                         String sortField, String sortDir) {
+        if ("baseSku".equals(sortField)) {
+            Pageable pageable = PageRequest.of(page, size);
+            if(sortDir.equals("asc")) {
+                return productRepository.findAllOrderByBaseSkuAsc(filter, pageable)
+                        .map(productMapper::toResponse);
+            }
+            else{
+                return productRepository.findAllOrderByBaseSkuDesc(filter, pageable)
+                        .map(productMapper::toResponse);
+            }
+        } else {
+            Sort sort = sortDir.equalsIgnoreCase("asc")
+                    ? Sort.by(sortField).ascending()
+                    : Sort.by(sortField).descending();
+
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Specification<Product> spec = ProductSpecification.fromFilter(filter);
+
+            return productRepository.findAll(spec, pageable)
+                    .map(productMapper::toResponse);
+        }
+    }
+
+    private Product getProductById(long id) {
+        return productRepository.findById(id).orElseThrow(() -> new NotFoundException("product not found"));
+    }
+
+    @Override
+    public void validate(ProductRequest productRequest, Long excludeId) {
+        List<ValidationError> errors = new ArrayList<>();
+
+        // Check tên sản phẩm trùng
+        if(excludeId == null){
+            if (productRepository.existsByNameIgnoreCase(productRequest.getName())) {
+                errors.add(new ValidationError("name", "Tên sản phẩm đã tồn tại"));
+            }
+        }else{
+            if (productRepository.existsByNameIgnoreCaseAndIdNot(productRequest.getName(), excludeId)) {
+                errors.add(new ValidationError("name", "Tên sản phẩm đã tồn tại"));
+            }
+        }
+
+        long baseUnitCount = productRequest.getProductUnitsRequest()
+                .stream()
+                .filter(u -> Boolean.TRUE.equals(u.getIsBaseUnit()))
+                .count();
+        if (baseUnitCount == 0) {
+            errors.add(new ValidationError("productUnitsRequest", "Phải có ít nhất 1 base unit"));
+        }
+        if (baseUnitCount > 1) {
+            errors.add(new ValidationError("productUnitsRequest", "Chỉ được có 1 base unit"));
+        }
+
+        if (!errors.isEmpty()) {
+            throw new ValidationException(errors);
+        }
+    }
+
+    private void requestToProduct(ProductRequest productRequest, Product product) {
+        product.setCategory(categoryRepository.findById(productRequest.getCategoryId())
+                .orElseThrow(() -> new NotFoundException("Category not found")));
+        product.setBrand(brandRepository.findById(productRequest.getBrandId())
+                .orElseThrow(() -> new NotFoundException("Brand not found")));
         product.setName(productRequest.getName());
         product.setDescription(productRequest.getDescription());
         product.setStatus(productRequest.getStatus());
         product.setNote(productRequest.getNote());
-
-        product.setCreatedDate(LocalDateTime.now());
-
-        return productRepository.save(product);
-    }
-
-    @Override
-    public Product update(long id, ProductRequest productRequest) {
-        Product product = findById(id);
-
-        if(product != null){
-            product.setCategory(productRequest.getCategory());
-            product.setBrand(productRequest.getBrand());
-            product.setName(productRequest.getName());
-            product.setDescription(productRequest.getDescription());
-            product.setStatus(productRequest.getStatus());
-            product.setNote(productRequest.getNote());
-
-            product.setUpdatedDate(LocalDateTime.now());
-            return productRepository.save(product);
+        
+        if (productRequest.getSupplierIds() != null && !productRequest.getSupplierIds().isEmpty()) {
+            product.setSuppliers(supplierRepository.findAllById(productRequest.getSupplierIds()));
+        } else {
+            product.setSuppliers(new ArrayList<>());
         }
-        return null;
-    }
-
-    @Override
-    public Product findById(long id) {
-        return productRepository.findById(id).orElse(null);
-    }
-
-    @Override
-    public List<Product> findByName(String name) {
-        return productRepository.findByNameContainingIgnoreCase(name);
-    }
-
-    @Override
-    public List<Product> findByBrand(Long brandId) {
-        return productRepository.findByBrand_Id(brandId);
-    }
-
-    @Override
-    public List<Product> findByCategory(Long categoryId) {
-        return productRepository.findByCategory_Id(categoryId);
-    }
-
-    @Override
-    public void delete(long id) {
-
-    }
-
-    @Override
-    public List<Product> getAll() {
-        return productRepository.findAll();
     }
 }

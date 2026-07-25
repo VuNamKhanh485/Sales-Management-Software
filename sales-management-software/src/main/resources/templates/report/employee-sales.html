@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo Doanh số Nhân viên — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/report/report.css}">
+    <link rel="stylesheet" th:href="@{/css/data-table.css}">
+    <link rel="stylesheet" th:href="@{/css/report/report-sales.css}">
+</head>
+<body>
+
+    <div th:replace="~{component/navbar :: global-nav('report')}"></div>
+
+    <div class="sub-nav">
+        <h1 class="sub-nav__title">Báo cáo Doanh số Nhân viên</h1>
+    </div>
+
+    <main class="page-content">
+
+        <form action="/reports/employee-sales" method="get" class="search-bar search-bar-center">
+            <select name="branchId" class="filter-select" th:if="${isOwner}">
+                <option value="">Tất cả chi nhánh</option>
+                <option th:each="b : ${branches}" th:value="${b.id}" th:text="${b.name}" th:selected="${b.id == selectedBranchId}"></option>
+            </select>
+            <th:block th:if="${!isOwner && isManager}">
+                <input type="hidden" name="branchId" th:value="${selectedBranchId}" />
+                <span class="filter-text" style="font-weight: 500; font-size: 14px; padding: 0.5rem 1rem; background-color: #f1f3f5; border-radius: 8px; border: 1px solid #e2e8f0; color: #475569;" 
+                      th:each="b : ${branches}" th:if="${b.id == selectedBranchId}" th:text="${b.name}">Chi nhánh</span>
+            </th:block>
+            
+            <input type="date" name="startDate" class="filter-date" th:value="${startDate}">
+            <span class="date-separator">đến</span>
+            <input type="date" name="endDate" class="filter-date" th:value="${endDate}">
+            
+            <button type="submit" class="btn btn-primary btn-primary--sm">Xem báo cáo</button>
+        </form>
+
+        <div class="report-table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">STT</th>
+                        <th>Mã NV</th>
+                        <th>Tên nhân viên</th>
+                        <th>Chi nhánh</th>
+                        <th style="text-align: center;">Số lượng đơn hàng</th>
+                        <th style="text-align: right;">Tổng doanh thu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${#lists.isEmpty(reportData)}">
+                        <td colspan="6" style="text-align: center; color: #666; padding: 2rem;">Không có dữ liệu trong khoảng thời gian này.</td>
+                    </tr>
+                    <tr th:each="row, iterStat : ${reportData}">
+                        <td th:text="${iterStat.count}">1</td>
+                        <td th:text="${row.employeeCode}">EMP01</td>
+                        <td th:text="${row.employeeName}">Nguyễn Văn A</td>
+                        <td th:text="${row.branchName}">Chi nhánh 1</td>
+                        <td style="text-align: center;" th:text="${row.totalOrders}">10</td>
+                        <td style="text-align: right; font-weight: bold; color: #34c759;" th:text="${#numbers.formatDecimal(row.totalSales, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+</body>
+</html>

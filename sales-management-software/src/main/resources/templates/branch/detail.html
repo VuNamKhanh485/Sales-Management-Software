@@ -1,10 +1,66 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết Chi nhánh — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
 </head>
 <body>
+
+    <div th:replace="~{component/navbar :: global-nav('branch')}"></div>
+
+    <div class="sub-nav">
+        <a href="/branch" style="color:var(--primary); text-decoration:none; font-size:14px; margin-right:8px;">Chi nhánh</a>
+        <span style="color:var(--ink-muted-48); font-size:12px; margin-right:8px;">›</span>
+        <h1 class="sub-nav__title" style="margin:0;">Chi tiết</h1>
+    </div>
+
+    <main class="form-page" style="max-width:900px;">
+        <div class="detail-panel">
+            <div class="detail-header">
+                <h2 class="detail-header__name" th:text="${branch.name}">Tên chi nhánh</h2>
+                <div class="detail-header__meta">
+                    Mã: <span class="code-chip" th:text="${branch.branchCode}"></span>
+                    &nbsp;·&nbsp;
+                    <span class="badge" th:classappend="${branch.status.name() == 'ACTIVE'} ? 'badge-active' : 'badge-inactive'" th:text="${branch.status.name() == 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động'}"></span>
+                </div>
+            </div>
+
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-item__label">Số điện thoại</span>
+                    <span class="detail-item__value" th:text="${branch.phone}"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-item__label">Email</span>
+                    <span class="detail-item__value" th:text="${branch.email != null ? branch.email : '—'}"></span>
+                </div>
+                <div class="detail-item" style="grid-column:1/-1;">
+                    <span class="detail-item__label">Địa chỉ</span>
+                    <span class="detail-item__value" th:text="${branch.address != null ? branch.address : '—'}"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-item__label">Ngày tạo</span>
+                    <span class="detail-item__value" th:text="${branch.createdAt != null ? #temporals.format(branch.createdAt,'dd/MM/yyyy') : '—'}"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-item__label">Ngày cập nhật</span>
+                    <span class="detail-item__value" th:text="${branch.updatedAt != null ? #temporals.format(branch.updatedAt,'dd/MM/yyyy') : 'Chưa cập nhật'}"></span>
+                </div>
+                <div class="detail-item" style="grid-column:1/-1;">
+                    <span class="detail-item__label">Ghi chú</span>
+                    <span class="detail-item__value" th:text="${branch.note != null ? branch.note : '—'}"></span>
+                </div>
+            </div>
+
+            <div class="form-actions" style="margin-top:var(--sp-xl);">
+                <a href="/branch" class="btn-cancel" style="padding:10px 20px;">Quay lại</a>
+                <a th:href="@{/branch/edit/{id}(id=${branch.id})}" class="btn-secondary btn-secondary--sm">Chỉnh sửa</a>
+                <a th:href="@{/branch/delete/{id}(id=${branch.id})}" class="btn-primary btn-primary--sm" style="background:var(--danger);" onclick="return confirm('Bạn có chắc chắn muốn xóa chi nhánh này?')">Xóa</a>
+            </div>
+        </div>
+    </main>
 
 </body>
 </html>

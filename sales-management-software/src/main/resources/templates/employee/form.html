@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm/Sửa nhân viên — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/employee/employee.css}">
+</head>
+
+<body>
+
+    <div th:replace="~{component/navbar :: global-nav('employee')}"></div>
+
+    <div class="sub-nav">
+        <a href="/employee" class="sub-nav__back">Quản lý nhân viên</a>
+        <span class="sub-nav__sep">›</span>
+        <h1 class="sub-nav__title" th:text="${employeeForm.id == null ? 'Thêm nhân viên' : 'Sửa nhân viên'}"></h1>
+    </div>
+
+    <main class="page-content form-page">
+
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="form-card">
+            <h2 class="form-card__title form-title-custom">Thông tin nhân viên</h2>
+            <form th:object="${employeeForm}"
+                  th:action="${employeeForm.id == null}
+                            ? @{/employee/new}
+                            : @{/employee/{id}/edit(id=${employeeForm.id})}"
+                  method="post" class="form-grid">
+
+                <input type="hidden" th:field="*{id}">
+
+                <div class="form-group">
+                    <label class="form-label">Mã nhân viên <span class="text-danger">*</span></label>
+                    <input type="text" th:field="*{employeeCode}" class="form-input">
+                    <div class="text-danger" th:errors="*{employeeCode}"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Họ tên <span class="text-danger">*</span></label>
+                    <input type="text" th:field="*{fullName}" class="form-input">
+                    <div class="text-danger" th:errors="*{fullName}"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email <span class="text-danger">*</span></label>
+                    <input type="email" th:field="*{email}" class="form-input">
+                    <div class="text-danger" th:errors="*{email}"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        Mật khẩu
+                        <span th:if="${employeeForm.id != null}" class="hint-text">
+                            (để trống nếu không đổi)
+                        </span>
+                    </label>
+                    <input type="password" th:field="*{password}" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Số điện thoại</label>
+                    <input type="text" th:field="*{phone}" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Địa chỉ</label>
+                    <input type="text" th:field="*{address}" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Giới tính</label>
+                    <select th:field="*{gender}" class="form-select">
+                        <option value="">-- Chọn --</option>
+                        <option th:each="g : ${genders}"
+                                th:value="${g}"
+                                th:text="${g}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ngày sinh</label>
+                    <input type="date" th:field="*{dob}" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ngày vào làm</label>
+                    <input type="date" th:field="*{hiredDate}" class="form-input">
+                    <div class="text-danger" th:errors="*{hiredDate}"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Lương cơ bản</label>
+                    <input type="number" step="1000" th:field="*{baseSalary}" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Trạng thái</label>
+                    <select th:field="*{workStatus}" class="form-select">
+                        <option th:each="s : ${statuses}"
+                                th:value="${s}"
+                                th:text="${s}">
+                        </option>
+                    </select>
+                    <div class="text-danger" th:errors="*{workStatus}"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Vai trò</label>
+                    <select th:field="*{roleId}" class="form-select">
+                        <option value="">-- Chọn vai trò --</option>
+
+                        <option th:each="r : ${roles}"
+                                th:if="${session.loggedInUser.roleCode == 'OWNER' || r.code != 'OWNER'}"
+                                th:value="${r.id}"
+                                th:text="${r.code}">
+                        </option>
+                    </select>
+                    <div class="text-danger" th:errors="*{roleId}"></div>
+                </div>
+
+                <div class="form-group form-group--full">
+                    <label class="form-label">Chi nhánh</label>
+
+                    <select th:if="${session.loggedInUser.roleCode == 'OWNER'}"
+                            th:field="*{branchId}"
+                            class="form-select">
+                        <option value="">-- Chọn chi nhánh --</option>
+                        <option th:each="b : ${branches}"
+                                th:value="${b.id}"
+                                th:text="${b.name}">
+                        </option>
+                    </select>
+
+                    <select th:if="${session.loggedInUser.roleCode == 'BRANCH_MANAGER'}"
+                            th:field="*{branchId}"
+                            class="form-select"
+                            disabled>
+                        <option th:each="b : ${branches}"
+                                th:if="${b.id == session.loggedInUser.branchId}"
+                                th:value="${b.id}"
+                                th:text="${b.name}">
+                        </option>
+                    </select>
+
+                    <input th:if="${session.loggedInUser.roleCode == 'BRANCH_MANAGER'}"
+                           type="hidden"
+                           th:field="*{branchId}">
+                </div>
+
+                <div class="form-group form-group--full">
+                    <label class="form-label">Ghi chú</label>
+                    <textarea th:field="*{note}" class="form-textarea" rows="3"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-primary--sm">Lưu</button>
+                    <a th:href="@{/employee}" class="btn btn-secondary btn-secondary--sm">Quay lại</a>
+                </div>
+
+            </form>
+        </div>
+    </main>
+
+</body>
+</html>

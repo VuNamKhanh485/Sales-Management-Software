@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết Đơn hàng Nhân viên — SMS</title>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/report/report.css}">
+    <link rel="stylesheet" th:href="@{/css/data-table.css}">
+</head>
+<body>
+
+    <div th:replace="~{component/navbar :: global-nav('report')}"></div>
+
+    <div class="sub-nav">
+        <h1 class="sub-nav__title">Chi tiết Đơn hàng Nhân viên</h1>
+    </div>
+
+    <main class="page-content">
+
+        <!-- Back button -->
+        <div class="mb-3">
+            <a th:href="@{/reports/overview(branchId=${branchId}, startDate=${startDate}, endDate=${endDate})}" class="btn btn-secondary btn-secondary--sm">
+                &larr; Quay lại Báo cáo Tổng hợp
+            </a>
+        </div>
+
+        <div class="report-table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">STT</th>
+                        <th>Mã Hóa Đơn</th>
+                        <th>Ngày tạo</th>
+                        <th>Khách hàng</th>
+                        <th style="text-align: right;">Tổng cộng</th>
+                        <th style="text-align: right;">Giảm giá</th>
+                        <th style="text-align: right;">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${#lists.isEmpty(transactions)}">
+                        <td colspan="7" style="text-align: center; color: #666; padding: 2rem;">Không tìm thấy giao dịch nào.</td>
+                    </tr>
+                    <tr th:each="tx, iterStat : ${transactions}">
+                        <td th:text="${iterStat.count}">1</td>
+                        <td style="font-weight: 500;" th:text="${tx.code}">HD001</td>
+                        <td th:text="${#temporals.format(tx.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                        <td th:text="${tx.customer != null ? tx.customer.fullName : 'Khách lẻ'}">Nguyễn Văn Khách</td>
+                        <td style="text-align: right;" th:text="${#numbers.formatDecimal(tx.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">110,000 đ</td>
+                        <td style="text-align: right; color: var(--danger);" th:text="${#numbers.formatDecimal(tx.discountAmount != null ? tx.discountAmount : 0, 0, 'COMMA', 0, 'POINT')} + ' đ'">-10,000 đ</td>
+                        <td style="text-align: right; font-weight: bold; color: var(--success);" th:text="${#numbers.formatDecimal(tx.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+</body>
+</html>

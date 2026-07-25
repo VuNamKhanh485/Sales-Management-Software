@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${inventoryRequest.id != null ? 'Sửa tồn kho — SMS' : 'Thêm tồn kho — SMS'}">Form tồn kho</title>
+    <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
+    <link rel="stylesheet" th:href="@{/css/inventory/inventory-form.css}">
+</head>
+<body>
+
+    <div th:replace="~{component/navbar :: global-nav('inventory')}"></div>
+
+    <div class="sub-nav">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <a th:href="${inventoryRequest.branchId != null ? '/inventory/' + inventoryRequest.branchId : '/inventory'}" class="sub-nav__back" style="color: var(--primary); text-decoration: none; font-size: 14px;">Quay lại</a>
+            <span class="sub-nav__sep" style="color: var(--ink-muted-48); font-size: 12px;">›</span>
+            <h1 class="sub-nav__title" th:text="${inventoryRequest.id != null ? 'Sửa tồn kho' : 'Thêm tồn kho'}">Form tồn kho</h1>
+        </div>
+    </div>
+
+    <main class="page-content" style="max-width: 800px;">
+
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="card-panel">
+            <h2 class="form-card__title" th:text="${inventoryRequest.id != null ? 'Cập nhật thông tin tồn kho' : 'Thêm mặt hàng vào kho'}">
+                Form
+            </h2>
+            <div class="card-body">
+                <form
+                    th:action="${inventoryRequest.id != null
+                                ? '/inventory/update/' + inventoryRequest.id
+                                : '/inventory/save'}"
+                    th:object="${inventoryRequest}"
+                    method="post">
+
+                    <input type="hidden" th:field="*{branchId}" th:if="${inventoryRequest.id != null or (sessionUser != null and !sessionUser.hasRole('OWNER'))}" />
+
+                    <div class="form-group">
+                        <label class="form-label">Chi nhánh</label>
+                        <div th:if="${inventoryRequest.id == null}">
+                            <div th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">
+                                <select th:field="*{branchId}" class="form-input" required>
+                                    <option value="">-- Chọn chi nhánh --</option>
+                                    <option th:each="b : ${branches}"
+                                            th:value="${b.id}"
+                                            th:text="${b.branchCode + ' - ' + b.name}">
+                                    </option>
+                                </select>
+                            </div>
+                            
+                            <div th:if="${sessionUser == null or !sessionUser.hasRole('OWNER')}">
+                                <input type="text" class="form-input" readonly
+                                       th:value="${userBranch.branchCode + ' - ' + userBranch.name}" />
+                            </div>
+                        </div>
+
+                        <div th:if="${inventoryRequest.id != null}">
+                            <input type="text" class="form-input" readonly
+                                   th:value="${branch.branchCode + ' - ' + branch.name}" />
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productId" class="form-label">Sản phẩm</label>
+                            <div th:if="${inventoryRequest.id == null}">
+                                <select id="productId" th:field="*{productId}" class="form-input" required>
+                                    <option value="">-- Chọn sản phẩm --</option>
+                                    <option th:each="p : ${products}"
+                                            th:value="${p.id}"
+                                            th:text="${p.name}">
+                                    </option>
+                                </select>
+                                <div class="hint-text">Lưu ý: chỉ chọn những cặp Sản phẩm + Đơn vị đã được cấu hình.</div>
+                            </div>
+
+                            <div th:if="${inventoryRequest.id != null}">
+                                <input type="hidden" th:field="*{productId}" />
+                                <input type="text" class="form-input" readonly
+                                       th:value="${productUnit != null ? productUnit.product.name : 'N/A'}" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="unitId" class="form-label">Đơn vị</label>
+                            <div th:if="${inventoryRequest.id == null}">
+                                <select id="unitId" th:field="*{unitId}" class="form-input" required>
+                                    <option value="">-- Chọn đơn vị --</option>
+                                    <option th:each="u : ${units}"
+                                            th:value="${u.id}"
+                                            th:text="${u.name}">
+                                    </option>
+                                </select>
+                                <div class="hint-text">Chọn đơn vị phù hợp với sản phẩm đã chọn bên trái.</div>
+                            </div>
+
+                            <div th:if="${inventoryRequest.id != null}">
+                                <input type="hidden" th:field="*{unitId}" />
+                                <input type="text" class="form-input" readonly
+                                       th:value="${productUnit != null ? productUnit.unit.name : 'N/A'}" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="stock" class="form-label">Số lượng tồn kho</label>
+                            <input type="number" id="stock" th:field="*{stock}"
+                                   class="form-input" min="0"
+                                   placeholder="Nhập số lượng..." required />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="minStock" class="form-label">Tồn tối thiểu</label>
+                            <input type="number" id="minStock" th:field="*{minStock}"
+                                   class="form-input" min="0"
+                                   placeholder="Nhập tồn tối thiểu..." required />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="maxStock" class="form-label">Tồn tối đa <span style="font-weight: 400; color: var(--ink-muted-48);">(không bắt buộc)</span></label>
+                            <input type="number" id="maxStock" th:field="*{maxStock}"
+                                   class="form-input" min="0"
+                                   placeholder="Để trống nếu không giới hạn" />
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="positionInShop" class="form-label">Vị trí trong cửa hàng <span style="font-weight: 400; color: var(--ink-muted-48);">(không bắt buộc)</span></label>
+                        <input type="text" id="positionInShop" th:field="*{positionInShop}"
+                               class="form-input"
+                               placeholder="Ví dụ: Kệ A, Tầng 2..." />
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary" style="padding: 10px 24px;">
+                            <span th:text="${inventoryRequest.id != null ? 'Cập nhật' : 'Lưu tồn kho'}">Lưu</span>
+                        </button>
+                        <a th:href="@{/inventory/{id}(id=${inventoryRequest.branchId})}"
+                           class="btn-secondary" style="padding: 10px 24px;"
+                           th:if="${inventoryRequest.branchId != null}">
+                            Hủy
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
