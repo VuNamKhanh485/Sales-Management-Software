@@ -39,7 +39,7 @@
 
                     <div class="form-group form-group--full">
                         <label class="form-label">Trạng thái <span style="color:red">*</span>
-                            <select class="form-select-field" th:field="*{status}">
+                            <select class="form-select-field no-custom"  th:field="*{status}">
                                 <option value="">-- Chọn trạng thái --</option>
                                 <option th:each="status : ${T(com.g4fpt.sms.product.enums.UnitStatus).values()}"
                                         th:value="${status}"

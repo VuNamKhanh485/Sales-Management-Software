@@ -41,7 +41,7 @@
     box-shadow: var(--shadow-sm);
     margin-bottom: var(--sp-lg);
     border: 1px solid var(--hairline);
-    overflow: hidden;
+    overflow: visible;
 }
 
 /* Search Bar Area */

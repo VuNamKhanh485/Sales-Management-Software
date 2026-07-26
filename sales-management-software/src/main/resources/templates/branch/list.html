@@ -83,7 +83,7 @@
                                 <div class="actions" style="justify-content:flex-end;">
                                     <a th:href="@{/branch/detail/{id}(id=${branch.id})}" class="action-edit" style="color:var(--ink-muted-80);">Chi tiết</a>
                                     <a th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}" th:href="@{/branch/edit/{id}(id=${branch.id})}" class="action-edit">Sửa</a>
-                                    <a th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}" th:href="@{/branch/delete/{id}(id=${branch.id})}" class="action-delete" onclick="return confirm('Bạn có chắc chắn muốn xóa chi nhánh này?')">Xóa</a>
+                                    <a th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}" th:href="@{/branch/delete/{id}(id=${branch.id})}" class="action-delete" data-confirm="Bạn có chắc chắn muốn xóa chi nhánh này?">Xóa</a>
                                 </div>
                             </td>
                         </tr>
@@ -111,5 +111,9 @@
         </div>
 
     </main>
+
+    <!-- Global Modal Xác nhận & script -->
+    <div th:replace="~{component/global-modal :: confirm-modal}"></div>
+    <script th:src="@{/js/core/global-modal.js}"></script>
 </body>
 </html>
