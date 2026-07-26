@@ -63,23 +63,8 @@
                 </table>
             </div>
 
-            <div th:if="${branchesPage.totalPages > 0}" class="pagination">
-                <a th:if="${!branchesPage.first}" 
-                   th:href="@{/inventory(page=${branchesPage.number - 1}, size=${size})}"
-                   class="pagination-btn">Trước</a>
-                <span th:if="${branchesPage.first}" class="pagination-btn disabled">Trước</span>
-
-                <div class="pagination-numbers">
-                    <a th:each="pageIdx : ${#numbers.sequence(0, branchesPage.totalPages - 1)}"
-                       th:href="@{/inventory(page=${pageIdx}, size=${size})}"
-                       th:classappend="${pageIdx == branchesPage.number} ? 'active' : ''"
-                       th:text="${pageIdx + 1}">1</a>
-                </div>
-
-                <a th:if="${!branchesPage.last}" 
-                   th:href="@{/inventory(page=${branchesPage.number + 1}, size=${size})}"
-                   class="pagination-btn">Sau</a>
-                <span th:if="${branchesPage.last}" class="pagination-btn disabled">Sau</span>
+            <div th:with="base = '/inventory?size=' + ${size}">
+                <div th:replace="~{component/pagination :: pagination(currentPage=${branchesPage.number}, totalPages=${branchesPage.totalPages}, baseUrl=${base})}"></div>
             </div>
         </div>
     </main>

@@ -14,7 +14,7 @@
             align-items: center;
             justify-content: center;
             background-color: var(--canvas-alt); /* Light gray */
-            font-family: var(--font-sans);
+            font-family: var(--font-text);
             color: var(--ink);
         }
 
@@ -69,7 +69,7 @@
             font-size: 15px;
             transition: all 0.2s ease;
             box-sizing: border-box;
-            font-family: var(--font-sans);
+            font-family: var(--font-text);
         }
 
         .form-input-clean:focus {
@@ -94,7 +94,7 @@
             cursor: pointer;
             transition: background-color 0.2s ease;
             margin-top: 16px;
-            font-family: var(--font-sans);
+            font-family: var(--font-text);
         }
 
         .btn-login:hover {
@@ -152,8 +152,7 @@
         <div class="login-card">
             
             <div class="brand-logo">
-                <h1>SMS System</h1>
-                <p>Quản lý bán hàng thông minh</p>
+                <h1>SMS</h1>
             </div>
 
             <div th:if="${successMessage}" class="alert-success-custom">

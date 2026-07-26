@@ -50,7 +50,7 @@
                 <option value="">-- Vai trò --</option>
                 <option th:each="r : ${roles}"
                         th:value="${r.id}"
-                        th:text="${r.code}"
+                        th:text="${r.code == 'OWNER' ? 'Chủ cửa hàng' : (r.code == 'BRANCH_MANAGER' ? 'Quản lý chi nhánh' : (r.code == 'WAREHOUSE_STAFF' ? 'Nhân viên kho' : (r.code == 'SALE_STAFF' ? 'Nhân viên bán hàng' : r.code)))}"
                         th:selected="${roleId != null and roleId == r.id}">
                 </option>
             </select>
@@ -100,7 +100,7 @@
                         <td th:text="${e.email}"></td>
                         <td th:text="${e.phone}"></td>
                         <td th:text="${e.branch != null ? e.branch.name : ''}"></td>
-                        <td th:text="${e.role != null ? e.role.code : ''}"></td>
+                        <td th:text="${e.role != null ? (e.role.code == 'OWNER' ? 'Chủ cửa hàng' : (e.role.code == 'BRANCH_MANAGER' ? 'Quản lý chi nhánh' : (e.role.code == 'WAREHOUSE_STAFF' ? 'Nhân viên kho' : (e.role.code == 'SALE_STAFF' ? 'Nhân viên bán hàng' : e.role.code)))) : ''}"></td>
 
                         <td>
                             <span class="badge" th:classappend="${e.workStatus.name() == 'ACTIVE'} ? 'badge-active' : 'badge-inactive'" th:text="${e.workStatus.name() == 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động'}"></span>

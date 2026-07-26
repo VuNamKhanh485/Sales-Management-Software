@@ -268,6 +268,12 @@
 
     document.addEventListener("DOMContentLoaded", function () {
         $('.select2-init').select2();
+        $('.select2-no-search').select2({
+            minimumResultsForSearch: Infinity
+        });
+        $('.unit-select2').select2({
+            minimumResultsForSearch: Infinity
+        });
         document.querySelectorAll("#unitTable tr:not(#no-unit-row)")
             .forEach(function (row) {
                 initBarcode(row);
