@@ -14,7 +14,7 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
     @Query("""
             SELECT CASE WHEN COUNT(ot) > 0 THEN true ELSE false END
             FROM OrderTransaction ot
-            WHERE ot.supplier.id =: supplierId
+            WHERE ot.supplier.id = :supplierId
     """)
     boolean existInOrderTransaction(@Param("supplierId") Long supplierId);
 }

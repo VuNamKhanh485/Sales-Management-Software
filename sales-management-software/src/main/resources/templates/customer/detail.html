@@ -133,10 +133,13 @@
                                 th:text="${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">
                             </td>
                             <td>
-                                <span class="badge" th:classappend="${order.status == 'COMPLETED'} ? 'badge-active' :
-                                                     (${order.status == 'CANCELLED' or order.status == 'REFUNDED'} ? 'badge-inactive' : '')"
-                                    th:text="${order.status == 'COMPLETED' ? 'Hoàn thành' : (order.status == 'PENDING' ? 'Chờ xử lý' : (order.status == 'CANCELLED' ? 'Đã hủy' : (order.status == 'RETURNED' ? 'Đã trả hàng' : (order.status == 'REFUNDED' ? 'Đã hoàn tiền' : order.status))))}">
-                                </span>
+                                    <span th:if="${order.code.startsWith('RET')}" class="badge badge-inactive">
+                                        Đã hoàn tiền
+                                    </span>
+                                    <span th:unless="${order.code.startsWith('RET')}" class="badge" 
+                                          th:classappend="${order.status == 'CANCELLED'} ? 'badge-inactive' : (${order.status == 'PENDING'} ? 'badge-inactive' : 'badge-active')"
+                                          th:text="${order.status == 'CANCELLED'} ? 'Đã hủy' : (${order.status == 'PENDING'} ? 'Chờ xử lý' : 'Hoàn thành')">
+                                    </span>
                             </td>
                             <td>
                                 <div class="actions" style="justify-content:flex-end;">

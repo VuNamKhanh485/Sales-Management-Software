@@ -27,6 +27,7 @@ public class ReturnController {
 
     private final ReturnRequestService returnRequestService;
     private final OrderTransactionRepository orderTransactionRepository;
+    private final com.g4fpt.sms.employee.repository.EmployeeRepository employeeRepository;
 
     @Value("${upload.path}")
     private String uploadDir;
@@ -117,6 +118,17 @@ public class ReturnController {
         long pendingCount = returnRequestService.countPendingRequests();
         model.addAttribute("pendingCount", pendingCount);
         
+        Map<Long, String> employeeNameMap = new HashMap<>();
+        for (ReturnRequest req : requests) {
+            if (req.getRequestedBy() != null && !employeeNameMap.containsKey(req.getRequestedBy())) {
+                employeeRepository.findById(req.getRequestedBy()).ifPresent(e -> employeeNameMap.put(req.getRequestedBy(), e.getFullName()));
+            }
+            if (req.getReviewedBy() != null && !employeeNameMap.containsKey(req.getReviewedBy())) {
+                employeeRepository.findById(req.getReviewedBy()).ifPresent(e -> employeeNameMap.put(req.getReviewedBy(), e.getFullName()));
+            }
+        }
+        model.addAttribute("employeeNameMap", employeeNameMap);
+        
         return "order/return-manage";
     }
 
@@ -126,6 +138,16 @@ public class ReturnController {
         try {
             ReturnRequest detailRequest = returnRequestService.getById(id);
             model.addAttribute("detailRequest", detailRequest);
+            
+            Map<Long, String> employeeNameMap = new HashMap<>();
+            if (detailRequest.getRequestedBy() != null) {
+                employeeRepository.findById(detailRequest.getRequestedBy()).ifPresent(e -> employeeNameMap.put(detailRequest.getRequestedBy(), e.getFullName()));
+            }
+            if (detailRequest.getReviewedBy() != null) {
+                employeeRepository.findById(detailRequest.getReviewedBy()).ifPresent(e -> employeeNameMap.put(detailRequest.getReviewedBy(), e.getFullName()));
+            }
+            model.addAttribute("employeeNameMap", employeeNameMap);
+            
             return "order/return-detail";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());

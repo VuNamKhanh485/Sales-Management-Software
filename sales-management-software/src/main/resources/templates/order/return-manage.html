@@ -148,7 +148,7 @@
                             <td style="text-align: center; color: var(--ink-muted-48);" th:text="${i.index + 1}">1</td>
                             <td style="font-weight: 600; color: var(--primary);">#<span th:text="${req.id}"></span></td>
                             <td th:text="${req.order.code}"></td>
-                            <td th:text="${req.requestedBy}"></td>
+                            <td th:text="${employeeNameMap.get(req.requestedBy) != null ? employeeNameMap.get(req.requestedBy) : req.requestedBy}"></td>
                             <td style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink-muted-80);" th:text="${req.reason}"></td>
                             <td th:text="${#temporals.format(req.createdAt, 'dd-MM-yyyy HH:mm')}"></td>
                             <td>

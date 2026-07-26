@@ -116,7 +116,6 @@
                     <div class="form-group">
                         <label class="form-label" for="customerRankId">Đối tượng áp dụng (Rank)</label>
                         <select id="customerRankId" class="form-select" th:field="*{customerRankId}">
-                            <option value="">Tất cả khách hàng</option>
                             <option th:each="rank : ${ranks}" th:value="${rank.id}" th:text="${rank.name}"></option>
                         </select>
                         <span class="field-hint">Chỉ khách hàng đạt hạng này trở lên (hoặc chính xác hạng này) mới được áp dụng</span>

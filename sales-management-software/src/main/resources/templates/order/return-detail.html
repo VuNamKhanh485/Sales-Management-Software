@@ -4,96 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chi tiết yêu cầu trả hàng — SMS</title>
+    <!-- Cần Bootstrap CSS để Modal hiển thị đúng layout -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/core/apple-design.css}">
-    <style>
-        .page-layout {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 var(--sp-lg);
-        }
-        
-        .header-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-        
-        .header-title {
-            font-family: var(--font-display);
-            font-size: 28px;
-            font-weight: 600;
-            color: var(--ink);
-            margin: 0 0 4px 0;
-            letter-spacing: -0.5px;
-        }
-
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--ink-muted-48);
-            text-decoration: none;
-            font-size: 15px;
-            margin-bottom: 16px;
-            transition: color 0.2s;
-        }
-
-        .back-link:hover {
-            color: var(--primary);
-        }
-
-        .detail-card {
-            background: var(--canvas);
-            border: 1px solid var(--hairline);
-            border-radius: var(--r-xl);
-            padding: 32px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
-            margin-bottom: 24px;
-        }
-
-        .detail-label {
-            font-size: 13px;
-            color: var(--ink-muted-48);
-            text-transform: uppercase;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            margin-bottom: 4px;
-        }
-        
-        .detail-value {
-            font-size: 15px;
-            color: var(--ink);
-            font-weight: 500;
-            margin-bottom: 16px;
-        }
-        
-        .item-table th {
-            font-size: 12px;
-            color: var(--ink-muted-48);
-            text-transform: uppercase;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            border-bottom: 1px solid var(--hairline);
-            padding-bottom: 8px;
-        }
-        
-        .item-table td {
-            font-size: 14px;
-            color: var(--ink);
-            padding: 12px 0;
-            border-bottom: 1px solid var(--hairline);
-        }
-        
-        .action-bar {
-            display: flex;
-            gap: 16px;
-            justify-content: flex-end;
-            margin-top: 32px;
-            padding-top: 24px;
-            border-top: 1px solid var(--hairline);
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/order/return-detail.css}">
 </head>
 <body>
     <div th:replace="~{component/navbar :: global-nav('returns')}"></div>
@@ -180,7 +94,7 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                     <div>
                         <div class="detail-label">Người xử lý</div>
-                        <div class="detail-value" th:text="${detailRequest.reviewedBy}"></div>
+                        <div class="detail-value" th:text="${employeeNameMap.get(detailRequest.reviewedBy) != null ? employeeNameMap.get(detailRequest.reviewedBy) : detailRequest.reviewedBy}"></div>
                     </div>
                     <div>
                         <div class="detail-label">Thời gian duyệt</div>
@@ -195,17 +109,20 @@
             
             <!-- Action Buttons (Only for pending requests) -->
             <div class="action-bar" th:if="${detailRequest.status == 'PENDING'}">
-                <form method="POST" th:action="@{/return/{id}/reject(id=${detailRequest.id})}"
-                      style="display: flex; gap: 8px; flex: 1;" onsubmit="return confirm('Bạn có chắc chắn muốn TỪ CHỐI yêu cầu trả hàng này không?')">
-                    <input type="text" name="reason" class="form-input" style="flex: 1;" placeholder="Nhập lý do từ chối (bắt buộc)..." required>
-                    <button type="submit" class="btn" style="background: transparent; border: 1px solid #e53e3e; color: #e53e3e;">
+                <form id="rejectForm" method="POST" th:action="@{/return/{id}/reject(id=${detailRequest.id})}"
+                      data-confirm="Bạn có chắc chắn muốn TỪ CHỐI yêu cầu trả hàng này không?"
+                      data-confirm-title="Xác nhận từ chối"
+                      style="display: flex; gap: 8px; flex: 1;">
+                    <input type="text" name="reason" class="form-input reject-input" placeholder="Nhập lý do từ chối (bắt buộc)..." required>
+                    <button type="submit" class="btn-secondary btn-reject">
                         Từ chối
                     </button>
                 </form>
                 
-                <form method="POST" th:action="@{/return/{id}/approve(id=${detailRequest.id})}"
-                      onsubmit="return confirm('Bạn có chắc chắn muốn DUYỆT yêu cầu trả hàng này và HOÀN TIỀN/NHẬP KHO không?')">
-                    <button type="submit" class="btn btn-primary" style="background: #0066cc;">
+                <form id="approveForm" method="POST" th:action="@{/return/{id}/approve(id=${detailRequest.id})}"
+                      data-confirm="Bạn có chắc chắn muốn DUYỆT yêu cầu trả hàng này và HOÀN TIỀN/NHẬP KHO không?"
+                      data-confirm-title="Xác nhận duyệt">
+                    <button type="submit" class="btn-primary">
                         Duyệt yêu cầu
                     </button>
                 </form>
@@ -214,5 +131,12 @@
 
     </main>
 
+    <!-- Modal Xác nhận chung từ global component -->
+    <div th:replace="~{component/global-modal :: confirm-modal}"></div>
+
+    <!-- Cần Bootstrap JS để chạy Modal -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/core/global-modal.js}"></script>
+    <script th:src="@{/js/order/return-detail.js}"></script>
 </body>
 </html>

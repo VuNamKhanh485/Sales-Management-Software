@@ -35,7 +35,7 @@
             <div class="col-6">
                 <label class="form-label small fw-semibold mb-1">Giới tính</label>
                 <select th:field="*{gender}" class="form-select form-select-sm">
-                    <option th:each="g : ${genders}" th:value="${g.name()}" th:text="${g.name()}"></option>
+                    <option th:each="g : ${genders}" th:value="${g.name()}" th:text="${g.name() == 'MALE' ? 'Nam' : (g.name() == 'FEMALE' ? 'Nữ' : 'Khác')}"></option>
                 </select>
             </div>
             <div class="col-6">

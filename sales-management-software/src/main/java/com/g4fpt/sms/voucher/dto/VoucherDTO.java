@@ -56,6 +56,7 @@ public class VoucherDTO {
     @Builder.Default
     private VoucherStatus status = VoucherStatus.ACTIVE;
 
+    @NotNull(message = "Đối tượng áp dụng không được để trống")
     private Long customerRankId;
     private String customerRankName;
 

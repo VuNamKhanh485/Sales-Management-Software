@@ -203,16 +203,26 @@
             const unitSelect = document.getElementById('quick-unit-select');
             unitSelect.innerHTML = '<option value="">-- Đơn vị --</option>';
             
-            if (!productId) return;
+            if (productId) {
+                const product = activeProducts.find(p => p.id == productId);
+                if (product && product.productUnitsResponses) {
+                    product.productUnitsResponses.forEach(pu => {
+                        const option = document.createElement('option');
+                        option.value = pu.id;
+                        option.textContent = pu.unit.name;
+                        unitSelect.appendChild(option);
+                    });
+                }
+            }
             
-            const product = activeProducts.find(p => p.id == productId);
-            if (product && product.productUnitsResponses) {
-                product.productUnitsResponses.forEach(pu => {
-                    const option = document.createElement('option');
-                    option.value = pu.id;
-                    option.textContent = pu.unit.name;
-                    unitSelect.appendChild(option);
-                });
+            // Rebuild custom select
+            if (unitSelect.nextElementSibling && unitSelect.nextElementSibling.classList.contains('custom-select-container')) {
+                unitSelect.nextElementSibling.remove();
+                unitSelect.dataset.customSelectProcessed = 'false';
+                unitSelect.style.display = '';
+                if (window.initCustomSelect) {
+                    window.initCustomSelect(unitSelect);
+                }
             }
         }
         /*]]>*/

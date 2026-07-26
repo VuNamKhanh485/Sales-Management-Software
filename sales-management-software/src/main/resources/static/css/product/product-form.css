@@ -23,7 +23,7 @@
 
         .form-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             gap: var(--sp-md) var(--sp-lg);
         }
         @media (max-width: 600px) {
@@ -37,7 +37,7 @@
             font-size: 13px; font-weight: 600; color: var(--ink);
         }
         .form-input, .form-select, .form-textarea {
-            min-width: 100%;
+            width: 100%;
             padding: 10px 14px;
             border: 1px solid var(--hairline);
             border-radius: var(--r-md);
@@ -114,6 +114,10 @@
         }
         .select2-container--default .select2-selection--single .select2-selection__arrow {
             height: 40px; right: 8px;
+        }
+        
+        .form-group .select2-container {
+            width: 100% !important;
         }
 
         /* Modal Styles */

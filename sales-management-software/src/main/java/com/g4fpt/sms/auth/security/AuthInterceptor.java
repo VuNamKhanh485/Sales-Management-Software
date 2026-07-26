@@ -44,11 +44,20 @@ public class AuthInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // 2.1 OWNER, BRANCH_MANAGER, SALE_STAFF, CASHIER: /reports
-        if (uri.startsWith("/reports") 
-                && !loggedInUser.hasAnyRole("OWNER", "BRANCH_MANAGER", "SALE_STAFF", "CASHIER")) {
-            response.sendRedirect(contextPath + "/error/403");
-            return false;
+        // 2.1 OWNER, BRANCH_MANAGER, CASHIER: /reports (except detailed-sales)
+        // SALE_STAFF: only /reports/detailed-sales
+        if (uri.startsWith("/reports")) {
+            if (uri.startsWith("/reports/detailed-sales")) {
+                if (!loggedInUser.hasAnyRole("OWNER", "BRANCH_MANAGER", "SALE_STAFF", "CASHIER")) {
+                    response.sendRedirect(contextPath + "/error/403");
+                    return false;
+                }
+            } else {
+                if (!loggedInUser.hasAnyRole("OWNER", "BRANCH_MANAGER", "CASHIER")) {
+                    response.sendRedirect(contextPath + "/error/403");
+                    return false;
+                }
+            }
         }
 
         // 3. OWNER, BRANCH_MANAGER, WAREHOUSE_STAFF: /inventory, /imports, /supplier, /transfer

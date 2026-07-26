@@ -62,7 +62,7 @@
                     <div class="form-group">
                         <label class="form-label">Giới tính</label>
                         <select class="form-select" th:field="*{gender}">
-                            <option th:each="g : ${genders}" th:value="${g.name()}" th:text="${g.name()}"></option>
+                            <option th:each="g : ${genders}" th:value="${g.name()}" th:text="${g.name() == 'MALE' ? 'Nam' : (g.name() == 'FEMALE' ? 'Nữ' : 'Khác')}"></option>
                         </select>
                     </div>
 
