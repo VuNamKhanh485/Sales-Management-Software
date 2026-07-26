@@ -6,6 +6,7 @@ import com.g4fpt.sms.branch.repository.BranchRepository;
 import com.g4fpt.sms.branch.service.BranchService;
 import com.g4fpt.sms.employee.repository.EmployeeRepository;
 import com.g4fpt.sms.inventory.repository.InventoryRepository;
+import com.g4fpt.sms.order.repository.OrderTransactionRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,11 +23,14 @@ public class BranchServiceImpl implements BranchService {
     private final BranchRepository branchRepository;
     private final EmployeeRepository employeeRepository;
     private final InventoryRepository inventoryRepository;
+    private final OrderTransactionRepository orderTransactionRepository;
 
-    public BranchServiceImpl(BranchRepository branchRepository, EmployeeRepository employeeRepository, InventoryRepository inventoryRepository) {
+    public BranchServiceImpl(BranchRepository branchRepository, EmployeeRepository employeeRepository,
+            InventoryRepository inventoryRepository, OrderTransactionRepository orderTransactionRepository) {
         this.branchRepository = branchRepository;
         this.employeeRepository = employeeRepository;
         this.inventoryRepository = inventoryRepository;
+        this.orderTransactionRepository = orderTransactionRepository;
     }
 
     @Override
@@ -43,7 +47,8 @@ public class BranchServiceImpl implements BranchService {
     public Branch getById(Long id) {
         Optional<Branch> optionalBranch = branchRepository.findById(id);
 
-        if (optionalBranch.isPresent()) return optionalBranch.get();
+        if (optionalBranch.isPresent())
+            return optionalBranch.get();
 
         throw new RuntimeException("Branch not found");
     }
@@ -93,9 +98,12 @@ public class BranchServiceImpl implements BranchService {
             throw new RuntimeException("Không thể xóa chi nhánh vì vẫn còn nhân viên trực thuộc.");
         }
 
+        if (orderTransactionRepository.existsByAnyBranchId(id)) {
+            throw new RuntimeException("Không thể xóa chi nhánh vì đã có giao dịch phát sinh.");
+        }
+
         branchRepository.deleteById(id);
     }
-
 
     private void validateCreateRequest(BranchRequest request) {
 
@@ -145,6 +153,5 @@ public class BranchServiceImpl implements BranchService {
         }
         return branchRepository.findByNameContainingIgnoreCase(keyword, pageable);
     }
-
 
 }

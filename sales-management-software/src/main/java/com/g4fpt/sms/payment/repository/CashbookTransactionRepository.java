@@ -10,22 +10,35 @@ import java.util.List;
 
 public interface CashbookTransactionRepository extends JpaRepository<CashbookTransaction, Long> {
 
-    Page<CashbookTransaction> findByBranchIdAndTransactionTypeAndPaymentMethod(Long branchId, String transactionType, String paymentMethod, Pageable pageable);
-    Page<CashbookTransaction> findByBranchIdAndTransactionType(Long branchId, String transactionType, Pageable pageable);
+    Page<CashbookTransaction> findByBranchIdAndTransactionTypeAndPaymentMethod(Long branchId, String transactionType,
+            String paymentMethod, Pageable pageable);
+
+    Page<CashbookTransaction> findByBranchIdAndTransactionType(Long branchId, String transactionType,
+            Pageable pageable);
+
     Page<CashbookTransaction> findByBranchIdAndPaymentMethod(Long branchId, String paymentMethod, Pageable pageable);
+
     Page<CashbookTransaction> findByBranchId(Long branchId, Pageable pageable);
 
-    Page<CashbookTransaction> findByTransactionTypeAndPaymentMethod(String transactionType, String paymentMethod, Pageable pageable);
+    Page<CashbookTransaction> findByTransactionTypeAndPaymentMethod(String transactionType, String paymentMethod,
+            Pageable pageable);
+
     Page<CashbookTransaction> findByTransactionType(String transactionType, Pageable pageable);
+
     Page<CashbookTransaction> findByPaymentMethod(String paymentMethod, Pageable pageable);
 
-    List<CashbookTransaction> findByBranchIdAndTransactionTypeAndPaymentMethod(Long branchId, String transactionType, String paymentMethod);
+    List<CashbookTransaction> findByBranchIdAndTransactionTypeAndPaymentMethod(Long branchId, String transactionType,
+            String paymentMethod);
+
     List<CashbookTransaction> findByTransactionTypeAndPaymentMethod(String transactionType, String paymentMethod);
 
-    List<CashbookTransaction> findByBranchIdAndCreatedAtBetweenOrderByCreatedAtAsc(Long branchId, LocalDateTime startDate, LocalDateTime endDate);
+    List<CashbookTransaction> findByBranchIdAndCreatedAtBetweenOrderByCreatedAtAsc(Long branchId,
+            LocalDateTime startDate, LocalDateTime endDate);
+
     List<CashbookTransaction> findByCreatedAtBetweenOrderByCreatedAtAsc(LocalDateTime startDate, LocalDateTime endDate);
 
     List<CashbookTransaction> findByStatusOrderByCreatedAtDesc(String status);
+
     List<CashbookTransaction> findByBranchIdAndStatusOrderByCreatedAtDesc(Long branchId, String status);
 
 }
