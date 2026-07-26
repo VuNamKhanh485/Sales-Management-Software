@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ProductFilterRequest {
-    private String keyword;       // tìm theo tên
+    private String keyword; // tìm theo tên
     private Long brandId;
     private Long categoryId;
     private ProductStatus status;
