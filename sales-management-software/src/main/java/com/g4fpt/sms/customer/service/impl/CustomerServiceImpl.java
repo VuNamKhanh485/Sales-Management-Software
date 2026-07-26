@@ -140,7 +140,7 @@ public class CustomerServiceImpl implements CustomerService {
         String rankName;
         double revenue = totalRevenue != null ? totalRevenue.doubleValue() : 0.0;
         if (revenue < 5000000.0) {
-            rankName = "Thành viên";
+            rankName = "Thường";
         } else if (revenue < 10000000.0) {
             rankName = "Bạc";
         } else if (revenue < 15000000.0) {

@@ -327,19 +327,21 @@ public class PosController {
         }
         
         Map<Long, Integer> stockMap = new HashMap<>();
+        var inStockProducts = new ArrayList<>(products);
+        inStockProducts.clear();
         if (branchId != null) {
             final Long bId = branchId;
             for (var pu : products) {
                 Inventory inv = inventoryRepository.findByBranchIdAndProductUnitId(bId, pu.getId()).orElse(null);
-                if (inv != null) {
-                    stockMap.put(pu.getId(), inv.getStock());
-                } else {
-                    stockMap.put(pu.getId(), 0);
+                int stock = (inv != null) ? inv.getStock() : 0;
+                if (stock > 0) {
+                    stockMap.put(pu.getId(), stock);
+                    inStockProducts.add(pu);
                 }
             }
         }
         
-        model.addAttribute("products", products);
+        model.addAttribute("products", inStockProducts);
         model.addAttribute("stockMap", stockMap);
         
         List<Category> allCategories = categoryRepository.findAll();
@@ -376,8 +378,12 @@ public class PosController {
                 
                 if (v.getCustomerRank() == null) {
                     activeVouchers.add(v);
-                } else if (customer != null && customer.getCustomerRank() != null) {
-                    if (customer.getCustomerRank().getConditionTotalRevenue().compareTo(v.getCustomerRank().getConditionTotalRevenue()) >= 0) {
+                } else if (customer != null) {
+                    BigDecimal customerRevenueCondition = BigDecimal.ZERO;
+                    if (customer.getCustomerRank() != null) {
+                        customerRevenueCondition = customer.getCustomerRank().getConditionTotalRevenue();
+                    }
+                    if (customerRevenueCondition.compareTo(v.getCustomerRank().getConditionTotalRevenue()) >= 0) {
                         activeVouchers.add(v);
                     }
                 }

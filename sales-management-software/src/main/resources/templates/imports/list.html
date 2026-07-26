@@ -75,7 +75,7 @@
                         </td>
                     </tr>
                     <tr th:each="imp, stat : ${imports}" th:if="${imports != null and !imports.empty}">
-                        <td th:text="${stat.count}">1</td>
+                        <td th:text="${(currentPage * 10) + stat.count}">1</td>
                         <td><span class="code-chip" th:text="${imp.code}">IMP-001</span></td>
                         <td th:text="${imp.branchName}">Chi nhánh Hà Nội</td>
                         <td th:text="${imp.supplierName}">Nhà cung cấp A</td>
@@ -95,6 +95,11 @@
                     </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Pagination -->
+            <div th:with="base = '/imports?status=' + ${filter} + '&keyword=' + ${keyword}">
+                <div th:replace="~{component/pagination :: pagination(currentPage=${currentPage}, totalPages=${totalPages}, baseUrl=${base})}"></div>
             </div>
         </div>
 

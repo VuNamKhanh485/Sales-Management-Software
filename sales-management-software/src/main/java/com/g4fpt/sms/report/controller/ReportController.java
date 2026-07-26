@@ -388,8 +388,18 @@ public class ReportController {
         // Get Best Salesperson
         List<EmployeeSalesDTO> employeeSales = reportService.getEmployeeSalesReport(branchId, startDateTime, endDateTime);
         EmployeeSalesDTO bestSalesperson = null;
-        if (employeeSales != null && !employeeSales.isEmpty()) {
-            bestSalesperson = employeeSales.get(0); // Top 1 based on ORDER BY SUM(finalAmount) DESC
+        if (!isManager && user != null) {
+            if (employeeSales != null) {
+                bestSalesperson = employeeSales.stream()
+                        .filter(e -> e.getEmployeeId().equals(user.getId()))
+                        .findFirst()
+                        .orElse(null);
+            }
+            if (bestSalesperson == null) {
+                bestSalesperson = new EmployeeSalesDTO(user.getId(), "", user.getFullName(), 0L, java.math.BigDecimal.ZERO, "Chi nhánh");
+            }
+        } else if (employeeSales != null && !employeeSales.isEmpty()) {
+            bestSalesperson = employeeSales.get(0);
         }
 
         model.addAttribute("totalOrders", totalOrders);

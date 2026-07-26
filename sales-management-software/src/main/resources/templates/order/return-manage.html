@@ -116,7 +116,7 @@
         <div class="header-section">
             <div>
                 <h1 class="header-title">Quản lý yêu cầu trả hàng</h1>
-                <p class="header-subtitle">Tổng cộng <span th:text="${#lists.size(requests)}">0</span> yêu cầu trong hệ thống</p>
+                <p class="header-subtitle">Tổng cộng <span th:text="${totalRequests}">0</span> yêu cầu trong hệ thống</p>
             </div>
             
             <div th:if="${pendingCount > 0}" style="background: rgba(255, 159, 10, 0.1); color: var(--warning); padding: 8px 16px; border-radius: var(--r-pill); font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255, 159, 10, 0.2);">
@@ -145,10 +145,10 @@
                     </thead>
                     <tbody>
                         <tr th:each="req, i : ${requests}">
-                            <td style="text-align: center; color: var(--ink-muted-48);" th:text="${i.index + 1}">1</td>
+                            <td style="text-align: center; color: var(--ink-muted-48);" th:text="${currentPage * 10 + i.index + 1}">1</td>
                             <td style="font-weight: 600; color: var(--primary);">#<span th:text="${req.id}"></span></td>
                             <td th:text="${req.order.code}"></td>
-                            <td th:text="${req.requestedBy}"></td>
+                            <td th:text="${employeeNameMap.get(req.requestedBy) != null ? employeeNameMap.get(req.requestedBy) : req.requestedBy}"></td>
                             <td style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink-muted-80);" th:text="${req.reason}"></td>
                             <td th:text="${#temporals.format(req.createdAt, 'dd-MM-yyyy HH:mm')}"></td>
                             <td>
@@ -168,6 +168,9 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination -->
+            <div th:replace="~{component/pagination :: pagination(currentPage=${currentPage}, totalPages=${totalPages}, baseUrl='/return/manage')}"></div>
         </div>
 
     </main>

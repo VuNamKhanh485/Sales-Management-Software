@@ -72,8 +72,8 @@
             </div>
             <div class="stat-card" th:if="${bestSalesperson != null}" style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.02)); border-color: rgba(255, 215, 0, 0.3); align-items: center; text-align: center;">
                 <div class="stat-card__label" style="color: #b8860b; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                    NHÂN VIÊN XUẤT SẮC NHẤT
+                    <svg th:if="${isManager}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    <span th:text="${isManager ? 'NHÂN VIÊN XUẤT SẮC NHẤT' : 'THÔNG TIN NHÂN VIÊN'}"></span>
                 </div>
                 
                 <div class="stat-card__value" style="font-size: 24px; color: var(--ink); margin-top: 4px; margin-bottom: 4px; text-align: center; width: 100%;" th:text="${bestSalesperson.employeeName}">Nguyễn Văn A</div>
