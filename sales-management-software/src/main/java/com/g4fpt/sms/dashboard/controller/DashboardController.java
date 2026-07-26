@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +38,9 @@ public class DashboardController {
     }
 
     @GetMapping({"/", "/dashboard"})
-    public String dashboard(HttpSession session, Model model) {
+    public String dashboard(HttpSession session, Model model,
+                            @RequestParam(value = "page", required = false, defaultValue = "0") Integer page) {
+        if (page == null) page = 0;
         SessionUser sessionUser = getSessionUser(session);
         
         if (sessionUser == null) {
@@ -113,7 +116,23 @@ public class DashboardController {
         // Sort again after adding cashbook
         pendingApprovals.sort((a, b) -> b.createdAt().compareTo(a.createdAt()));
         
-        model.addAttribute("pendingApprovals", pendingApprovals);
+        int size = 10;
+        int totalItems = pendingApprovals.size();
+        int totalPages = (int) Math.ceil((double) totalItems / size);
+        if (totalPages == 0) totalPages = 1;
+        if (page < 0) page = 0;
+        if (page >= totalPages) page = totalPages - 1;
+        
+        int start = Math.min(page * size, totalItems);
+        int end = Math.min((page + 1) * size, totalItems);
+        
+        List<ApprovalRequest> pagedApprovals = pendingApprovals.subList(start, end);
+        
+        model.addAttribute("pendingApprovals", pagedApprovals);
+        model.addAttribute("totalPending", totalItems);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        
         return "dashboard/index";
     }
 }

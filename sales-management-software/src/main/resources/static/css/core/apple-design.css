@@ -378,7 +378,7 @@ a:hover {
     font-weight: 400;
     line-height: 1.47;
     letter-spacing: -0.374px;
-    border: 2px solid transparent;
+    border: 1px solid transparent;
     border-radius: var(--r-pill);
     padding: 11px 22px;
     cursor: pointer;
@@ -435,6 +435,80 @@ a:hover {
 }
 
 .btn-secondary--sm {
+    font-size: 14px;
+    padding: 8px 18px;
+}
+
+/* ─── Button danger pill (destructive) ─── */
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: var(--danger);
+    color: #ffffff;
+    font-family: var(--font-text);
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1.47;
+    letter-spacing: -0.374px;
+    border: 1px solid transparent;
+    border-radius: var(--r-pill);
+    padding: 11px 22px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s, transform 0.1s;
+}
+
+.btn-danger:hover {
+    background: #e6352b; /* darker red */
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.btn-danger:active {
+    transform: scale(0.95);
+}
+
+.btn-danger:focus-visible {
+    outline: 2px solid var(--danger);
+    outline-offset: 2px;
+}
+
+.btn-danger--sm {
+    font-size: 14px;
+    padding: 8px 18px;
+}
+
+/* ─── Button outline danger ─── */
+.btn-outline-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: transparent;
+    color: var(--danger);
+    font-family: var(--font-text);
+    font-size: 17px;
+    font-weight: 400;
+    border: 1px solid var(--danger);
+    border-radius: var(--r-pill);
+    padding: 11px 22px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s, transform 0.1s;
+}
+
+.btn-outline-danger:hover {
+    background: rgba(255, 59, 48, 0.06);
+    text-decoration: none;
+}
+
+.btn-outline-danger:active {
+    transform: scale(0.95);
+}
+
+.btn-outline-danger--sm {
     font-size: 14px;
     padding: 8px 18px;
 }
@@ -634,6 +708,9 @@ a:hover {
 }
 .custom-select-trigger:hover {
     border-color: #cbd5e1;
+}
+.custom-select-container.focused {
+    z-index: 10000;
 }
 .custom-select-container.focused .custom-select-trigger {
     border-color: var(--primary);

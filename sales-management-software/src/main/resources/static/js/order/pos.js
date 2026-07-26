@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadConfig();
     generateSuggestions();
     calcChange();
+    initConfirmActions();
 
     // Tự động hiển thị hóa đơn thành công nếu có
     if (showSuccessModal) {
@@ -96,3 +97,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+

@@ -98,6 +98,26 @@ public class VoucherController {
             }
             model.addAttribute("ranks", customerRankService.getAllRanks());
             return "voucher/form";
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            model.addAttribute("errorMessage", "Số tiền hoặc giá trị nhập vào quá lớn, vui lòng kiểm tra lại.");
+            if (id != null) {
+                model.addAttribute("voucherId", id);
+            }
+            model.addAttribute("ranks", customerRankService.getAllRanks());
+            return "voucher/form";
+        } catch (Exception e) {
+            String msg = e.getMessage();
+            if (msg != null && (msg.contains("Data truncation") || msg.contains("Out of range value"))) {
+                msg = "Số tiền hoặc giá trị nhập vào quá lớn, vui lòng kiểm tra lại.";
+            } else {
+                msg = "Đã có lỗi hệ thống xảy ra.";
+            }
+            model.addAttribute("errorMessage", msg);
+            if (id != null) {
+                model.addAttribute("voucherId", id);
+            }
+            model.addAttribute("ranks", customerRankService.getAllRanks());
+            return "voucher/form";
         }
 
         return "redirect:/vouchers";

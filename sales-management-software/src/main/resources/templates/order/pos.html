@@ -66,8 +66,8 @@
                                     style="font-size:10px" th:text="${entry.value.items.size()}"></span>
                             </a>
                             <a th:href="@{/pos/close/{index}(index=${entry.key})}"
-                               th:onclick="'return confirm(\'Đóng đơn ' + ${entry.key} + '? Dữ liệu sẽ bị xóa.\')'"
-                               class="close-btn">✕</a>
+                               th:data-confirm="'Đóng đơn ' + ${entry.key} + '? Dữ liệu sẽ bị xóa.'"
+                               class="close-btn confirm-action">✕</a>
                         </div>
                     </div>
 
@@ -133,7 +133,8 @@
                                 </td>
                                 <td>
                                     <a th:href="@{/pos/remove(index=${stat.index})}"
-                                        class="btn btn-sm btn-outline-danger qty-btn">
+                                        data-confirm="Xóa sản phẩm này khỏi đơn hàng?"
+                                        class="btn btn-sm btn-outline-danger qty-btn confirm-action">
                                         <i class="bi bi-trash" style="font-size:11px"></i>
                                     </a>
                                 </td>
@@ -189,7 +190,7 @@
                     </div>
 
                     <form th:action="@{/pos/clear}" method="get"
-                        onsubmit="return confirm('Xóa toàn bộ đơn hàng hiện tại?')" class="ms-auto">
+                        data-confirm="Xóa toàn bộ đơn hàng hiện tại?" class="ms-auto confirm-action-form">
                         <button type="submit" class="btn btn-outline-danger btn-sm">
                             <i class="bi bi-trash me-1"></i>Xóa đơn
                         </button>
@@ -245,7 +246,7 @@
                             <span class="fw-semibold small" th:text="${cart.customerName}"></span>
                             <div class="text-muted" style="font-size:11px" th:text="${cart.customerPhone}"></div>
                         </div>
-                        <a th:href="@{/pos/remove-customer}" class="btn btn-sm btn-outline-danger py-0">
+                        <a th:href="@{/pos/remove-customer}" class="btn btn-sm btn-outline-danger py-0 confirm-action" data-confirm="Gỡ khách hàng khỏi đơn này?">
                             <i class="bi bi-x"></i>
                         </a>
                     </div>
@@ -302,7 +303,7 @@
                                 <i class="bi bi-tag-fill me-1"></i>
                                 <span th:text="${cart.voucherCode}"></span>
                             </span>
-                            <a th:href="@{/pos/remove-voucher}" class="btn btn-sm btn-outline-danger py-0">
+                            <a th:href="@{/pos/remove-voucher}" class="btn btn-sm btn-outline-danger py-0 confirm-action" data-confirm="Gỡ mã giảm giá này khỏi đơn hàng?">
                                 <i class="bi bi-x"></i>
                             </a>
                         </div>
@@ -401,6 +402,7 @@
          th:data-success-order-code="${successOrder != null ? successOrder.code : ''}"></div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script th:src="@{/js/core/global-modal.js}"></script>
     <script th:src="@{/js/order/pos.js(v=3)}"></script>
 </body>
 

@@ -76,7 +76,7 @@
                         <option value="">-- Chọn --</option>
                         <option th:each="g : ${genders}"
                                 th:value="${g}"
-                                th:text="${g}">
+                                th:text="${g.name() == 'MALE' ? 'Nam' : (g.name() == 'FEMALE' ? 'Nữ' : 'Khác')}">
                         </option>
                     </select>
                 </div>
@@ -102,7 +102,7 @@
                     <select th:field="*{workStatus}" class="form-select">
                         <option th:each="s : ${statuses}"
                                 th:value="${s}"
-                                th:text="${s}">
+                                th:text="${s.name() == 'ACTIVE' ? 'Hoạt động' : (s.name() == 'INACTIVE' ? 'Ngừng hoạt động' : s.name())}">
                         </option>
                     </select>
                     <div class="text-danger" th:errors="*{workStatus}"></div>
@@ -116,7 +116,7 @@
                         <option th:each="r : ${roles}"
                                 th:if="${session.loggedInUser.roleCode == 'OWNER' || r.code != 'OWNER'}"
                                 th:value="${r.id}"
-                                th:text="${r.code}">
+                                th:text="${r.code == 'OWNER' ? 'Chủ cửa hàng' : (r.code == 'BRANCH_MANAGER' ? 'Quản lý chi nhánh' : (r.code == 'WAREHOUSE_STAFF' ? 'Nhân viên kho' : (r.code == 'SALE_STAFF' ? 'Nhân viên bán hàng' : r.code)))}">
                         </option>
                     </select>
                     <div class="text-danger" th:errors="*{roleId}"></div>

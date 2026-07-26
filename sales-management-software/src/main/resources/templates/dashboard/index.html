@@ -108,8 +108,8 @@
         <div id="approvals">
             <h2 class="section-title">
                 Danh sách yêu cầu chờ duyệt
-                <span class="badge badge-inactive" th:if="${pendingApprovals.size() > 0}"
-                    th:text="${pendingApprovals.size()}" style="font-size: 16px; padding: 4px 10px;">2</span>
+                <span class="badge badge-inactive" th:if="${totalPending != null and totalPending > 0}"
+                    th:text="${totalPending}" style="font-size: 16px; padding: 4px 10px;">2</span>
             </h2>
 
             <div class="approval-table-card">
@@ -147,8 +147,11 @@
                     </table>
                 </div>
 
+                <!-- Pagination -->
+                <div th:replace="~{component/pagination :: pagination(currentPage=${currentPage}, totalPages=${totalPages}, baseUrl='/dashboard')}"></div>
+
                 <!-- Hiển thị khi trống -->
-                <div th:if="${pendingApprovals.size() == 0}" class="empty-state-nice">
+                <div th:if="${totalPending == null or totalPending == 0}" class="empty-state-nice">
                     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor"
                         viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />

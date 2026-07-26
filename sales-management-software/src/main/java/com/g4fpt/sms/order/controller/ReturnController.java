@@ -27,6 +27,7 @@ public class ReturnController {
 
     private final ReturnRequestService returnRequestService;
     private final OrderTransactionRepository orderTransactionRepository;
+    private final com.g4fpt.sms.employee.repository.EmployeeRepository employeeRepository;
 
     @Value("${upload.path}")
     private String uploadDir;
@@ -106,16 +107,41 @@ public class ReturnController {
 
     // Hiển thị trang quản lý các yêu cầu trả hàng
     @GetMapping("/manage")
-    public String managePage(HttpSession session, Model model) {
+    public String manageReturns(HttpSession session, Model model, @RequestParam(value = "page", required = false, defaultValue = "0") Integer page) {
+        if (page == null) page = 0;
         SessionUser user = getCurrentUser(session);
         if (user == null || (!user.hasRole("OWNER") && !user.hasRole("BRANCH_MANAGER"))) {
             return "redirect:/";
         }
         List<ReturnRequest> requests = returnRequestService.getAllRequests();
-        model.addAttribute("requests", requests);
         
-        long pendingCount = returnRequestService.countPendingRequests();
-        model.addAttribute("pendingCount", pendingCount);
+        int size = 10;
+        int totalItems = requests.size();
+        int totalPages = (int) Math.ceil((double) totalItems / size);
+        if (totalPages == 0) totalPages = 1;
+        if (page < 0) page = 0;
+        if (page >= totalPages) page = totalPages - 1;
+        
+        int start = Math.min(page * size, totalItems);
+        int end = Math.min((page + 1) * size, totalItems);
+        
+        List<ReturnRequest> pagedRequests = requests.subList(start, end);
+        
+        model.addAttribute("requests", pagedRequests);
+        model.addAttribute("totalRequests", totalItems);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        
+        Map<Long, String> employeeNameMap = new HashMap<>();
+        for (ReturnRequest req : requests) {
+            if (req.getRequestedBy() != null && !employeeNameMap.containsKey(req.getRequestedBy())) {
+                employeeRepository.findById(req.getRequestedBy()).ifPresent(e -> employeeNameMap.put(req.getRequestedBy(), e.getFullName()));
+            }
+            if (req.getReviewedBy() != null && !employeeNameMap.containsKey(req.getReviewedBy())) {
+                employeeRepository.findById(req.getReviewedBy()).ifPresent(e -> employeeNameMap.put(req.getReviewedBy(), e.getFullName()));
+            }
+        }
+        model.addAttribute("employeeNameMap", employeeNameMap);
         
         return "order/return-manage";
     }
@@ -126,6 +152,16 @@ public class ReturnController {
         try {
             ReturnRequest detailRequest = returnRequestService.getById(id);
             model.addAttribute("detailRequest", detailRequest);
+            
+            Map<Long, String> employeeNameMap = new HashMap<>();
+            if (detailRequest.getRequestedBy() != null) {
+                employeeRepository.findById(detailRequest.getRequestedBy()).ifPresent(e -> employeeNameMap.put(detailRequest.getRequestedBy(), e.getFullName()));
+            }
+            if (detailRequest.getReviewedBy() != null) {
+                employeeRepository.findById(detailRequest.getReviewedBy()).ifPresent(e -> employeeNameMap.put(detailRequest.getReviewedBy(), e.getFullName()));
+            }
+            model.addAttribute("employeeNameMap", employeeNameMap);
+            
             return "order/return-detail";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());

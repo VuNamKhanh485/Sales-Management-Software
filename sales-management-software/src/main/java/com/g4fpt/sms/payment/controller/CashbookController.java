@@ -154,8 +154,15 @@ public class CashbookController {
             } else {
                 redirectAttributes.addFlashAttribute("successMessage", "Tạo phiếu thu/chi thành công! Chờ duyệt.");
             }
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Số tiền nhập vào quá lớn hoặc dữ liệu không hợp lệ, vui lòng kiểm tra lại.");
+            return "redirect:/cashbook/create";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && (msg.contains("Data truncation") || msg.contains("Out of range value"))) {
+                msg = "Số tiền nhập vào quá lớn, vui lòng kiểm tra lại.";
+            }
+            redirectAttributes.addFlashAttribute("errorMessage", msg);
             return "redirect:/cashbook/create";
         }
 
