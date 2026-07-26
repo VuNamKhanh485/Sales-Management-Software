@@ -35,12 +35,12 @@
             </div>
         </li>
 
-        <li class="nav-dropdown" th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF', 'CASHIER', 'WAREHOUSE_STAFF')}">
+        <li class="nav-dropdown" th:if="${sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF')}">
             <a href="javascript:void(0)" class="nav-dropbtn">Báo cáo ▾</a>
             <div class="nav-dropdown-content">
                 <a th:if="${sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'CASHIER')}" th:href="@{/reports/overview}" th:classappend="${page == 'report' ? 'active' : ''}">Báo cáo Tổng hợp</a>
-                <a th:if="${sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF', 'CASHIER')}" th:href="@{/reports/detailed-sales}" th:classappend="${page == 'detailed-report' ? 'active' : ''}">Báo cáo Chi tiết</a>
-                <a th:if="${sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'WAREHOUSE_STAFF')}" th:href="@{/report/inventory}" th:classappend="${page == 'inventory-report' ? 'active' : ''}">Báo cáo Xuất nhập tồn</a>
+                <a th:if="${sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER', 'SALE_STAFF')}" th:href="@{/reports/detailed-sales}" th:classappend="${page == 'detailed-report' ? 'active' : ''}">Báo cáo Chi tiết</a>
+                <a th:if="${sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}" th:href="@{/report/inventory}" th:classappend="${page == 'inventory-report' ? 'active' : ''}">Báo cáo Xuất nhập tồn</a>
             </div>
         </li>
 

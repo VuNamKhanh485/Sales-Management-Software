@@ -244,7 +244,7 @@
                                 <td th:if="${sessionUser != null and sessionUser.hasRole('OWNER')}">
                                     <div class="actions" style="justify-content:flex-end;">
                                         <a th:href="@{/product/form/{id}(id=${p.id})}" class="action-edit">Sửa</a>
-                                        <form th:action="@{/product/delete/{id}(id=${p.id})}" method="post" onsubmit="return confirm('Xác nhận xóa sản phẩm này?')" style="margin:0;">
+                                        <form th:action="@{/product/delete/{id}(id=${p.id})}" method="post" data-confirm="Xác nhận xóa sản phẩm này?" style="margin:0;">
                                             <button type="submit" class="action-delete" style="background:transparent; border:none; cursor:pointer;">Xóa</button>
                                         </form>
                                     </div>
@@ -345,6 +345,9 @@
         </div>
     </div>
 
+    <!-- Global Modal Xác nhận & script -->
+    <div th:replace="~{component/global-modal :: confirm-modal}"></div>
+    <script th:src="@{/js/core/global-modal.js}"></script>
 <script th:src="@{/js/vendor/JsBarcode.all.min.js}"></script>
 <script th:src="@{/js/product/product-list.js}"></script>
 </body>
