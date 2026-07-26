@@ -1,4 +1,4 @@
--- DROP DATABASE sms_db;
+ DROP DATABASE sms_db;
 CREATE DATABASE IF NOT EXISTS sms_db;
 USE sms_db;
 
@@ -414,6 +414,7 @@ CREATE TABLE OrderTransaction (
         'SALE',
         'RETURN',
         'IMPORT',
+        'EXPORT',
        'TRANSFER',
         'OTHER' -- thiếu other để phục vụ mua với mục đích khác
     ) NOT NULL DEFAULT 'SALE',
@@ -564,7 +565,7 @@ CREATE TABLE CashbookTransaction (
     description VARCHAR(255),              -- Lý do thu/chi
     created_by BIGINT NOT NULL,            -- ID của nhân viên tạo phiếu
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+    status VARCHAR(20) DEFAULT 'PENDING',
     -- Khóa ngoại (Tuỳ chọn: Nếu bạn có bảng branch và employee)
     CONSTRAINT fk_cashbook_branch FOREIGN KEY (branch_id) REFERENCES Branch(id),
     CONSTRAINT fk_cashbook_employee FOREIGN KEY (created_by) REFERENCES Employee(id)
@@ -607,4 +608,13 @@ CREATE TABLE InventorySnapshot (
             branch_id,
             product_unit_id
         )
+);
+
+create table productSupplier(
+    product_id  bigint not null,
+    supplier_id bigint not null,
+    constraint fk_productSupplier_product
+        foreign key (product_id) references product (id),
+    constraint fk_productSupplier_supplier
+        foreign key (supplier_id) references supplier (id)
 );
