@@ -10,8 +10,8 @@ SET NAMES utf8mb4;
 INSERT INTO Role (id, code, name, description) VALUES
 (1,'OWNER','Chủ sở hữu',NULL),
 (2,'BRANCH_MANAGER','Quản lý chi nhánh',NULL),
-(3,'SALE','Nhân viên bán hàng',NULL),
-(4,'WAREHOUSE','Nhân viên kho',NULL);
+(3,'SALE_STAFF','Nhân viên bán hàng',NULL),
+(4,'WAREHOUSE_STAFF','Nhân viên kho',NULL);
 
 
 -- ============ BRANCH (id=5 la chi nhanh chua co ton kho/giao dich - du lieu nhieu) ============
@@ -2413,7 +2413,7 @@ INSERT INTO OrderTransaction (id, branch_id, customer_id, voucher_id, supplier_i
 
 -- ============ ORDER_TRANSACTION_DETAIL (tong 1932 dong) ============
 
-INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, sale_price, import_price, discount_amount, total_amount, created_at) VALUES
+INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, SALE_price, import_price, discount_amount, total_amount, created_at) VALUES
 (1,3,2,NULL,105600000.00,0,211200000.00,'2025-07-04 19:54:56'),
 (1,4,224,NULL,165000.00,0,36960000.00,'2025-07-04 19:54:56'),
 (1,5,303,NULL,990000.00,0,299970000.00,'2025-07-04 19:54:56'),
@@ -2614,7 +2614,7 @@ INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quant
 (26,25,218,NULL,1375000.00,0,299750000.00,'2025-07-02 05:36:07'),
 (26,26,36,NULL,8250000.00,0,297000000.00,'2025-07-02 05:36:07'),
 (26,27,9,NULL,33000000.00,0,297000000.00,'2025-07-02 05:36:07');
-INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, sale_price, import_price, discount_amount, total_amount, created_at) VALUES
+INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, SALE_price, import_price, discount_amount, total_amount, created_at) VALUES
 (26,28,218,NULL,1375000.00,0,299750000.00,'2025-07-02 05:36:07'),
 (26,30,9,NULL,33000000.00,0,297000000.00,'2025-07-02 05:36:07'),
 (26,32,11,NULL,26400000.00,0,290400000.00,'2025-07-02 05:36:07'),
@@ -2815,7 +2815,7 @@ INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quant
 (51,59,303,NULL,990000.00,0,299970000.00,'2025-07-09 21:34:18'),
 (51,61,218,NULL,1375000.00,0,299750000.00,'2025-07-09 21:34:18'),
 (51,63,9,NULL,33000000.00,0,297000000.00,'2025-07-09 21:34:18');
-INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, sale_price, import_price, discount_amount, total_amount, created_at) VALUES
+INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, SALE_price, import_price, discount_amount, total_amount, created_at) VALUES
 (52,65,11,NULL,26400000.00,0,290400000.00,'2025-07-03 10:26:34'),
 (52,66,2,NULL,105600000.00,0,211200000.00,'2025-07-03 10:26:34'),
 (52,68,18,NULL,16500000.00,0,297000000.00,'2025-07-03 10:26:34'),
@@ -3016,7 +3016,7 @@ INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quant
 (77,94,109,NULL,2750000.00,0,299750000.00,'2025-07-09 02:51:27'),
 (77,95,18,NULL,16500000.00,0,297000000.00,'2025-07-09 02:51:27'),
 (77,96,4,NULL,66000000.00,0,264000000.00,'2025-07-09 02:51:27');
-INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, sale_price, import_price, discount_amount, total_amount, created_at) VALUES
+INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, SALE_price, import_price, discount_amount, total_amount, created_at) VALUES
 (77,97,109,NULL,2750000.00,0,299750000.00,'2025-07-09 02:51:27'),
 (77,98,18,NULL,16500000.00,0,297000000.00,'2025-07-09 02:51:27'),
 (77,99,4,NULL,66000000.00,0,264000000.00,'2025-07-09 02:51:27'),
@@ -3217,7 +3217,7 @@ INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quant
 (123,244,35,NULL,89265.00,0,3124275.00,'2025-09-30 20:12:22'),
 (123,55,109,NULL,297550.00,0,32432950.00,'2025-09-30 20:12:22'),
 (123,80,33,NULL,8926500.00,0,294574500.00,'2025-09-30 20:12:22');
-INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, sale_price, import_price, discount_amount, total_amount, created_at) VALUES
+INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, SALE_price, import_price, discount_amount, total_amount, created_at) VALUES
 (124,197,16,NULL,18513000.00,0,296208000.00,'2025-11-14 00:40:13'),
 (124,269,125,NULL,1851300.00,0,231412500.00,'2025-11-14 00:40:13'),
 (124,34,32,NULL,9256500.00,0,296208000.00,'2025-11-14 00:40:13'),
@@ -3418,7 +3418,7 @@ INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quant
 (203,279,35,NULL,8540400.00,0,298914000.00,'2026-05-24 18:35:20'),
 (203,274,52,NULL,5693600.00,0,296067200.00,'2026-05-24 18:35:20'),
 (204,167,42,NULL,667755.00,0,28045710.00,'2026-07-24 16:22:59');
-INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, sale_price, import_price, discount_amount, total_amount, created_at) VALUES
+INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, SALE_price, import_price, discount_amount, total_amount, created_at) VALUES
 (204,248,68,NULL,667755.00,0,45407340.00,'2026-07-24 16:22:59'),
 (204,261,3,NULL,89034000.00,0,267102000.00,'2026-07-24 16:22:59'),
 (205,21,34,NULL,8764800.00,0,298003200.00,'2026-07-01 01:48:38'),
@@ -3619,7 +3619,7 @@ INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quant
 (284,255,90,NULL,2114640.00,0,190317600.00,'2025-09-14 19:50:03'),
 (285,182,5,NULL,52272000.00,0,261360000.00,'2025-09-01 11:49:15'),
 (285,145,64,NULL,87120.00,0,5575680.00,'2025-09-01 11:49:15');
-INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, sale_price, import_price, discount_amount, total_amount, created_at) VALUES
+INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, SALE_price, import_price, discount_amount, total_amount, created_at) VALUES
 (285,128,17,NULL,17424000.00,0,296208000.00,'2025-09-01 11:49:15'),
 (285,201,2,NULL,111513600.00,0,223027200.00,'2025-09-01 11:49:15'),
 (286,250,82,NULL,3630000.00,0,297660000.00,'2026-06-22 11:29:25'),
@@ -3820,7 +3820,7 @@ INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quant
 (456,121,5,7864000.00,NULL,0,39320000.00,'2025-11-18 14:51:01'),
 (457,24,1,385920000.00,NULL,0,385920000.00,'2025-11-18 22:24:53'),
 (458,53,16,7502400.00,NULL,0,120038400.00,'2025-11-19 00:55:27');
-INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, sale_price, import_price, discount_amount, total_amount, created_at) VALUES
+INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, SALE_price, import_price, discount_amount, total_amount, created_at) VALUES
 (459,150,24,12420000.00,NULL,0,298080000.00,'2025-11-19 08:41:05'),
 (460,76,60,2457500.00,NULL,0,147450000.00,'2025-11-19 17:17:06'),
 (461,180,36,7704000.00,NULL,0,277344000.00,'2025-11-20 06:17:29'),
@@ -4021,7 +4021,7 @@ INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quant
 (656,121,33,8272000.00,NULL,0,272976000.00,'2026-04-03 22:44:07'),
 (657,162,20,7063200.00,NULL,0,141264000.00,'2026-04-03 23:19:10'),
 (658,123,1,193920000.00,NULL,0,193920000.00,'2026-04-04 02:21:45');
-INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, sale_price, import_price, discount_amount, total_amount, created_at) VALUES
+INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, SALE_price, import_price, discount_amount, total_amount, created_at) VALUES
 (659,19,35,488000.00,NULL,0,17080000.00,'2026-04-04 06:43:34'),
 (660,119,23,7459200.00,NULL,0,171561600.00,'2026-04-04 19:01:31'),
 (661,192,1,201984000.00,NULL,0,201984000.00,'2026-04-05 05:17:10'),
@@ -4222,7 +4222,7 @@ INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quant
 (856,155,53,NULL,NULL,0,52470000.00,'2025-11-26 04:35:45'),
 (857,98,9,NULL,NULL,0,148500000.00,'2025-11-27 21:16:11'),
 (858,12,72,NULL,NULL,0,299356061.54,'2025-11-28 03:55:31');
-INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, sale_price, import_price, discount_amount, total_amount, created_at) VALUES
+INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, SALE_price, import_price, discount_amount, total_amount, created_at) VALUES
 (859,237,1,NULL,NULL,0,198000000.00,'2025-11-28 07:41:03'),
 (860,265,24,NULL,NULL,0,111688500.00,'2025-11-30 16:30:16'),
 (861,81,8,NULL,NULL,0,284438000.00,'2025-12-08 17:09:42'),
@@ -4414,7 +4414,7 @@ INSERT INTO ReturnRequest (id, order_id, branch_id, requested_by, reason, status
 
 -- ============ RETURN_REQUEST_ITEM (tong 50 dong) ============
 
-INSERT INTO ReturnRequestItem (return_request_id, order_detail_id, product_unit_id, quantity, sale_price) VALUES
+INSERT INTO ReturnRequestItem (return_request_id, order_detail_id, product_unit_id, quantity, SALE_price) VALUES
 (1,1314,8,10,7034400.00),
 (2,1484,83,1,91620000.00),
 (3,1663,63,1,58620000.00),
