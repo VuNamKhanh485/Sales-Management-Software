@@ -34,7 +34,10 @@ public class ErrorController implements org.springframework.boot.web.servlet.err
             }
             if (statusCode == 500) {
                 model.addAttribute("errorCode", "500");
-                model.addAttribute("errorMessage", "Đã có lỗi hệ thống xảy ra. Vui lòng thử lại sau.");
+                Exception exception = (Exception) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
+                String msg = (exception != null) ? exception.getMessage() : "Unknown 500 error";
+                if (exception != null && exception.getCause() != null) msg += " | Cause: " + exception.getCause().getMessage();
+                model.addAttribute("errorMessage", "System error: " + msg);
                 return "error/403";
             }
         }

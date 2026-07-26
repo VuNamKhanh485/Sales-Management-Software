@@ -46,12 +46,34 @@ public class ImportController {
     public String listImports(HttpSession session,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String keyword,
+            @RequestParam(value = "page", required = false, defaultValue = "0") Integer page,
             Model model) {
+        if (page == null) page = 0;
+        if (status != null && status.trim().isEmpty()) status = null;
+        if (keyword != null && keyword.trim().isEmpty()) keyword = null;
+        
         SessionUser sessionUser = getSessionUser(session);
         Long userBranchId = sessionUser.hasRole("OWNER") ? null : sessionUser.getBranchId();
 
+        List<ImportResponse> allImports = importService.getAllImports(status, keyword, userBranchId);
+        
+        int size = 10;
+        int totalItems = allImports.size();
+        int totalPages = (int) Math.ceil((double) totalItems / size);
+        if (totalPages == 0) totalPages = 1;
+        if (page < 0) page = 0;
+        if (page >= totalPages) page = totalPages - 1;
+        
+        int start = Math.min(page * size, totalItems);
+        int end = Math.min((page + 1) * size, totalItems);
+        
+        List<ImportResponse> pagedImports = allImports.subList(start, end);
+
         model.addAttribute("page", "imports");
-        model.addAttribute("imports", importService.getAllImports(status, keyword, userBranchId));
+        model.addAttribute("imports", pagedImports);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalImports", totalItems);
         model.addAttribute("keyword", keyword != null ? keyword : "");
         model.addAttribute("filter", status != null ? status : "");
         return "imports/list";
