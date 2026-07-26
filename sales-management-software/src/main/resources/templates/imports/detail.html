@@ -112,7 +112,7 @@
 
             <!-- PHÊ DUYỆT -->
             <div class="card-panel" style="padding: var(--sp-lg); border-left: 4px solid var(--warning);"
-                 th:if="${importTx.status == 'PENDING' and sessionUser != null and sessionUser.hasRole('OWNER')}">
+                 th:if="${importTx.status == 'PENDING' and sessionUser != null and sessionUser.hasAnyRole('OWNER', 'BRANCH_MANAGER')}">
                 <h2 class="form-card__title" style="margin-bottom: var(--sp-xs);">Phê duyệt phiếu nhập</h2>
                 <p style="font-size: 14px; color: var(--ink-muted-48); margin-bottom: var(--sp-lg);">Lưu ý: Vui lòng kiểm tra kỹ danh sách hàng hóa bên trên trước khi quyết định.</p>
 

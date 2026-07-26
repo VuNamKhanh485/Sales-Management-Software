@@ -244,6 +244,11 @@ public class TransferController {
         if (note != null)
             draft.setNote(note);
 
+        if (!sessionUser.hasAnyRole("OWNER", "WAREHOUSE_STAFF")) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Chỉ SYSTEM OWNER hoặc NHÂN VIÊN KHO mới được phép tạo phiếu chuyển kho!");
+            return "redirect:/transfer";
+        }
+
         // Security Check: Only OWNER or staff of the involved branches can create the transfer
         if (!sessionUser.hasRole("OWNER")) {
             Long userBranchId = sessionUser.getBranchId();
