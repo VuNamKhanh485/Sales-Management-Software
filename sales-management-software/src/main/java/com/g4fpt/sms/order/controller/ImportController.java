@@ -57,7 +57,8 @@ public class ImportController {
         return "imports/list";
     }
 
-    // Hiển thị giao diện tạo yêu cầu nhập hàng cho System Owner hoặc Quản lý chi nhánh
+    // Hiển thị giao diện tạo yêu cầu nhập hàng cho System Owner hoặc Quản lý chi
+    // nhánh
     @GetMapping("/create")
     public String showCreateForm(HttpSession session,
             Model model,
@@ -228,7 +229,8 @@ public class ImportController {
 
         try {
             if (!sessionUser.hasAnyRole("OWNER", "BRANCH_MANAGER")) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Chỉ SYSTEM OWNER hoặc QUẢN LÝ CHI NHÁNH mới được phép tạo phiếu nhập hàng!");
+                redirectAttributes.addFlashAttribute("errorMessage",
+                        "Chỉ SYSTEM OWNER hoặc QUẢN LÝ CHI NHÁNH mới được phép tạo phiếu nhập hàng!");
                 return "redirect:/imports";
             }
 
@@ -312,7 +314,8 @@ public class ImportController {
         try {
             // Chỉ Owner mới được phép từ chối phiếu
             if (!sessionUser.hasRole("OWNER")) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Chỉ SYSTEM OWNER mới có quyền từ chối phiếu nhập!");
+                redirectAttributes.addFlashAttribute("errorMessage",
+                        "Chỉ SYSTEM OWNER mới có quyền từ chối phiếu nhập!");
                 return "redirect:/imports/" + id;
             }
 
