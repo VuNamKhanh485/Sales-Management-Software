@@ -70,7 +70,7 @@ public class Product {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "product_supplier",
+        name = "productsupplier",
         joinColumns = @JoinColumn(name = "product_id"),
         inverseJoinColumns = @JoinColumn(name = "supplier_id")
     )
