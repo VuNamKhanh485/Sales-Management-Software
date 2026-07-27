@@ -161,7 +161,6 @@ INSERT INTO Unit (id, status, name) VALUES
 
 
 -- ============ CUSTOMER (100) ============
-
 INSERT INTO Customer (id, customer_rank_id, created_by, updated_by, customer_code, full_name, phone, email, gender, dob, address, total_point, used_point, total_revenue, status, note) VALUES
 (1,NULL,1,NULL,'KH0001','Nguyễn Thành Nam','0945594951',NULL,'FEMALE',NULL,NULL,0,0,0,'ACTIVE',NULL),
 (2,NULL,1,NULL,'KH0002','Hoàng Thị Oanh','0984593961',NULL,'FEMALE',NULL,NULL,0,0,0,'ACTIVE',NULL),
@@ -3820,6 +3819,7 @@ INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quant
 (456,121,5,7864000.00,NULL,0,39320000.00,'2025-11-18 14:51:01'),
 (457,24,1,385920000.00,NULL,0,385920000.00,'2025-11-18 22:24:53'),
 (458,53,16,7502400.00,NULL,0,120038400.00,'2025-11-19 00:55:27');
+
 INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, SALE_price, import_price, discount_amount, total_amount, created_at) VALUES
 (459,150,24,12420000.00,NULL,0,298080000.00,'2025-11-19 08:41:05'),
 (460,76,60,2457500.00,NULL,0,147450000.00,'2025-11-19 17:17:06'),
@@ -4021,6 +4021,7 @@ INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quant
 (656,121,33,8272000.00,NULL,0,272976000.00,'2026-04-03 22:44:07'),
 (657,162,20,7063200.00,NULL,0,141264000.00,'2026-04-03 23:19:10'),
 (658,123,1,193920000.00,NULL,0,193920000.00,'2026-04-04 02:21:45');
+
 INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, SALE_price, import_price, discount_amount, total_amount, created_at) VALUES
 (659,19,35,488000.00,NULL,0,17080000.00,'2026-04-04 06:43:34'),
 (660,119,23,7459200.00,NULL,0,171561600.00,'2026-04-04 19:01:31'),
@@ -4222,6 +4223,7 @@ INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quant
 (856,155,53,NULL,NULL,0,52470000.00,'2025-11-26 04:35:45'),
 (857,98,9,NULL,NULL,0,148500000.00,'2025-11-27 21:16:11'),
 (858,12,72,NULL,NULL,0,299356061.54,'2025-11-28 03:55:31');
+
 INSERT INTO OrderTransactionDetail (order_transaction_id, product_unit_id, quantity, SALE_price, import_price, discount_amount, total_amount, created_at) VALUES
 (859,237,1,NULL,NULL,0,198000000.00,'2025-11-28 07:41:03'),
 (860,265,24,NULL,NULL,0,111688500.00,'2025-11-30 16:30:16'),
@@ -16274,5 +16276,11 @@ INSERT INTO CashbookTransaction (id, branch_id, transaction_type, payment_method
 (58,4,'OUT','CASH',11400000.00,'CHI40025','Chi mat bang - CN4',22,'2025-08-23 11:15:00','COMPLETE'),
 (59,4,'IN','CASH',12300000.00,'THU40034','Thu ban hang - CN4',29,'2026-01-23 09:45:00','COMPLETE'),
 (60,4,'OUT','BANK',12100000.00,'CHI40026','Chi van chuyen - CN4',34,'2026-01-02 10:53:00','COMPLETE');
+
+INSERT INTO CustomerRank (id, name, discount_rate, condition_total_revenue, description, created_at, updated_at) VALUES
+(1,'Thường',0.00,0.00,'Hạng mặc định, chưa đạt điều kiện tích lũy','2025-01-01 08:00:00',NULL),
+(2,'Bạc',3.00,5000000.00,'Áp dụng khi tổng chi tiêu tích lũy từ 5.000.000đ trở lên','2025-01-01 08:00:00',NULL),
+(3,'Vàng',5.00,20000000.00,'Áp dụng khi tổng chi tiêu tích lũy từ 20.000.000đ trở lên','2025-01-01 08:00:00',NULL),
+(4,'Kim cương',10.00,50000000.00,'Áp dụng khi tổng chi tiêu tích lũy từ 50.000.000đ trở lên','2025-01-01 08:00:00',NULL);
 
 SET FOREIGN_KEY_CHECKS = 1;

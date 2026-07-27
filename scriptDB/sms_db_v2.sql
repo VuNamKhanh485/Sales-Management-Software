@@ -610,11 +610,11 @@ CREATE TABLE InventorySnapshot (
         )
 );
 
-create table productSupplier(
-    product_id  bigint not null,
-    supplier_id bigint not null,
-    constraint fk_productSupplier_product
-        foreign key (product_id) references product (id),
-    constraint fk_productSupplier_supplier
-        foreign key (supplier_id) references supplier (id)
-);
+	create table productSupplier(
+		product_id  bigint not null,
+		supplier_id bigint not null,
+		constraint fk_productSupplier_product
+			foreign key (product_id) references product (id),
+		constraint fk_productSupplier_supplier
+			foreign key (supplier_id) references supplier (id)
+	);

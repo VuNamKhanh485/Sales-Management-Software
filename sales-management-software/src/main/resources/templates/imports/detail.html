@@ -24,6 +24,14 @@
             <a href="/imports" class="sub-nav__back">Quản lý nhập hàng</a>
             <span class="sub-nav__sep">›</span>
             <h1 class="sub-nav__title">Chi tiết phiếu: <span style="color: var(--primary);" th:text="${importTx.code}">IMP-XXX</span></h1>
+
+            <!-- Đoạn code bổ sung nút Sửa (Chỉ hiện khi PENDING) -->
+            <a th:if="${importTx.status == 'PENDING' and sessionUser != null and sessionUser.hasAnyRole('OWNER', 'WAREHOUSE_STAFF')}"
+               th:href="@{/imports/edit/{id}(id=${importTx.id})}"
+               class="btn btn-secondary btn-secondary--sm"
+               style="margin-left: 15px;">
+                Chỉnh sửa phiếu
+            </a>
         </div>
     </div>
 
