@@ -24,6 +24,14 @@
             <a href="/imports" class="sub-nav__back">Quản lý nhập hàng</a>
             <span class="sub-nav__sep">›</span>
             <h1 class="sub-nav__title">Chi tiết phiếu: <span style="color: var(--primary);" th:text="${importTx.code}">IMP-XXX</span></h1>
+
+            <!-- Đoạn code bổ sung nút Sửa (Chỉ hiện khi PENDING) -->
+            <a th:if="${importTx.status == 'PENDING' and sessionUser != null and sessionUser.hasAnyRole('OWNER', 'WAREHOUSE_STAFF')}"
+               th:href="@{/imports/edit/{id}(id=${importTx.id})}"
+               class="btn btn-secondary btn-secondary--sm"
+               style="margin-left: 15px;">
+                Chỉnh sửa phiếu
+            </a>
         </div>
     </div>
 
@@ -118,20 +126,20 @@
 
                 <div style="display: flex; gap: var(--sp-lg); flex-wrap: wrap; align-items: flex-start;">
                     
-                    <form th:action="@{/imports/{id}/approve(id=${importTx.id})}" method="post" style="flex: 1; min-width: 250px;">
-                        <button type="submit" class="btn btn-primary" style="width: 100%; border-radius: var(--r-md); height: 48px; padding: 0 var(--sp-lg); font-size: 15px; font-weight: 600; display: inline-flex; justify-content: center; align-items: center; gap: 8px;" onclick="return confirm('Bạn chắc chắn muốn DUYỆT phiếu này và CỘNG TỒN KHO?')">
+                    <form th:action="@{/imports/{id}/approve(id=${importTx.id})}" method="post" style="flex: 1; min-width: 250px;" data-confirm="Bạn chắc chắn muốn DUYỆT phiếu này và CỘNG TỒN KHO?">
+                        <button type="submit" class="btn btn-primary" style="width: 100%; border-radius: var(--r-md); height: 48px; padding: 0 var(--sp-lg); font-size: 15px; font-weight: 600; display: inline-flex; justify-content: center; align-items: center; gap: 8px;">
                             Đồng ý duyệt nhập hàng
                         </button>
                     </form>
 
                     <!-- Khu vực nhập lý do từ chối luôn hiển thị -->
-                    <form th:action="@{/imports/{id}/reject(id=${importTx.id})}" method="post" style="flex: 2; min-width: 300px; display: flex; flex-direction: column; gap: var(--sp-sm); background-color: #fef2f2; padding: var(--sp-md); border-radius: var(--r-md); border: 1px dashed #fca5a5;">
+                    <form th:action="@{/imports/{id}/reject(id=${importTx.id})}" method="post" style="flex: 2; min-width: 300px; display: flex; flex-direction: column; gap: var(--sp-sm); background-color: #fef2f2; padding: var(--sp-md); border-radius: var(--r-md); border: 1px dashed #fca5a5;" data-confirm="Bạn chắc chắn muốn HỦY phiếu yêu cầu nhập hàng này?">
                         <div>
                             <label for="reason" class="form-label" style="color: var(--danger); display: block; margin-bottom: var(--sp-xxs); font-weight: 500;">Lý do từ chối (Không bắt buộc):</label>
                             <textarea id="reason" name="reason" class="form-input" rows="2" placeholder="Vui lòng nhập lý do từ chối để nhân viên biết..." style="width: 100%; padding: var(--sp-sm);"></textarea>
                         </div>
                         <div style="display: flex; justify-content: flex-end;">
-                            <button type="submit" class="btn" style="background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: var(--r-md); height: 40px; padding: 0 var(--sp-lg); font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;" onclick="return confirm('Bạn chắc chắn muốn HỦY phiếu yêu cầu nhập hàng này?')">
+                            <button type="submit" class="btn" style="background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: var(--r-md); height: 40px; padding: 0 var(--sp-lg); font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                 Xác nhận Từ chối
                             </button>
@@ -143,5 +151,8 @@
         </div>
     </main>
 
+    <!-- Global Modal Xác nhận & script -->
+    <div th:replace="~{component/global-modal :: confirm-modal}"></div>
+    <script th:src="@{/js/core/global-modal.js}"></script>
 </body>
 </html>

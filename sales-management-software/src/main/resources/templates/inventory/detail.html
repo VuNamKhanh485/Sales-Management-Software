@@ -61,7 +61,7 @@
 
                     <select id="filter" name="filter" class="filter-select" style="flex: 1;">
                         <option value="" th:selected="${filter == null or filter == ''}">Tất cả sản phẩm</option>
-                        <option value="low_stock" th:selected="${filter == 'low_stock'}">Hàng sắp hết</option>
+                        <option value="low_stock" th:selected="${filter == 'low_stock'}">Hết hàng</option>
                     </select>
 
                     <button type="submit" class="btn-primary btn-primary--sm" style="padding: 8px 16px;">Tìm kiếm</button>
@@ -117,7 +117,7 @@
                         <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">10,000 đ</td>
                         <td class="value-cash" th:text="${#numbers.formatDecimal(item.totalValue, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</td>
                         <td>
-                            <span th:if="${item.stock <= item.minStock}" class="badge" style="background: var(--danger-light); color: var(--danger);">Sắp hết hàng</span>
+                            <span th:if="${item.stock == item.minStock}" class="badge" style="background: var(--danger-light); color: var(--danger);">Hết hàng</span>
                             <span th:if="${item.stock > item.minStock}" class="badge badge-active">Còn hàng</span>
                         </td>
                     </tr>

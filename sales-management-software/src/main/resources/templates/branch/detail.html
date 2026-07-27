@@ -57,10 +57,12 @@
             <div class="form-actions" style="margin-top:var(--sp-xl);">
                 <a href="/branch" class="btn-cancel" style="padding:10px 20px;">Quay lại</a>
                 <a th:href="@{/branch/edit/{id}(id=${branch.id})}" class="btn-secondary btn-secondary--sm">Chỉnh sửa</a>
-                <a th:href="@{/branch/delete/{id}(id=${branch.id})}" class="btn-primary btn-primary--sm" style="background:var(--danger);" onclick="return confirm('Bạn có chắc chắn muốn xóa chi nhánh này?')">Xóa</a>
+                <a th:href="@{/branch/delete/{id}(id=${branch.id})}" class="btn-primary btn-primary--sm" style="background:var(--danger);" data-confirm="Bạn có chắc chắn muốn xóa chi nhánh này?">Xóa</a>
             </div>
         </div>
     </main>
-
+    <!-- Global Modal Xác nhận & script -->
+    <div th:replace="~{component/global-modal :: confirm-modal}"></div>
+    <script th:src="@{/js/core/global-modal.js}"></script>
 </body>
 </html>

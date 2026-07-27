@@ -2,6 +2,8 @@ package com.g4fpt.sms.dashboard.controller;
 
 import com.g4fpt.sms.auth.dto.SessionUser;
 import com.g4fpt.sms.auth.util.SessionConstants;
+import com.g4fpt.sms.employee.entity.Employee;
+import com.g4fpt.sms.employee.service.EmployeeService;
 import com.g4fpt.sms.order.service.ImportService;
 import com.g4fpt.sms.order.dto.ImportResponse;
 import com.g4fpt.sms.order.entity.ReturnRequest;
@@ -30,6 +32,7 @@ public class DashboardController {
     private final ImportService importService;
     private final TransferService transferService;
     private final CashbookService cashbookService;
+    private final EmployeeService employeeService;
 
     public record ApprovalRequest(String code, String type, String info, String creator, java.time.LocalDateTime createdAt, String url) {}
 
@@ -57,11 +60,21 @@ public class DashboardController {
         List<ReturnRequest> pendingReturns = returnRequestService.getPendingRequests();
         for (ReturnRequest req : pendingReturns) {
             try {
+                String creatorName = String.valueOf(req.getRequestedBy());
+                try {
+                    Employee emp = employeeService.findById(req.getRequestedBy());
+                    if (emp != null && emp.getFullName() != null) {
+                        creatorName = emp.getFullName();
+                    }
+                } catch (Exception e) {
+                    // Ignore
+                }
+                
                 pendingApprovals.add(new ApprovalRequest(
                     "#" + req.getId(),
                     "Trả hàng",
                     req.getOrder().getCode(),
-                    String.valueOf(req.getRequestedBy()),
+                    creatorName,
                     req.getCreatedAt(),
                     "/return/" + req.getId()
                 ));
