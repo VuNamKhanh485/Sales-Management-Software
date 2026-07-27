@@ -329,7 +329,7 @@ CREATE TABLE ProductUnit (
         REFERENCES Unit(id),
 
     CONSTRAINT uq_product_unit
-        UNIQUE (product_id, unit_id),
+        UNIQUE (product_id, unit_id, conversion_value),
 
     CONSTRAINT chk_product_unit_conversion
         CHECK (conversion_value > 0),

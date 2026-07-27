@@ -8,13 +8,13 @@ import com.g4fpt.sms.product.entity.ProductUnit;
 import com.g4fpt.sms.common.exception.NotFoundException;
 import com.g4fpt.sms.common.exception.ValidationException;
 import com.g4fpt.sms.product.mapper.ProductUnitMapper;
-import com.g4fpt.sms.product.repository.ProductRepository;
 import com.g4fpt.sms.product.repository.ProductUnitRepository;
 import com.g4fpt.sms.product.repository.UnitRepository;
 import com.g4fpt.sms.product.service.ProductUnitService;
 import com.g4fpt.sms.product.util.ValidationError;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 public class ProductUnitServiceImpl implements ProductUnitService {
 
     private final ProductUnitRepository productUnitRepository;
-    private final ProductRepository productRepository;
     private final UnitRepository unitRepository;
     private final ProductUnitMapper productUnitMapper;
 
@@ -124,6 +123,7 @@ public class ProductUnitServiceImpl implements ProductUnitService {
                 errors.add(new ValidationError("sku", "Sku is existed"));
             }
         }
+
         if (!errors.isEmpty()) {
             throw new ValidationException(errors);
         }
