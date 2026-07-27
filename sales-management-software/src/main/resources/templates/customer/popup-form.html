@@ -25,8 +25,10 @@
             <div class="col-6">
                 <label class="form-label default small fw-semibold mb-1">Số điện thoại <span
                         class="text-danger">*</span></label>
-                <input type="text" th:field="*{phone}" class="form-control form-control-sm" required
-                    placeholder="0901234567">
+                <input type="text" th:field="*{phone}" class="form-control form-control-sm" required pattern="\d{10,11}"
+                       oninvalid="this.setCustomValidity('Số điện thoại chỉ được chứa chữ số và phải từ 10-11 số')"
+                       oninput="this.setCustomValidity('')"
+                       placeholder="0901234567">
             </div>
         </div>
 

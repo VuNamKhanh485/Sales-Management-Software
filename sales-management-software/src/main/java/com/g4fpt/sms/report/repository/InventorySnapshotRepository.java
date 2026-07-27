@@ -38,7 +38,7 @@ public interface InventorySnapshotRepository
                             SELECT s
                             FROM InventorySnapshot s
                             WHERE s.snapshotType = :type
-                              AND s.snapshotDate <= :snapshotDate
+                              AND s.snapshotDate = :snapshotDate
                               AND (:branchId IS NULL OR s.branchId = :branchId)
                               AND (:categoryId IS NULL OR s.productUnit.product.category.id = :categoryId)
                               AND (:brandId IS NULL OR s.productUnit.product.brand.id = :brandId)

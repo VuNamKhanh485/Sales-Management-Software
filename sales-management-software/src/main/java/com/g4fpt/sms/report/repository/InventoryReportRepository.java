@@ -21,7 +21,7 @@ public interface InventoryReportRepository extends JpaRepository<OrderTransactio
             FROM OrderTransaction ot
             JOIN OrderTransactionDetail otd ON otd.order_transaction_id = ot.id
             WHERE ot.transaction_type = 'IMPORT'
-              AND ot.status = 'RECEIVED'
+              AND ot.status = 'COMPLETED'
               AND ot.created_at BETWEEN :fromDate AND :toDate
 
             UNION ALL
@@ -87,7 +87,7 @@ public interface InventoryReportRepository extends JpaRepository<OrderTransactio
         FROM OrderTransactionDetail otd
         JOIN OrderTransaction ot ON ot.id = otd.order_transaction_id
         WHERE ot.transaction_type = 'IMPORT'
-          AND ot.status = 'RECEIVED'
+          AND ot.status = 'COMPLETED'
           AND ot.created_at <= :atDate
           AND (:branchId IS NULL OR ot.branch_id = :branchId)
           AND otd.id = (
@@ -96,7 +96,7 @@ public interface InventoryReportRepository extends JpaRepository<OrderTransactio
               JOIN OrderTransaction ot2 ON ot2.id = otd2.order_transaction_id
               WHERE otd2.product_unit_id = otd.product_unit_id
                 AND ot2.transaction_type = 'IMPORT'
-                AND ot2.status = 'RECEIVED'
+                AND ot2.status = 'COMPLETED'
                 AND ot2.created_at <= :atDate
                 AND (:branchId IS NULL OR ot2.branch_id = :branchId)
               ORDER BY ot2.created_at DESC

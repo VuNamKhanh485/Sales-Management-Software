@@ -98,6 +98,11 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         BigDecimal paidAmount = request.getPaidAmount() != null
                 ? request.getPaidAmount()
                 : finalAmount;
+        
+        if (paidAmount.compareTo(finalAmount) < 0) {
+            throw new RuntimeException("Số tiền khách đưa (" + paidAmount.longValue() + "đ) không được nhỏ hơn số tiền phải trả (" + finalAmount.longValue() + "đ)!");
+        }
+
         BigDecimal changeAmount = paidAmount.subtract(finalAmount).max(BigDecimal.ZERO);
 
         // Tạo OrderTransaction

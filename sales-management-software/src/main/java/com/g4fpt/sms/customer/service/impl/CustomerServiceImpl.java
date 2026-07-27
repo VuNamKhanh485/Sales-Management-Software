@@ -34,6 +34,9 @@ public class CustomerServiceImpl implements CustomerService {
         String email = dto.getEmail();
 
         if (phone != null && !phone.trim().isEmpty()) {
+            if (!phone.trim().matches("^\\d{10,11}$")) {
+                throw new RuntimeException("Số điện thoại chỉ được nhập số và phải từ 10-11 số!");
+            }
             boolean phoneExists = (id == null) 
                 ? customerRepository.existsByPhone(phone.trim()) 
                 : customerRepository.existsByPhoneAndIdNot(phone.trim(), id);
