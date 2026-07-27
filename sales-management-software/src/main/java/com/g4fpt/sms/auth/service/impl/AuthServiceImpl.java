@@ -4,6 +4,7 @@ import com.g4fpt.sms.auth.dto.SessionUser;
 import com.g4fpt.sms.auth.security.PasswordUtil;
 import com.g4fpt.sms.auth.service.AuthService;
 import com.g4fpt.sms.branch.entity.Branch;
+import com.g4fpt.sms.branch.entity.BranchStatus;
 import com.g4fpt.sms.employee.entity.Employee;
 import com.g4fpt.sms.employee.entity.Role;
 import com.g4fpt.sms.employee.repository.EmployeeRepository;
@@ -43,7 +44,7 @@ public class AuthServiceImpl implements AuthService {
             return Optional.empty();
         }
         
-        if (employee.getBranch() != null && employee.getBranch().getStatus() == com.g4fpt.sms.branch.entity.BranchStatus.INACTIVE) {
+        if (employee.getBranch() != null && employee.getBranch().getStatus() == BranchStatus.INACTIVE) {
             throw new IllegalStateException("Chi nhánh của bạn đã ngừng hoạt động.");
         }
 

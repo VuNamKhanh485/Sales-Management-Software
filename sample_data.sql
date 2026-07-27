@@ -10,8 +10,7 @@ INSERT INTO Role (id, code, name, description) VALUES
 (1,'OWNER','Chủ chuỗi','Toàn quyền quản lý toàn bộ hệ thống'),
 (2,'BRANCH_MANAGER','Quản lý chi nhánh','Quản lý nhân sự, báo cáo và hoạt động chi nhánh'),
 (3,'WAREHOUSE_STAFF','Nhân viên kho','Nhập hàng, xuất hàng, kiểm kê tồn kho'),
-(4,'SALE_STAFF','Nhân viên bán hàng','Bán hàng, đổi trả, quản lý khách hàng'),
-(5,'CASHIER','Thu ngân','Xem báo cáo bán hàng chi tiết, thu tiền');
+(4,'SALE_STAFF','Nhân viên bán hàng','Bán hàng, đổi trả, quản lý khách hàng');
 
 -- 2. BRANCH
 INSERT INTO Branch (id, branch_code, name, phone, email, address, status, opened_at, closed_at, note, created_at, updated_at) VALUES
@@ -33,8 +32,7 @@ INSERT INTO Employee (id,branch_id,role_id,manager_id,created_by,employee_code,f
 (7,1,4,2,1,'EMP007','Đinh Văn Giang','sale1.hn@winmart.vn','$2a$10$sX0QXo37M/khVqd85nG.IuWEPLGdcs735zCCMjfNufGpDmjL259Re','0907000007','5 Phan Chu Trinh, Hoàn Kiếm, Hà Nội','MALE','1999-03-17','2022-03-01',8000000.00,'ACTIVE',NULL,NOW(),NULL),
 (8,2,4,3,1,'EMP008','Võ Thị Hoa','sale1.hcm@winmart.vn','$2a$10$sX0QXo37M/khVqd85nG.IuWEPLGdcs735zCCMjfNufGpDmjL259Re','0908000008','12 Pasteur, Quận 3, TP.HCM','FEMALE','2000-07-25','2022-08-15',8000000.00,'ACTIVE',NULL,NOW(),NULL),
 (9,3,4,4,1,'EMP009','Bùi Văn Ích','sale1.dn@winmart.vn','$2a$10$sX0QXo37M/khVqd85nG.IuWEPLGdcs735zCCMjfNufGpDmjL259Re','0909000009','8 Hùng Vương, Hải Châu, Đà Nẵng','MALE','1998-12-01','2023-04-01',8000000.00,'ACTIVE',NULL,NOW(),NULL),
-(10,1,5,2,1,'EMP010','Lý Thị Kim','cashier1.hn@winmart.vn','$2a$10$sX0QXo37M/khVqd85nG.IuWEPLGdcs735zCCMjfNufGpDmjL259Re','0910000010','3 Lê Lợi, Hoàn Kiếm, Hà Nội','FEMALE','2001-04-08','2022-04-01',7500000.00,'ACTIVE',NULL,NOW(),NULL),
-(11,2,5,3,1,'EMP011','Phan Văn Long','cashier1.hcm@winmart.vn','$2a$10$sX0QXo37M/khVqd85nG.IuWEPLGdcs735zCCMjfNufGpDmjL259Re','0911000011','18 Trần Hưng Đạo, Quận 1, TP.HCM','MALE','2000-10-19','2022-09-01',7500000.00,'ACTIVE',NULL,NOW(),NULL),
+
 (12,3,3,4,1,'EMP012','Đoàn Thị Mai','warehouse1.dn@winmart.vn','$2a$10$sX0QXo37M/khVqd85nG.IuWEPLGdcs735zCCMjfNufGpDmjL259Re','0912000012','22 Lê Duẩn, Hải Châu, Đà Nẵng','FEMALE','1996-01-15','2023-05-01',10000000.00,'INACTIVE','Đã nghỉ việc',NOW(),NOW());
 
 -- 4. CUSTOMER RANK
@@ -47,9 +45,9 @@ INSERT INTO CustomerRank (id,name,discount_rate,condition_total_revenue,descript
 -- 5. CUSTOMER (15 khách hàng)
 INSERT INTO Customer (id,customer_rank_id,created_by,updated_by,customer_code,full_name,phone,email,gender,dob,address,total_point,used_point,total_revenue,status,note,created_at,updated_at) VALUES
 (1, 1,7,NULL,'KH001','Nguyễn Thị Anh',   '0981001001','anh.nguyen@gmail.com',  'FEMALE','1995-03-12','4 Hàng Bài, Hoàn Kiếm, Hà Nội',      68,  0,   680000.00,'ACTIVE',NULL,NOW(),NULL),
-(2, 2,7,NULL,'KH002','Trần Văn Bảo',     '0982001002','bao.tran@yahoo.com',    'MALE',  '1988-07-20','9 Đinh Lễ, Hoàn Kiếm, Hà Nội',        320, 50, 3200000.00,'ACTIVE',NULL,NOW(),NULL),
+(2, 2,7,NULL,'KH002','Trần Văn Bảo',     '0982001002','bao.tran@yahoo.com',    'MALE',  '1988-07-20','9 Đinh Lễ, Hoàn Kiếm, Hà Nội',        320, 50, 94185000.00,'ACTIVE',NULL,NOW(),NULL),
 (3, 3,8,NULL,'KH003','Lê Thị Cẩm',       '0983001003','cam.le@outlook.com',    'FEMALE','1992-11-05','7 Đồng Khởi, Quận 1, TP.HCM',          750,100, 7500000.00,'ACTIVE',NULL,NOW(),NULL),
-(4, 4,8,   8,'KH004','Phạm Văn Dũng',    '0984001004','dung.pham@gmail.com',   'MALE',  '1985-01-30','33 Pasteur, Quận 1, TP.HCM',           2200,300,22000000.00,'ACTIVE',NULL,NOW(),NOW()),
+(4, 4,8,   8,'KH004','Phạm Văn Dũng',    '0984001004','dung.pham@gmail.com',   'MALE',  '1985-01-30','33 Pasteur, Quận 1, TP.HCM',           2200,300,310850000.00,'ACTIVE',NULL,NOW(),NOW()),
 (5, 1,9,NULL,'KH005','Hoàng Thị Em',     '0985001005',NULL,                    'FEMALE','2000-06-18','15 Hùng Vương, Đà Nẵng',               65,  0,   650000.00,'ACTIVE',NULL,NOW(),NULL),
 (6, 1,7,NULL,'KH006','Vũ Văn Phúc',      '0986001006','phuc.vu@gmail.com',     'MALE',  '1998-09-22','20 Bà Triệu, Hai Bà Trưng, Hà Nội',   180, 0,  1800000.00,'ACTIVE',NULL,NOW(),NULL),
 (7, 1,8,NULL,'KH007','Đặng Thị Giang',   '0987001007',NULL,                    'FEMALE','2003-02-14','55 Đinh Tiên Hoàng, Quận 1, TP.HCM',  35,  0,   350000.00,'INACTIVE','Đã yêu cầu xóa tài khoản',NOW(),NOW()),
@@ -226,14 +224,14 @@ INSERT INTO OrderTransaction (id,branch_id,customer_id,voucher_id,supplier_id,pa
 (13,1,NULL,NULL,NULL,NULL,2,NULL,'TRF-20250801-001',0.00,0.00,NULL,NULL,0.00,0.00,0.00,'COMPLETED','TRANSFER',1,3,'Chuyển hàng mì & snack sang CN003 Đà Nẵng','2025-08-01 07:00:00','2025-08-01 17:00:00'),
 (14,2,12,  4,   NULL,6,8,NULL,'ORD-20250815-001',1912000.00,150000.00,0,0.00,1762000.00,1762000.00,0.00,'REFUNDED','SALE',NULL,NULL,NULL,'2025-08-15 11:00:00','2025-08-15 11:05:00'),
 (15,2,12,  NULL,NULL,2,8,14, 'RET-20250816-001',140000.00,0.00,NULL,NULL,140000.00,0.00,0.00,'COMPLETED','RETURN',NULL,NULL,'Hoàn tiền lốc sữa Vinamilk bị phình nắp','2025-08-16 09:00:00','2025-08-16 09:30:00'),
-(16,1,2,   6,   NULL,1,7,NULL,'ORD-20250901-001',390000.00,15000.00,0,0.00,375000.00,380000.00,5000.00,'COMPLETED','SALE',NULL,NULL,NULL,'2025-09-01 10:00:00','2025-09-01 10:05:00'),
+(16,1,2,   6,   NULL,1,7,NULL,'ORD-20250901-001',91000000.00,15000.00,0,0.00,90985000.00,90985000.00,0.00,'COMPLETED','SALE',NULL,NULL,NULL,'2025-09-01 10:00:00','2025-09-01 10:05:00'),
 (17,3,13,  3,   NULL,4,9,NULL,'ORD-20250915-001',395000.00,50000.00,0,0.00,345000.00,345000.00,0.00,'COMPLETED','SALE',NULL,NULL,NULL,'2025-09-15 14:00:00','2025-09-15 14:05:00'),
 -- ==== 2025 Q4 ====
 (18,2,NULL,NULL,3,2,6,NULL,'IMP-20251001-001',22600000.00,0.00,NULL,NULL,22600000.00,22600000.00,0.00,'COMPLETED','IMPORT',NULL,NULL,'Nhập hàng Masan Consumer tháng 10/2025','2025-10-01 08:00:00','2025-10-01 08:30:00'),
 (19,2,3,   3,   NULL,2,8,NULL,'ORD-20251015-001',446000.00,50000.00,0,0.00,396000.00,396000.00,0.00,'COMPLETED','SALE',NULL,NULL,NULL,'2025-10-15 14:00:00','2025-10-15 14:05:00'),
 (20,1,NULL,NULL,NULL,1,7,NULL,'ORD-20251101-001',76000.00,0.00,NULL,NULL,76000.00,80000.00,4000.00,'COMPLETED','SALE',NULL,NULL,NULL,'2025-11-01 09:00:00','2025-11-01 09:05:00'),
 (21,3,15,  6,   NULL,5,9,NULL,'ORD-20251115-001',355000.00,15000.00,0,0.00,340000.00,340000.00,0.00,'COMPLETED','SALE',NULL,NULL,NULL,'2025-11-15 15:00:00','2025-11-15 15:05:00'),
-(22,1,4,   4,   NULL,3,7,NULL,'ORD-20251201-001',1445000.00,150000.00,0,0.00,1295000.00,1295000.00,0.00,'COMPLETED','SALE',NULL,NULL,NULL,'2025-12-01 16:00:00','2025-12-01 16:05:00'),
+(22,1,4,   4,   NULL,3,7,NULL,'ORD-20251201-001',289000000.00,150000.00,0,0.00,288850000.00,288850000.00,0.00,'COMPLETED','SALE',NULL,NULL,NULL,'2025-12-01 16:00:00','2025-12-01 16:05:00'),
 (23,2,11,  6,   NULL,6,8,NULL,'ORD-20251215-001',581000.00,15000.00,0,0.00,566000.00,566000.00,0.00,'COMPLETED','SALE',NULL,NULL,NULL,'2025-12-15 15:00:00','2025-12-15 15:05:00'),
 -- ==== 2026 Q1 ====
 (24,2,NULL,NULL,4,2,6,NULL,'IMP-20260101-001',19500000.00,0.00,NULL,NULL,19500000.00,19500000.00,0.00,'COMPLETED','IMPORT',NULL,NULL,'Nhập hàng Unilever đầu năm 2026','2026-01-01 08:00:00','2026-01-01 08:30:00'),
@@ -304,8 +302,8 @@ INSERT INTO OrderTransactionDetail (id,order_transaction_id,product_unit_id,quan
 -- Order 15 RET-20250816 KH012 (trả lốc sữa)
 (35,15,13,1,140000.00,NULL,0.00,140000.00,'2025-08-16 09:00:00'),
 -- Order 16 ORD-20250901 KH002 Silver5
-(36,16,2, 2,130000.00,NULL,10000.00,250000.00,'2025-09-01 10:00:00'),
-(37,16,14,5, 26000.00,NULL, 5000.00,125000.00,'2025-09-01 10:00:00'),
+(36,16,2, 500,130000.00,NULL,10000.00,65000000.00,'2025-09-01 10:00:00'),
+(37,16,14,1000, 26000.00,NULL, 5000.00,26000000.00,'2025-09-01 10:00:00'),
 -- Order 17 ORD-20250915 KH013 Gold15
 (38,17,2, 2,130000.00,NULL,25000.00,235000.00,'2025-09-15 14:00:00'),
 (39,17,20,3, 45000.00,NULL,25000.00,110000.00,'2025-09-15 14:00:00'),
@@ -325,9 +323,9 @@ INSERT INTO OrderTransactionDetail (id,order_transaction_id,product_unit_id,quan
 (49,21,11, 3,55000.00,NULL,5000.00,160000.00,'2025-11-15 15:00:00'),
 (50,21,22, 3,30000.00,NULL,5000.00, 85000.00,'2025-11-15 15:00:00'),
 -- Order 22 ORD-20251201 KH004 Diamond
-(51,22,21,5,155000.00,NULL,50000.00,725000.00,'2025-12-01 16:00:00'),
-(52,22,18,5, 89000.00,NULL,50000.00,395000.00,'2025-12-01 16:00:00'),
-(53,22,20,5, 45000.00,NULL,50000.00,175000.00,'2025-12-01 16:00:00'),
+(51,22,21,1000,155000.00,NULL,50000.00,155000000.00,'2025-12-01 16:00:00'),
+(52,22,18,1000, 89000.00,NULL,50000.00,89000000.00,'2025-12-01 16:00:00'),
+(53,22,20,1000, 45000.00,NULL,50000.00,45000000.00,'2025-12-01 16:00:00'),
 -- Order 23 ORD-20251215 KH011 Silver5
 (54,23,8, 2,228000.00,NULL,10000.00,446000.00,'2025-12-15 15:00:00'),
 (55,23,15,5, 25000.00,NULL, 5000.00,120000.00,'2025-12-15 15:00:00'),
@@ -405,12 +403,12 @@ INSERT INTO CashbookTransaction (id,branch_id,transaction_type,payment_method,am
 (13,2,'IN', 'BANK',   545000.00,'ORD-20250715-001','Thu tiền bán sữa, cà phê - KH009',        8,'2025-07-15 16:05:00','COMPLETED'),
 (14,2,'IN', 'BANK',  1762000.00,'ORD-20250815-001','Thu tiền bán bulk - KH012 (Kim Cương)',   8,'2025-08-15 11:05:00','COMPLETED'),
 (15,1,'OUT','BANK',  3000000.00,'tiendienthang8',   'Thanh toán tiền điện CN001 tháng 8/2025',2,'2025-08-05 09:00:00','COMPLETED'),
-(16,1,'IN', 'CASH',   375000.00,'ORD-20250901-001','Thu tiền bán mì & sữa đặc - KH002',       7,'2025-09-01 10:05:00','COMPLETED'),
+(16,1,'IN', 'CASH',   90985000.00,'ORD-20250901-001','Thu tiền bán mì & sữa đặc - KH002',       7,'2025-09-01 10:05:00','COMPLETED'),
 (17,3,'IN', 'MOMO',   345000.00,'ORD-20250915-001','Thu tiền bán mì & Sunlight - KH013',      9,'2025-09-15 14:05:00','COMPLETED'),
 (18,2,'OUT','BANK', 22600000.00,'IMP-20251001-001','Thanh toán nhập Masan tháng 10/2025',     6,'2025-10-01 08:30:00','COMPLETED'),
 (19,2,'IN', 'BANK',   396000.00,'ORD-20251015-001','Thu tiền bán gia vị & sữa - KH003',       8,'2025-10-15 14:05:00','COMPLETED'),
 (20,1,'IN', 'CASH',    76000.00,'ORD-20251101-001','Thu tiền bán snack & xà phòng',            7,'2025-11-01 09:05:00','COMPLETED'),
-(21,1,'IN', 'BANK',  1295000.00,'ORD-20251201-001','Thu tiền bán bulk - KH004 (Kim Cương)',   7,'2025-12-01 16:05:00','COMPLETED'),
+(21,1,'IN', 'BANK',  288850000.00,'ORD-20251201-001','Thu tiền bán bulk - KH004 (Kim Cương)',   7,'2025-12-01 16:05:00','COMPLETED'),
 (22,1,'OUT','BANK', 55000000.00,'luongnvthang12',   'Thanh toán lương CN001 tháng 12/2025',   2,'2025-12-31 17:00:00','COMPLETED'),
 (23,2,'IN', 'BANK',   566000.00,'ORD-20251215-001','Thu tiền bán Coca & bánh - KH011',        8,'2025-12-15 15:05:00','COMPLETED'),
 (24,2,'OUT','BANK', 19500000.00,'IMP-20260101-001','Thanh toán nhập Unilever đầu 2026',        6,'2026-01-01 08:30:00','COMPLETED'),

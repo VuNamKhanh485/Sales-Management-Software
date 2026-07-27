@@ -19,6 +19,7 @@ import com.g4fpt.sms.product.service.ProductUnitService;
 import com.g4fpt.sms.product.util.ProductSpecification;
 import com.g4fpt.sms.product.util.ValidationError;
 import lombok.AllArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -65,7 +66,25 @@ public class ProductServiceImpl implements ProductService {
         product.setProductUnits(
                 productUnitService.productUnitSync(productRequest.getProductUnitsRequest(),
                         product));
-        productRepository.save(product);
+        try {
+            productRepository.save(product);
+        } catch (DataIntegrityViolationException e) {
+            String message = e.getMostSpecificCause().getMessage();
+
+            if (message != null && message.contains("productunit.barcode_unit")) {
+                throw new ValidationException(
+                        List.of(new ValidationError("productUnitsRequest", "Barcode is existed"))
+                );
+            }
+
+            if (message != null && message.contains("productunit.sku")) {
+                throw new ValidationException(
+                        List.of(new ValidationError("productUnitsRequest", "Sku is existed"))
+                );
+            }
+
+            throw e;
+        }
     }
 
     @Transactional
@@ -89,7 +108,25 @@ public class ProductServiceImpl implements ProductService {
         product.setProductUnits(
                 productUnitService.productUnitSync(productRequest.getProductUnitsRequest(),
                         product));
-        productRepository.save(product);
+        try {
+            productRepository.save(product);
+        } catch (DataIntegrityViolationException e) {
+            String message = e.getMostSpecificCause().getMessage();
+
+            if (message != null && message.contains("productunit.barcode_unit")) {
+                throw new ValidationException(
+                        List.of(new ValidationError("productUnitsRequest", "Barcode is existed"))
+                );
+            }
+
+            if (message != null && message.contains("productunit.sku")) {
+                throw new ValidationException(
+                        List.of(new ValidationError("productUnitsRequest", "Sku is existed"))
+                );
+            }
+
+            throw e;
+        }
     }
 
     @Override

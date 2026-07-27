@@ -45,7 +45,9 @@
 
                     <div class="form-group">
                         <label class="form-label">Số điện thoại <span class="required-mark">*</span></label>
-                        <input type="text" class="form-input" th:field="*{phone}" required>
+                        <input type="text" class="form-input" th:field="*{phone}" required pattern="\d{10,11}" 
+                               oninvalid="this.setCustomValidity('Số điện thoại chỉ được chứa chữ số và phải từ 10-11 số')"
+                               oninput="this.setCustomValidity('')">
                     </div>
 
                     <div class="form-group">

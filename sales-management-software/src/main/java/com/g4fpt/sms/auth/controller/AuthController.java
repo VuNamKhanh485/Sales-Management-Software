@@ -63,7 +63,7 @@ public class AuthController {
         }
 
         if (sessionUser.hasRole("BRANCH_MANAGER")) {
-            return "redirect:/inventory";
+            return "redirect:/dashboard";
         }
 
         if (sessionUser.hasRole("WAREHOUSE_STAFF")) {

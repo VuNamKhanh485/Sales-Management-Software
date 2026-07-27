@@ -367,8 +367,9 @@
                                 Tiền khách đưa
                             </label>
                             <input type="number" name="givenAmount" id="givenAmount"
-                                class="form-control form-control-sm" th:value="${cart.finalAmount.intValue()}" min="0" step="any"
-                                oninput="calcChange()">
+                                class="form-control form-control-sm" th:value="${cart.finalAmount.intValue()}" th:min="${cart.finalAmount.intValue()}" step="any"
+                                oninvalid="this.setCustomValidity('Số tiền khách đưa không được nhỏ hơn số tiền khách phải trả')"
+                                oninput="this.setCustomValidity(''); calcChange()">
                             <div class="d-flex flex-wrap gap-1 mt-1" id="amountSuggestions"></div>
                         </div>
 
