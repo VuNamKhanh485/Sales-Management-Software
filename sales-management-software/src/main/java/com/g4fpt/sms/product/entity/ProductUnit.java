@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * @author Nam Khanh
  */
 @Entity
-@Table(name = "ProductUnit")
+@Table(name = "productunit")
 @Getter
 @Setter
 @AllArgsConstructor

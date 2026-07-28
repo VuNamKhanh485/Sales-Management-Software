@@ -10,6 +10,7 @@ import com.g4fpt.sms.payment.entity.CashbookTransaction;
 import com.g4fpt.sms.payment.service.CashbookService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -154,7 +155,7 @@ public class CashbookController {
             } else {
                 redirectAttributes.addFlashAttribute("successMessage", "Tạo phiếu thu/chi thành công! Chờ duyệt.");
             }
-        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Số tiền nhập vào quá lớn hoặc dữ liệu không hợp lệ, vui lòng kiểm tra lại.");
             return "redirect:/cashbook/create";
         } catch (Exception e) {
