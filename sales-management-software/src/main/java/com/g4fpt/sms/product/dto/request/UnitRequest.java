@@ -1,7 +1,6 @@
 package com.g4fpt.sms.product.dto.request;
 
 import com.g4fpt.sms.product.enums.UnitStatus;
-import com.g4fpt.sms.product.service.impl.UnitServiceImpl;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
