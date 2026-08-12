@@ -25,6 +25,7 @@ public class ProductRequest {
     private String name;
     private MultipartFile imageFile;
     private String imageName;
+    @Size(max = 255, message = "Mô tả không được vượt quá 255 ký tự")
     private String description;
     @NotNull(message = "Status is required")
     private ProductStatus status;
